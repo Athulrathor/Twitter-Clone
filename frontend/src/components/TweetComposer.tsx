@@ -84,7 +84,7 @@ const TweetComposer = ({ onTweetPosted }: any) => {
                     className="p-2 rounded-full hover:bg-blue-900/20 cursor-pointer"
                   >
                     
-                    <Image className="h-5 w-5" src={imageurl} alt="Uploaded" />
+                    <Image className="h-5 w-5" />
                     <input
                       type="file"
                       accept="image/*"

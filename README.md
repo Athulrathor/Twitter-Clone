@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Twitter Clone
 
 A full-stack social media application inspired by Twitter, built with **Next.js** for the frontend and **Express + MongoDB** for the backend.
@@ -108,3 +109,6 @@ npm run build
 
 - The Firebase configuration is currently included in the frontend code for authentication setup.
 - If you are using MongoDB Atlas, replace the `MONOGDB_URL` value with your database connection string.
+=======
+# Twitter-Clone
+>>>>>>> f82b642dda1e7d028ddb55e44eac49a239280564
