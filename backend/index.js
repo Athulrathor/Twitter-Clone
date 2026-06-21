@@ -9,7 +9,7 @@ import Payment from "./models/payment.js";
 import Subscription from "./models/subcriptions.js";
 import crypto from "crypto";
 import Rzp from "./libs/paymentRazorpay.js";
-import {generateInvoice} from "./libs/generateInvoice.js.js";
+import {generateInvoice} from "./libs/generateInvoice.js";
 import {uploadInvoice} from "./libs/uploadInvoice.js";
 import {sendSubscriptionEmail} from "./libs/email.js";
 import isPaymentAllowed from "./libs/payment-time.js";
@@ -18,7 +18,7 @@ dotenv.config();
 const app = express();
 app.use(
   cors({
-    origin: ["http://localhost:3000", process.env.FRONTEND_URL],
+    origin: [ process.env.FRONTEND_URL,"http://localhost:3000"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
