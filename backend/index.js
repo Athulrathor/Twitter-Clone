@@ -9,7 +9,7 @@ import Payment from "./models/payment.js";
 import Subscription from "./models/subcriptions.js";
 import crypto from "crypto";
 import Rzp from "./libs/paymentRazorpay.js";
-import {generateInvoice} from "./libs/generateinvoice.js";
+import {generateInvoice} from "./libs/generateInvoice.js.js";
 import {uploadInvoice} from "./libs/uploadInvoice.js";
 import {sendSubscriptionEmail} from "./libs/email.js";
 import isPaymentAllowed from "./libs/payment-time.js";
