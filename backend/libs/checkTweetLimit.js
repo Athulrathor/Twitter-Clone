@@ -37,11 +37,9 @@ export async function checkTweetLimit(
     ];
 
   const tweetCount =
-    await Tweet.count({
-      where: {
-        authorId: userId,
-      },
-    });
+  await Tweet.countDocuments({
+    author: userId,
+  });
 
   if (
     limit !== Infinity &&
