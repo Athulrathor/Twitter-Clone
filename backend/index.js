@@ -18,7 +18,7 @@ dotenv.config();
 const app = express();
 app.use(
   cors({
-    origin: [ process.env.FRONTEND_URL,"http://localhost:3000"],
+    origin: [ "http://localhost:3000"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -99,34 +99,41 @@ app.patch("/userupdate/:email", async (req, res) => {
 // POST
 app.post("/post", async (req, res) => {
   try {
+    const userId = req.body.author;
+
+    const result = await checkTweetLimit(userId);
+
+    if (!result.allowed) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Tweet limit reached. Upgrade your plan.",
+      });
+    }
+
     const tweet = new Tweet(req.body);
+
     await tweet.save();
+
     return res.status(201).send(tweet);
   } catch (error) {
-    return res.status(400).send({ error: error.message });
+    return res.status(400).send({
+      error: error.message,
+    });
   }
 });
 // get all tweet
 app.get("/post", async (req, res) => {
   try {
-    const result = await checkTweetLimit(user.id);
+    const tweets = await Tweet.find()
+      .sort({ timestamp: -1 })
+      .populate("author");
 
-    if (!result.allowed) {
-      return res.status(403).json(
-        {
-          success: false,
-          message: "Tweet limit reached. Upgrade your plan.",
-        },
-        // { status: 403 },
-      );
-    } else {
-      const tweet = await Tweet.find()
-        .sort({ timestamp: -1 })
-        .populate("author");
-      return res.status(200).send(tweet);
-    }
+    return res.status(200).send(tweets);
   } catch (error) {
-    return res.status(400).send({ error: error.message });
+    return res.status(400).send({
+      error: error.message,
+    });
   }
 });
 //  LIKE TWEET
