@@ -12,18 +12,13 @@ export async function checkTweetLimit(
   userId
 ) {
   const subscription =
-    await Subscription.findFirst({
-      where: {
-        userId,
-        isActive: true,
-        endDate: {
-          gt: new Date(),
-        },
-      },
-      include: {
-        plan: true,
-      },
-    });
+  await Subscription.findOne({
+    userId,
+    isActive: true,
+    endDate: {
+      $gt: new Date(),
+    },
+  }).populate("planId");
 
   const PLAN_LIMITS = {
     FREE: 1,
