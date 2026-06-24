@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
+import { AuthProvider } from "@/context/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,24 +15,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'X Clone - Social Media Platform',
-  description: 'A modern Twitter clone built with Next.js ',
-   icons: {
-    icon:"/favicon.ico",
-  },
+  title: "X Clone - Social Media Platform",
+  description: "A modern Twitter clone built with Next.js",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+<Script
+  src="https://checkout.razorpay.com/v1/checkout.js"
+  strategy="afterInteractive"
+/>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

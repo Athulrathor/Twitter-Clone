@@ -6,7 +6,7 @@ const PlanSchema = mongoose.Schema({
   price: { type: Number, required: true },
   duration: { type: String, required: true },
   features: { type: [String], default: [] },
-  limit: { type: Number, default:0 },
+  limit: { type: Number },
 });
 
 export default mongoose.model("Plan", PlanSchema);

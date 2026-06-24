@@ -5,6 +5,9 @@ import LoadingSpinner from "./loading-spinner";
 import TweetCard from "./TweetCard";
 import TweetComposer from "./TweetComposer";
 import axiosInstance from "@/lib/axiosInstance";
+import { Button } from "./ui/button";
+import Link from "next/link";
+import {useAuth} from "@/context/AuthContext";
 
 interface Tweet {
   id: string;
@@ -88,6 +91,7 @@ const tweets: Tweet[] = [
 const Feed = () => {
   const [tweets, setTweets] = useState<any>([]);
   const [loading, setloading] = useState(false);
+  const {user} = useAuth();
   const fetchTweets = async () => {
     try {
       setloading(true);
@@ -108,8 +112,15 @@ const Feed = () => {
   return (
     <div className="min-h-screen w-full pb-20 md:pb-0">
       <div className="sticky top-0 bg-black/90 backdrop-blur-md border-b border-gray-800 z-10">
-        <div className="px-4 py-3">
+        <div className="px-4 py-3 flex gap-4">
           <h1 className="text-xl font-bold text-white">Home</h1>
+          <div className="hidden max-sm:flex">
+          <Link href={`/subscriptions/${user?._id}`}>
+            <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-full">
+              Subscribe Now
+            </Button>
+          </Link>
+        </div>
         </div>
 
         <Tabs defaultValue="foryou" className="w-full">

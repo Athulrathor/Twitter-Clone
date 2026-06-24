@@ -6,7 +6,7 @@ export const sendSubscriptionEmail = async ({
   planName,
   amount,
   invoiceNumber,
-  invoiceUrl,
+  invoicePath,
   expiryDate,
 }) => {
   const transporter = nodemailer.createTransport({
@@ -35,13 +35,13 @@ export const sendSubscriptionEmail = async ({
         <li><strong>Expiry Date:</strong> ${expiryDate.toDateString()}</li>
       </ul>
 
-      <p>
-        <a href="${invoiceUrl}">
-          Download Invoice
-        </a>
-      </p>
-
       <p>Thank you for choosing our platform.</p>
     `,
+  attachments: [
+    {
+      filename: `${invoiceNumber}.pdf`,
+      path: invoicePath,
+    },
+  ],
   });
 };

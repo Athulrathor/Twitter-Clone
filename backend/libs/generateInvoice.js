@@ -58,13 +58,13 @@ export const generateInvoice = async ({
 
   doc.moveDown();
 
-  doc.text(`Customer: ${user.name}`);
+  doc.text(`Customer: ${user.displayName}`);
   doc.text(`Email: ${user.email}`);
 
   doc.moveDown();
 
   doc.text(`Plan: ${plan.name}`);
-  doc.text(`Amount: ₹${payment.amount}`);
+  doc.text(`Amount: ${payment.amount}`);
 
   doc.moveDown();
 

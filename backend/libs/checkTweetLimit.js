@@ -8,11 +8,8 @@ const PLAN_LIMITS = {
   Gold: Infinity,
 };
 
-export async function checkTweetLimit(
-  userId
-) {
-  const subscription =
-  await Subscription.findOne({
+export async function checkTweetLimit(userId) {
+  const subscription = await Subscription.findOne({
     userId,
     isActive: true,
     endDate: {
@@ -20,31 +17,15 @@ export async function checkTweetLimit(
     },
   }).populate("planId");
 
-  const PLAN_LIMITS = {
-    FREE: 1,
-    BRONZE: 3,
-    SILVER: 5,
-    GOLD: Infinity,
-  };
+  const planName = subscription?.planId?.name ?? "Free";
 
-  const planName =
-    subscription?.plan?.name?.toUpperCase() ??
-    "FREE";
+  const limit = subscription?.planId?.limit ?? 1;
 
-  const limit =
-    PLAN_LIMITS[
-      planName
-    ];
-
-  const tweetCount =
-  await Tweet.countDocuments({
+  const tweetCount = await Tweet.countDocuments({
     author: userId,
   });
 
-  if (
-    limit !== Infinity &&
-    tweetCount >= limit
-  ) {
+  if (limit !== Infinity && tweetCount >= limit) {
     return {
       allowed: false,
       plan: planName,
