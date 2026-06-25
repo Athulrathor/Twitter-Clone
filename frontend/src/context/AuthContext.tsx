@@ -31,7 +31,7 @@ interface AuthContextType {
     email: string,
     password: string,
     username: string,
-    displayName: string
+    displayName: string,
   ) => Promise<void>;
   updateProfile: (profileData: {
     displayName: string;
@@ -62,87 +62,106 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing session
-    const unsubcribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser?.email) {
-        try {
-          const res = await axiosInstance.get("/loggedinuser", {
-            params: { email: firebaseUser.email },
-          });
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      try {
+        if (firebaseUser) {
+          const idToken = await firebaseUser.getIdToken();
 
-          if (res.data) {
-            setUser(res.data);
-            localStorage.setItem("twitter-user", JSON.stringify(res.data));
-          }
-        } catch (err) {
-          console.log("Failed to fetch user:", err);
+          const res = await axiosInstance.post(
+            "/firebase/login",
+            { idToken },
+            {
+              withCredentials: true,
+            },
+          );
+
+          setUser(res.data.user);
+
+          localStorage.setItem("twitter-user", JSON.stringify(res.data.user));
+        } else {
+          setUser(null);
+
+          localStorage.removeItem("twitter-user");
         }
-      } else {
-        setUser(null);
-        localStorage.removeItem("twitter-user");
+      } catch (err) {
+        console.error("Auth restore failed:", err);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     });
-    return () => unsubcribe();
+
+    return () => unsubscribe();
   }, []);
 
   const login = async (email: string, password: string) => {
-    setIsLoading(true);
-    // Mock authentication - in real app, this would call an API
-    const usercred = await signInWithEmailAndPassword(auth, email, password);
-    const firebaseuser = usercred.user;
-    const res = await axiosInstance.get("/loggedinuser", {
-      params: { email: firebaseuser.email },
-    });
-    if (res.data) {
-      setUser(res.data);
-      localStorage.setItem("twitter-user", JSON.stringify(res.data));
+    try {
+      setIsLoading(true);
+
+      const usercred = await signInWithEmailAndPassword(auth, email, password);
+
+      const idToken = await usercred.user.getIdToken();
+
+      const res = await axiosInstance.post(
+        "/firebase/login",
+        { idToken },
+        {
+          withCredentials: true,
+        },
+      );
+
+      setUser(res.data.user);
+
+      localStorage.setItem("twitter-user", JSON.stringify(res.data.user));
+    } catch (error) {
+      console.error(error);
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
-    // const mockUser: User = {
-    //   id: '1',
-    //   username: 'johndoe',
-    //   displayName: 'John Doe',
-    //   avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=400',
-    //   bio: 'Software developer passionate about building great products',
-    //   joinedDate: 'April 2024'
-    // };
-    setIsLoading(false);
   };
 
   const signup = async (
     email: string,
     password: string,
     username: string,
-    displayName: string
+    displayName: string,
   ) => {
-    setIsLoading(true);
+    try {
+      setIsLoading(true);
     // Mock authentication - in real app, this would call an API
     const usercred = await createUserWithEmailAndPassword(
       auth,
       email,
-      password
+      password,
     );
     const user = usercred.user;
     const newuser: any = {
       username,
       displayName,
-      avatar: user.photoURL || "https://images.pexels.com/photos/1139743/pexels-photo-1139743.jpeg?auto=compress&cs=tinysrgb&w=400",
+      avatar:
+        user.photoURL ||
+        "https://images.pexels.com/photos/1139743/pexels-photo-1139743.jpeg?auto=compress&cs=tinysrgb&w=400",
       email: user.email,
     };
-    const res = await axiosInstance.post("/register", newuser);
+    const idToken = await user.getIdToken();
+
+    const res = await axiosInstance.post(
+      "/firebase/login",
+      { idToken },
+      {
+        withCredentials: true,
+      },
+    );
     if (res.data) {
-      setUser(res.data);
-      localStorage.setItem("twitter-user", JSON.stringify(res.data));
+      setUser(res.data.user);
+      localStorage.setItem("twitter-user", JSON.stringify(res.data.user));
     }
-    // const mockUser: User = {
-    //   id: '1',
-    //   username,
-    //   displayName,
-    //   avatar: 'https://images.pexels.com/photos/1139743/pexels-photo-1139743.jpeg?auto=compress&cs=tinysrgb&w=400',
-    //   bio: '',
-    //   joinedDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-    // };
     setIsLoading(false);
+    } catch (err) {
+        console.error("Auth signup failed:", err);
+      } finally {
+        setIsLoading(false);
+      }
   };
 
   const logout = async () => {
@@ -170,7 +189,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
     const res = await axiosInstance.patch(
       `/userupdate/${user.email}`,
-      updatedUser
+      updatedUser,
     );
     if (res.data) {
       setUser(updatedUser);
@@ -180,48 +199,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsLoading(false);
   };
   const googlesignin = async () => {
-    setIsLoading(true);
-
     try {
-      const googleauthprovider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, googleauthprovider);
-      const firebaseuser = result.user;
+      setIsLoading(true);
 
-      if (!firebaseuser?.email) {
-        throw new Error("No email found in Google account");
+      const result = await signInWithPopup(auth, new GoogleAuthProvider());
+
+      const idToken = await result.user.getIdToken();
+
+      const res = await axiosInstance.post(
+        "/firebase/login",
+        { idToken },
+        {
+          withCredentials: true,
+        },
+      );
+
+      setUser(res.data.user);
+
+      localStorage.setItem("twitter-user", JSON.stringify(res.data.user));
+    } catch (err) {
+        console.error("Auth signup failed:", err);
+      } finally {
+        setIsLoading(false);
       }
-
-      let userData;
-
-      try {
-        const res = await axiosInstance.get("/loggedinuser", {
-          params: { email: firebaseuser.email },
-        });
-        userData = res.data;
-      } catch (err: any) {
-        const newuser: any = {
-          username: firebaseuser.email.split("@")[0],
-          displayName: firebaseuser.displayName || "User",
-          avatar: firebaseuser.photoURL || "https://images.pexels.com/photos/1139743/pexels-photo-1139743.jpeg?auto=compress&cs=tinysrgb&w=400",
-          email: firebaseuser.email,
-        };
-
-        const registerRes = await axiosInstance.post("/register", newuser);
-        userData = registerRes.data;
-      }
-
-      if (userData) {
-        setUser(userData);
-        localStorage.setItem("twitter-user", JSON.stringify(userData));
-      } else {
-        throw new Error("Login/Register failed: No user data returned");
-      }
-    } catch (error: any) {
-      console.error("Google Sign-In Error:", error);
-      alert(error.response?.data?.message || error.message || "Login failed");
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   return (

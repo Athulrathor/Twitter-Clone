@@ -9,16 +9,19 @@ import Payment from "./models/payment.js";
 import Subscription from "./models/subcriptions.js";
 import crypto from "crypto";
 import Rzp from "./libs/paymentRazorpay.js";
-import {generateInvoice} from "./libs/generateInvoice.js";
-import {uploadInvoice} from "./libs/uploadInvoice.js";
-import {sendSubscriptionEmail} from "./libs/email.js";
+import { generateInvoice } from "./libs/generateInvoice.js";
+import { uploadInvoice } from "./libs/uploadInvoice.js";
+import { sendSubscriptionEmail } from "./libs/email.js";
 import isPaymentAllowed from "./libs/payment-time.js";
-import {checkTweetLimit} from "./libs/checkTweetLimit.js";
+import { checkTweetLimit } from "./libs/checkTweetLimit.js";
+import { signBcrypt } from "./libs/bcrypt.js";
+import rateLimit from "express-rate-limit";
+import { fireAuth } from "./libs/firebaseAdmin.js";
 dotenv.config();
 const app = express();
 app.use(
   cors({
-    origin: [ process.env.FRONTEND_URL,"http://localhost:3000"],
+    origin: [process.env.FRONTEND_URL, "http://localhost:3000"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -46,8 +49,29 @@ mongoose
     console.error("❌ MongoDB connection error:", err.message);
   });
 
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  message: {
+    success: false,
+    message:
+      "Too many registration attempts. Please try again later.",
+  },
+});
+
+const forgotPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,                   // 5 requests per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many password reset requests. Please try again later.",
+  },
+});
+
 //Register
-app.post("/register", async (req, res) => {
+app.post("/register",registerLimiter, async (req, res) => {
   try {
     const existinguser = await User.findOne({ email: req.body.email });
     if (existinguser) {
@@ -80,6 +104,101 @@ app.get("/loggedinuser", async (req, res) => {
     return res.status(400).send({ error: error.message });
   }
 });
+// login
+// app.post("/login", async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     const user = await User.findOne({ email });
+
+//     if (!user) {
+//       return res.status(401).json({
+//         message: "Invalid credentials",
+//       });
+//     }
+
+//     const isMatch = await bcrypt.compare(
+//       password,
+//       user.password
+//     );
+
+//     if (!isMatch) {
+//       return res.status(401).json({
+//         message: "Invalid credentials",
+//       });
+//     }
+
+//     const accessToken = signAccessToken(user._id,user.email);
+//     const refreshToken = signRefreshToken(user._id,user.email);
+
+//     res.cookie("refreshToken", refreshToken, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: "lax",
+//       maxAge: 7 * 24 * 60 * 60 * 1000,
+//     });
+
+//     return res.status(200).json({
+//       success: true,
+//       accessToken,
+//       user,
+//     });
+//   } catch (error) {
+//     return res.status(500).json({
+//       message: error.message,
+//     });
+//   }
+// });
+// Firebase login
+app.post("/firebase/login", async (req, res) => {
+  try {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      return res.status(400).json({
+        success: false,
+        message: "Firebase token is required",
+      });
+    }
+
+    const decoded = await fireAuth.verifyIdToken(idToken);
+    const {
+      email,
+      name,
+      picture,
+    } = decoded;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        username:
+          email.split("@")[0] +
+          Math.floor(Math.random() * 1000),
+
+        displayName: name || "User",
+
+        avatar:
+          picture ||
+          "https://images.pexels.com/photos/1139743/pexels-photo-1139743.jpeg",
+
+        email,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(401).json({
+      success: false,
+      message: "Firebase authentication failed",
+    });
+  }
+});
 // update Profile
 app.patch("/userupdate/:email", async (req, res) => {
   try {
@@ -106,8 +225,7 @@ app.post("/post", async (req, res) => {
     if (!result.allowed) {
       return res.status(403).json({
         success: false,
-        message:
-          "Tweet limit reached. Upgrade your plan.",
+        message: "Tweet limit reached. Upgrade your plan.",
       });
     }
 
@@ -229,35 +347,26 @@ app.get("/subscriptions/status/:userId", async (req, res) => {
       Gold: Infinity,
     };
 
-    const planName =
-      subscription.planId?.name || "Free";
+    const planName = subscription.planId?.name || "Free";
 
-    const limit =
-      PLAN_LIMITS[planName] ?? 1;
+    const limit = PLAN_LIMITS[planName] ?? 1;
 
     const remaining =
-      limit === Infinity
-        ? null
-        : Math.max(limit - tweetCount, 0);
+      limit === Infinity ? null : Math.max(limit - tweetCount, 0);
 
     return res.status(200).json({
       plan: planName,
-      limit:
-        limit === Infinity
-          ? "Unlimited"
-          : limit,
+      limit: limit === Infinity ? "Unlimited" : limit,
       used: tweetCount,
       remaining,
-      expiresAt:
-        subscription.endDate,
+      expiresAt: subscription.endDate,
     });
   } catch (error) {
     console.error(error);
 
     return res.status(500).json({
       success: false,
-      message:
-        "Failed to fetch subscription status",
+      message: "Failed to fetch subscription status",
     });
   }
 });
@@ -267,7 +376,7 @@ app.post("/payments/create-order/:userId", async (req, res) => {
   try {
     const { planName } = req.body;
 
-    const {userId} = req.params;
+    const { userId } = req.params;
     const plan = await Plan.findOne({
       name: planName,
     });
@@ -287,13 +396,13 @@ app.post("/payments/create-order/:userId", async (req, res) => {
     const order = await Rzp.orders.create(options);
 
     await Payment.create({
-        userId,
-        planId: plan._id,
-        amount: plan.price,
-        status: "PENDING",
-        razorpayOrderId: order.id,
+      userId,
+      planId: plan._id,
+      amount: plan.price,
+      status: "PENDING",
+      razorpayOrderId: order.id,
     });
-    
+
     return res.status(201).json(order);
   } catch (error) {
     console.error(error);
@@ -306,18 +415,11 @@ app.post("/payments/create-order/:userId", async (req, res) => {
 // verify payment
 app.post("/payment/verify", async (req, res) => {
   try {
-    const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-    } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+      req.body;
 
     // Validate request
-    if (
-      !razorpay_order_id ||
-      !razorpay_payment_id ||
-      !razorpay_signature
-    ) {
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return res.status(400).json({
         success: false,
         message: "Missing payment details",
@@ -326,13 +428,8 @@ app.post("/payment/verify", async (req, res) => {
 
     // Verify signature
     const generatedSignature = crypto
-      .createHmac(
-        "sha256",
-        process.env.RAZORPAY_KEY_SECRET
-      )
-      .update(
-        `${razorpay_order_id}|${razorpay_payment_id}`
-      )
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest("hex");
 
     if (generatedSignature !== razorpay_signature) {
@@ -364,19 +461,14 @@ app.post("/payment/verify", async (req, res) => {
 
     // Mark payment success
     payment.status = "SUCCESS";
-    payment.razorpayPaymentId =
-      razorpay_payment_id;
+    payment.razorpayPaymentId = razorpay_payment_id;
 
     await payment.save();
 
     // Get user and plan
-    const user = await User.findById(
-      payment.userId
-    );
+    const user = await User.findById(payment.userId);
 
-    const plan = await Plan.findById(
-      payment.planId
-    );
+    const plan = await Plan.findById(payment.planId);
 
     if (!user || !plan) {
       return res.status(404).json({
@@ -393,47 +485,42 @@ app.post("/payment/verify", async (req, res) => {
       },
       {
         isActive: false,
-      }
+      },
     );
 
     // Create new subscription
     const startDate = new Date();
 
     const endDate = new Date();
-    endDate.setMonth(
-      endDate.getMonth() + 1
-    );
+    endDate.setMonth(endDate.getMonth() + 1);
 
-    const newSubscription =
-      await Subscription.create({
-        userId: payment.userId,
-        planId: payment.planId,
-        startDate,
-        endDate,
-        isActive: true,
-      });
+    const newSubscription = await Subscription.create({
+      userId: payment.userId,
+      planId: payment.planId,
+      startDate,
+      endDate,
+      isActive: true,
+    });
 
     // Generate invoice
-    const invoicePath =
-      await generateInvoice({
-        user,
-        plan,
-        payment,
-        subscription: newSubscription,
-      });
-
+    const invoicePath = await generateInvoice({
+      user,
+      plan,
+      payment,
+      subscription: newSubscription,
+    });
 
     const invoiceNumber = `INV-${new Date().getFullYear()}-${Math.floor(
-      1000 + Math.random() * 9000
+      1000 + Math.random() * 9000,
     )}`;
 
     // Upload invoice
     // const invoiceUrl =
     //   await uploadInvoice(invoicePath,invoiceNumber);
 
-      // payment.invoiceUrl = invoiceUrl;
+    // payment.invoiceUrl = invoiceUrl;
 
-    payment.invoiceNumber = invoiceNumber
+    payment.invoiceNumber = invoiceNumber;
 
     await payment.save();
 
@@ -443,25 +530,18 @@ app.post("/payment/verify", async (req, res) => {
       name: user.displayName,
       planName: plan.name,
       amount: payment.amount,
-      invoiceNumber:
-        payment.invoiceNumber,
+      invoiceNumber: payment.invoiceNumber,
       invoicePath,
-      expiryDate:
-        newSubscription.endDate,
+      expiryDate: newSubscription.endDate,
     });
 
     return res.status(200).json({
       success: true,
-      message:
-        "Payment verified and subscription activated",
-      subscription:
-        newSubscription,
+      message: "Payment verified and subscription activated",
+      subscription: newSubscription,
     });
   } catch (error) {
-    console.error(
-      "VERIFY PAYMENT ERROR:",
-      error
-    );
+    console.error("VERIFY PAYMENT ERROR:", error);
 
     return res.status(500).json({
       success: false,
@@ -469,3 +549,185 @@ app.post("/payment/verify", async (req, res) => {
     });
   }
 });
+
+// auth
+app.post(
+  "/auth/forgot-password",
+  forgotPasswordLimiter,
+  async (req, res) => {
+    const { emailOrPhone } = req.body;
+
+    if (!emailOrPhone) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Please enter a valid email or phone number",
+      });
+    }
+
+    const value = emailOrPhone.trim();
+
+    const emailRegex =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    const phoneRegex =
+      /^[0-9]{10,15}$/;
+
+    try {
+      let user;
+
+      if (emailRegex.test(value)) {
+        user = await User.findOne({
+          email: value.toLowerCase(),
+        });
+      } else if (phoneRegex.test(value)) {
+        user = await User.findOne({
+          "phone.num": value,
+        });
+      } else {
+        return res.status(400).json({
+          message:
+            "Please enter a valid email or phone number",
+        });
+      }
+
+      if (!user) {
+        return res.status(200).json({
+          success: true,
+          message:
+            "If that email is registered, a reset link has been sent.",
+        });
+      }
+
+      const today = new Date();
+
+      if (
+        user.lastPasswordResetRequestAt &&
+        user.lastPasswordResetRequestAt.toDateString() ===
+          today.toDateString()
+      ) {
+        return res.status(429).json({
+          message:
+            "You can use this option only one time per day.",
+        });
+      }
+
+      const rawToken =
+        crypto.randomBytes(32).toString("hex");
+
+      const tokenHash = crypto
+        .createHash("sha256")
+        .update(rawToken)
+        .digest("hex");
+
+      await PasswordReset.create({
+        userId: user._id,
+        tokenHash,
+        expiresAt: new Date(
+          Date.now() + 15 * 60 * 1000
+        ),
+      });
+
+      user.lastPasswordResetRequestAt = today;
+
+      await user.save({
+        validateBeforeSave: false,
+      });
+
+      const resetLink =
+        `${process.env.FRONTEND_URL}` +
+        `/reset-password/${rawToken}`;
+
+      const hasPhone =
+        user.phone?.num?.trim();
+
+      if (!hasPhone) {
+        await sendPasswordRecoveryEmail(
+          user.email,
+          user.username,
+          resetLink
+        );
+      } else {
+        // send SMS here
+      }
+
+      return res.status(200).json({
+        success: true,
+        message:
+          "A password reset link has been sent.",
+      });
+    } catch (error) {
+      console.error(error);
+
+      return res.status(500).json({
+        success: false,
+        message:
+          "Something went wrong!",
+      });
+    }
+  }
+);
+app.post(
+  "/auth/reset-password",
+  async (req, res) => {
+    try {
+      const { token, password } =
+        req.body;
+
+      const tokenHash = crypto
+        .createHash("sha256")
+        .update(token)
+        .digest("hex");
+
+      const resetRecord =
+        await PasswordReset.findOne({
+          tokenHash,
+          used: false,
+          expiresAt: {
+            $gt: new Date(),
+          },
+        });
+
+      if (!resetRecord) {
+        return res.status(400).json({
+          message:
+            "Invalid or expired token",
+        });
+      }
+
+      const user = await User.findById(
+        resetRecord.userId
+      );
+
+      if (!user) {
+        return res.status(404).json({
+          message: "User not found",
+        });
+      }
+
+      user.password =
+        await bcrypt.hash(
+          password,
+          10
+        );
+
+      await user.save();
+
+      resetRecord.used = true;
+
+      await resetRecord.save();
+
+      return res.status(200).json({
+        success: true,
+        message:
+          "Password reset successful",
+      });
+    } catch (error) {
+      console.error(error);
+
+      return res.status(500).json({
+        message: "Server Error",
+      });
+    }
+  }
+);

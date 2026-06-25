@@ -7,7 +7,7 @@ import TweetComposer from "./TweetComposer";
 import axiosInstance from "@/lib/axiosInstance";
 import { Button } from "./ui/button";
 import Link from "next/link";
-import {useAuth} from "@/context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 
 interface Tweet {
   id: string;
@@ -91,7 +91,7 @@ const tweets: Tweet[] = [
 const Feed = () => {
   const [tweets, setTweets] = useState<any>([]);
   const [loading, setloading] = useState(false);
-  const {user} = useAuth();
+  const { user } = useAuth();
   const fetchTweets = async () => {
     try {
       setloading(true);
@@ -114,13 +114,13 @@ const Feed = () => {
       <div className="sticky top-0 bg-black/90 backdrop-blur-md border-b border-gray-800 z-10">
         <div className="px-4 py-3 flex gap-4">
           <h1 className="text-xl font-bold text-white">Home</h1>
-          <div className="hidden max-sm:flex">
+          {/* <div className="hidden max-sm:flex">
           <Link href={`/subscriptions/${user?._id}`}>
             <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-full">
               Subscribe Now
             </Button>
           </Link>
-        </div>
+        </div> */}
         </div>
 
         <Tabs defaultValue="foryou" className="w-full">
@@ -141,6 +141,22 @@ const Feed = () => {
         </Tabs>
       </div>
       <div className="w-full">
+        <Card className="bg-gray-900 border-gray-800 m-4 xl:hidden">
+          <CardContent className="p-2 flex justify-evenly max-sm:flex-wrap">
+            <div><h3 className="text-white text-xl font-bold mb-2">
+              Subscribe to Premium
+            </h3>
+            <p className="text-gray-400 text-sm mb-4 max-md:hidden">
+              Subscribe to unlock new features and if eligible, receive a share
+              of revenue.
+            </p></div>
+            <div className="flex items-center"><Link  href={`/subscriptions/${user?._id}`}>
+              <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-full">
+                Subscribe Now
+              </Button>
+            </Link></div>
+          </CardContent>
+        </Card>
         <TweetComposer onTweetPosted={handlenewtweet} />
       </div>
       <div className="divide-y divide-gray-800">

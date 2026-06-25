@@ -34,6 +34,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+\twitter-a638f-firebase-adminsdk-fbsvc-2335018a9d.json
 
 # vercel
 .vercel

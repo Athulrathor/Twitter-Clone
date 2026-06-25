@@ -125,35 +125,12 @@ export default function Sidebar({
           ))}
         </ul>
 
-        {/* <Button
+        <Button
         className="hidden lg:flex mt-6 w-full rounded-full
         bg-blue-500 hover:bg-blue-600"
       >
         Post
-      </Button> */}
-        {/* <Card className=" bg-gray-900 border-gray-800">
-        <CardContent className="p-4">
-          <h3 className="text-white text-xl font-bold mb-2">
-            Subscribe to Premium
-          </h3>
-          <p className="text-gray-400 text-sm mb-4">
-            Subscribe to unlock new features and if eligible, receive a share of
-            revenue.
-          </p>
-          <Link href={`/subscriptions/${user?._id}`}>
-            <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-full">
-              Subscribe Now
-            </Button>
-          </Link>
-        </CardContent>
-      </Card> */}
-        <div className="max-xl:flex hidden max-lg:hidden">
-          <Link href={`/subscriptions/${user?._id}`}>
-            <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-full">
-              Subscribe Now
-            </Button>
-          </Link>
-        </div>
+      </Button>
       </nav>
 
       {/* User */}
