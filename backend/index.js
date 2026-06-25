@@ -16,7 +16,7 @@ import isPaymentAllowed from "./libs/payment-time.js";
 import { checkTweetLimit } from "./libs/checkTweetLimit.js";
 import { signBcrypt } from "./libs/bcrypt.js";
 import rateLimit from "express-rate-limit";
-import { fireAuth } from "./libs/firebaseAdmin.js";
+import fireAuth from "./libs/firebaseAdmin.js";
 dotenv.config();
 const app = express();
 app.use(
