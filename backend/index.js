@@ -11,12 +11,17 @@ import crypto from "crypto";
 import Rzp from "./libs/paymentRazorpay.js";
 import { generateInvoice } from "./libs/generateInvoice.js";
 import { uploadInvoice } from "./libs/uploadInvoice.js";
-import { sendSubscriptionEmail } from "./libs/email.js";
+import { sendOtpEmail, sendSubscriptionEmail } from "./libs/email.js";
 import isPaymentAllowed from "./libs/payment-time.js";
 import { checkTweetLimit } from "./libs/checkTweetLimit.js";
 import { signBcrypt } from "./libs/bcrypt.js";
 import rateLimit from "express-rate-limit";
-import fireAuth from "./libs/firebaseAdmin.js";
+import { getLocation } from "./libs/getLocation.js";
+import { getDeviceInfo } from "./libs/getDeviceInfo.js";
+import { createOtp, verifyOtp } from "./libs/otp.js";
+import { authRules } from "./middlewares/authRule.middleware.js";
+import { deviceInfoMiddleware } from "./middlewares/deviceDetection.middleware.js";
+import { verifyFirebaseToken } from "./middlewares/verifyFirebaseToken.js"
 dotenv.config();
 const app = express();
 app.use(
@@ -54,14 +59,13 @@ const registerLimiter = rateLimit({
   max: 10,
   message: {
     success: false,
-    message:
-      "Too many registration attempts. Please try again later.",
+    message: "Too many registration attempts. Please try again later.",
   },
 });
 
 const forgotPasswordLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5,                   // 5 requests per IP
+  max: 5, // 5 requests per IP
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -71,7 +75,7 @@ const forgotPasswordLimiter = rateLimit({
 });
 
 //Register
-app.post("/register",registerLimiter, async (req, res) => {
+app.post("/register", registerLimiter, async (req, res) => {
   try {
     const existinguser = await User.findOne({ email: req.body.email });
     if (existinguser) {
@@ -150,55 +154,93 @@ app.get("/loggedinuser", async (req, res) => {
 //   }
 // });
 // Firebase login
-app.post("/firebase/login", async (req, res) => {
-  try {
-    const { idToken } = req.body;
+app.post(
+  "/firebase/login",
+  verifyFirebaseToken,
+  deviceInfoMiddleware,
+  authRules,
+  async (req, res) => {
+    try {
+      let user = await User.findOne({
+        email: req.user.email,
+      });
 
-    if (!idToken) {
-      return res.status(400).json({
+      if (!user) {
+        user = await User.create({
+          username:
+            req.user?.email.split("@")[0] + Math.floor(Math.random() * 1000),
+
+          displayName: req.user?.name || "User",
+
+          avatar:
+            req.user?.picture ||
+            "https://images.pexels.com/photos/1139743/pexels-photo-1139743.jpeg",
+
+          email: req.user?.email,
+          location:
+            req.deviceInfo.location?.city || req.deviceInfo.location?.country,
+        });
+      }
+
+      if (req.securityFlags?.requiresStepUp) {
+        const otp = await createOtp({
+          firebaseUid: req.user.uid,
+          email: req.user.email,
+        });
+
+        if (!otp)
+          return res
+            .status(401)
+            .json({ success: false, message: "otp not initiated" });
+
+        await sendOtpEmail(user.email, user.username, otp.otp, otp.expiresAt);
+
+        await Session.create({
+          userId: user._id,
+          firebaseUid: req.user.uid,
+          ipAddress: req.deviceInfo.ipAddress,
+          browser: req.deviceInfo.browser,
+          os: req.deviceInfo.os,
+          deviceType: req.deviceInfo.deviceType,
+          location: req.deviceInfo.location,
+          verified: false,
+        });
+
+        return res.status(200).json({
+          success: true,
+          requiresOtp: true,
+          expiresAt: otp.expiresAt,
+          message: "OTP sent.",
+        });
+      } else {
+        await Session.create({
+          userId: user._id,
+          firebaseUid: req.user.uid,
+          ipAddress: req.deviceInfo.ipAddress,
+          browser: req.deviceInfo.browser,
+          os: req.deviceInfo.os,
+          deviceType: req.deviceInfo.deviceType,
+          location: req.deviceInfo.location,
+          verified: true,
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        user,
+        security: req.securityFlags,
+        device: req.deviceInfo,
+      });
+    } catch (error) {
+      console.error(error);
+
+      return res.status(401).json({
         success: false,
-        message: "Firebase token is required",
+        message: "Firebase authentication failed",
       });
     }
-
-    const decoded = await fireAuth.verifyIdToken(idToken);
-    const {
-      email,
-      name,
-      picture,
-    } = decoded;
-
-    let user = await User.findOne({ email });
-
-    if (!user) {
-      user = await User.create({
-        username:
-          email.split("@")[0] +
-          Math.floor(Math.random() * 1000),
-
-        displayName: name || "User",
-
-        avatar:
-          picture ||
-          "https://images.pexels.com/photos/1139743/pexels-photo-1139743.jpeg",
-
-        email,
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      user,
-    });
-  } catch (error) {
-    console.error(error);
-
-    return res.status(401).json({
-      success: false,
-      message: "Firebase authentication failed",
-    });
-  }
-});
+  },
+);
 // update Profile
 app.patch("/userupdate/:email", async (req, res) => {
   try {
@@ -551,183 +593,236 @@ app.post("/payment/verify", async (req, res) => {
 });
 
 // auth
-app.post(
-  "/auth/forgot-password",
-  forgotPasswordLimiter,
-  async (req, res) => {
-    const { emailOrPhone } = req.body;
+app.post("/auth/forgot-password", forgotPasswordLimiter, async (req, res) => {
+  const { emailOrPhone } = req.body;
 
-    if (!emailOrPhone) {
+  if (!emailOrPhone) {
+    return res.status(400).json({
+      success: false,
+      message: "Please enter a valid email or phone number",
+    });
+  }
+
+  const value = emailOrPhone.trim();
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const phoneRegex = /^[0-9]{10,15}$/;
+
+  try {
+    let user;
+
+    if (emailRegex.test(value)) {
+      user = await User.findOne({
+        email: value.toLowerCase(),
+      });
+    } else if (phoneRegex.test(value)) {
+      user = await User.findOne({
+        "phone.num": value,
+      });
+    } else {
       return res.status(400).json({
-        success: false,
-        message:
-          "Please enter a valid email or phone number",
+        message: "Please enter a valid email or phone number",
       });
     }
 
-    const value = emailOrPhone.trim();
-
-    const emailRegex =
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    const phoneRegex =
-      /^[0-9]{10,15}$/;
-
-    try {
-      let user;
-
-      if (emailRegex.test(value)) {
-        user = await User.findOne({
-          email: value.toLowerCase(),
-        });
-      } else if (phoneRegex.test(value)) {
-        user = await User.findOne({
-          "phone.num": value,
-        });
-      } else {
-        return res.status(400).json({
-          message:
-            "Please enter a valid email or phone number",
-        });
-      }
-
-      if (!user) {
-        return res.status(200).json({
-          success: true,
-          message:
-            "If that email is registered, a reset link has been sent.",
-        });
-      }
-
-      const today = new Date();
-
-      if (
-        user.lastPasswordResetRequestAt &&
-        user.lastPasswordResetRequestAt.toDateString() ===
-          today.toDateString()
-      ) {
-        return res.status(429).json({
-          message:
-            "You can use this option only one time per day.",
-        });
-      }
-
-      const rawToken =
-        crypto.randomBytes(32).toString("hex");
-
-      const tokenHash = crypto
-        .createHash("sha256")
-        .update(rawToken)
-        .digest("hex");
-
-      await PasswordReset.create({
-        userId: user._id,
-        tokenHash,
-        expiresAt: new Date(
-          Date.now() + 15 * 60 * 1000
-        ),
-      });
-
-      user.lastPasswordResetRequestAt = today;
-
-      await user.save({
-        validateBeforeSave: false,
-      });
-
-      const resetLink =
-        `${process.env.FRONTEND_URL}` +
-        `/reset-password/${rawToken}`;
-
-      const hasPhone =
-        user.phone?.num?.trim();
-
-      if (!hasPhone) {
-        await sendPasswordRecoveryEmail(
-          user.email,
-          user.username,
-          resetLink
-        );
-      } else {
-        // send SMS here
-      }
-
+    if (!user) {
       return res.status(200).json({
         success: true,
-        message:
-          "A password reset link has been sent.",
+        message: "If that email is registered, a reset link has been sent.",
       });
-    } catch (error) {
-      console.error(error);
+    }
 
-      return res.status(500).json({
+    const today = new Date();
+
+    if (
+      user.lastPasswordResetRequestAt &&
+      user.lastPasswordResetRequestAt.toDateString() === today.toDateString()
+    ) {
+      return res.status(429).json({
+        message: "You can use this option only one time per day.",
+      });
+    }
+
+    const rawToken = crypto.randomBytes(32).toString("hex");
+
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
+
+    await PasswordReset.create({
+      userId: user._id,
+      tokenHash,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+    });
+
+    user.lastPasswordResetRequestAt = today;
+
+    await user.save({
+      validateBeforeSave: false,
+    });
+
+    const resetLink =
+      `${process.env.FRONTEND_URL}` + `/reset-password/${rawToken}`;
+
+    const hasPhone = user.phone?.num?.trim();
+
+    if (!hasPhone) {
+      await sendPasswordRecoveryEmail(user.email, user.username, resetLink);
+    } else {
+      // send SMS here
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "A password reset link has been sent.",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong!",
+    });
+  }
+});
+app.post("/auth/reset-password", async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+    const resetRecord = await PasswordReset.findOne({
+      tokenHash,
+      used: false,
+      expiresAt: {
+        $gt: new Date(),
+      },
+    });
+
+    if (!resetRecord) {
+      return res.status(400).json({
+        message: "Invalid or expired token",
+      });
+    }
+
+    const user = await User.findById(resetRecord.userId);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    user.password = await bcrypt.hash(password, 10);
+
+    await user.save();
+
+    resetRecord.used = true;
+
+    await resetRecord.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successful",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      message: "Server Error",
+    });
+  }
+});
+
+// otp verification
+app.post("/login/otp", async (req, res) => {
+  try {
+    const { firebaseUid, email } = req.body;
+
+    if (!firebaseUid || !email)
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid credential!" });
+
+    const otp = await createOtp({
+      firebaseUid,
+      email,
+    });
+
+    if (!otp)
+      return res
+        .status(401)
+        .json({ success: false, message: "otp not initiated" });
+
+    const username = email.split("@")[0];
+
+    await sendOtpEmail(email, username, otp.otp, otp.expiresAt);
+
+    return res.status(200).json({
+      success: true,
+      requiresOtp: true,
+      expiresAt: otp.expiresAt,
+      message: "OTP sent successfully.",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Otp failed!",
+    });
+  }
+});
+app.post("/login/verify", async (req, res) => {
+  try {
+    const { firebaseUid, otp } = req.body;
+
+    if (!firebaseUid || !otp)
+      return res
+        .status(401)
+        .json({ success: false, message: "Otp is required!" });
+
+    const verify = await verifyOtp({
+      firebaseUid,
+      otp,
+    });
+
+    const session = await Session.findOneAndUpdate(
+      {
+        firebaseUid,
+        verified: false,
+      },
+      {
+        $set: {
+          verified: true,
+        },
+      },
+      {
+        sort: { createdAt: -1 },
+        new: true,
+      },
+    );
+
+    if (!session) {
+      return res.status(404).json({
         success: false,
-        message:
-          "Something went wrong!",
+        message: "Pending session not found.",
       });
     }
+
+    return res.status(200).json({
+      success: true,
+      verify,
+      message: "Otp verified Successfully.Login to your Account!",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Otp failed!",
+    });
   }
-);
-app.post(
-  "/auth/reset-password",
-  async (req, res) => {
-    try {
-      const { token, password } =
-        req.body;
-
-      const tokenHash = crypto
-        .createHash("sha256")
-        .update(token)
-        .digest("hex");
-
-      const resetRecord =
-        await PasswordReset.findOne({
-          tokenHash,
-          used: false,
-          expiresAt: {
-            $gt: new Date(),
-          },
-        });
-
-      if (!resetRecord) {
-        return res.status(400).json({
-          message:
-            "Invalid or expired token",
-        });
-      }
-
-      const user = await User.findById(
-        resetRecord.userId
-      );
-
-      if (!user) {
-        return res.status(404).json({
-          message: "User not found",
-        });
-      }
-
-      user.password =
-        await bcrypt.hash(
-          password,
-          10
-        );
-
-      await user.save();
-
-      resetRecord.used = true;
-
-      await resetRecord.save();
-
-      return res.status(200).json({
-        success: true,
-        message:
-          "Password reset successful",
-      });
-    } catch (error) {
-      console.error(error);
-
-      return res.status(500).json({
-        message: "Server Error",
-      });
-    }
-  }
-);
+});
