@@ -7,6 +7,7 @@ import Tweet from "./models/tweet.js";
 import Plan from "./models/plan.js";
 import Payment from "./models/payment.js";
 import Subscription from "./models/subcriptions.js";
+import Session from "./models/session.js";
 import crypto from "crypto";
 import Rzp from "./libs/paymentRazorpay.js";
 import { generateInvoice } from "./libs/generateInvoice.js";
@@ -21,7 +22,8 @@ import { getDeviceInfo } from "./libs/getDeviceInfo.js";
 import { createOtp, verifyOtp } from "./libs/otp.js";
 import { authRules } from "./middlewares/authRule.middleware.js";
 import { deviceInfoMiddleware } from "./middlewares/deviceDetection.middleware.js";
-import { verifyFirebaseToken } from "./middlewares/verifyFirebaseToken.js"
+import { verifyFirebaseToken } from "./middlewares/verifyFirebaseToken.js";
+
 dotenv.config();
 const app = express();
 app.use(
@@ -89,70 +91,57 @@ app.post("/register", registerLimiter, async (req, res) => {
   }
 });
 // loggedinuser
-app.get("/loggedinuser", async (req, res) => {
-  try {
-    const { email } = req.query;
-    if (!email) {
-      return res.status(400).send({ error: "Email required" });
-    }
-    const user = await User.findOne({ email: email });
-
-    if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-      });
-    }
-
-    return res.status(200).send(user);
-  } catch (error) {
-    return res.status(400).send({ error: error.message });
-  }
-});
-// login
-// app.post("/login", async (req, res) => {
+// app.get("/loggedinuser", async (req, res) => {
 //   try {
-//     const { email, password } = req.body;
-
-//     const user = await User.findOne({ email });
+//     const { email } = req.query;
+//     if (!email) {
+//       return res.status(400).send({ error: "Email required" });
+//     }
+//     const user = await User.findOne({ email: email });
 
 //     if (!user) {
-//       return res.status(401).json({
-//         message: "Invalid credentials",
+//       return res.status(404).json({
+//         message: "User not found",
 //       });
 //     }
 
-//     const isMatch = await bcrypt.compare(
-//       password,
-//       user.password
-//     );
-
-//     if (!isMatch) {
-//       return res.status(401).json({
-//         message: "Invalid credentials",
-//       });
-//     }
-
-//     const accessToken = signAccessToken(user._id,user.email);
-//     const refreshToken = signRefreshToken(user._id,user.email);
-
-//     res.cookie("refreshToken", refreshToken, {
-//       httpOnly: true,
-//       secure: process.env.NODE_ENV === "production",
-//       sameSite: "lax",
-//       maxAge: 7 * 24 * 60 * 60 * 1000,
-//     });
-
-//     return res.status(200).json({
-//       success: true,
-//       accessToken,
-//       user,
-//     });
+//     return res.status(200).send(user);
 //   } catch (error) {
-//     return res.status(500).json({
-//       message: error.message,
-//     });
+//     return res.status(400).send({ error: error.message });
 //   }
 // });
+// auth refresh token
+app.get(
+  "/auth/me",
+  verifyFirebaseToken,
+  async (req, res) => {
+    try {
+      const user = await User.findOne({
+        email: req.user.email,
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        user,
+        firebaseUid: req.user?.uid
+      });
+    } catch (error) {
+      console.error(error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Unable to fetch user",
+      });
+    }
+  }
+);
 // Firebase login
 app.post(
   "/firebase/login",
@@ -203,7 +192,10 @@ app.post(
           os: req.deviceInfo.os,
           deviceType: req.deviceInfo.deviceType,
           location: req.deviceInfo.location,
-          verified: false,
+          status: "pending",
+          loginMethod: "google",
+          otpVerified: false,
+          loginTime: Date.now(),
         });
 
         return res.status(200).json({
@@ -211,6 +203,7 @@ app.post(
           requiresOtp: true,
           expiresAt: otp.expiresAt,
           message: "OTP sent.",
+          firebaseUid: req.user.uid,
         });
       } else {
         await Session.create({
@@ -221,7 +214,7 @@ app.post(
           os: req.deviceInfo.os,
           deviceType: req.deviceInfo.deviceType,
           location: req.deviceInfo.location,
-          verified: true,
+          status: "success",
         });
       }
 
@@ -230,6 +223,7 @@ app.post(
         user,
         security: req.securityFlags,
         device: req.deviceInfo,
+        firebaseUid: req.user.uid,
       });
     } catch (error) {
       console.error(error);
@@ -792,11 +786,13 @@ app.post("/login/verify", async (req, res) => {
     const session = await Session.findOneAndUpdate(
       {
         firebaseUid,
-        verified: false,
+        status: "pending",
       },
       {
         $set: {
-          verified: true,
+          status: "success",
+          loginTime: Date.now(),
+          otpVerified: true,
         },
       },
       {
@@ -812,17 +808,46 @@ app.post("/login/verify", async (req, res) => {
       });
     }
 
+    const user = await User.findById({ _id: session.userId });
+
     return res.status(200).json({
       success: true,
+      user,
       verify,
-      message: "Otp verified Successfully.Login to your Account!",
+      message: "Otp verified Successfully",
     });
   } catch (error) {
     console.error(error);
+
+    const session = await Session.findOneAndUpdate(
+      {
+        firebaseUid,
+        status: "pending",
+      },
+      {
+        $set: {
+          status: "failed",
+          otpVerified: false,
+        },
+      },
+      {
+        sort: { createdAt: -1 },
+        new: true,
+      },
+    );
 
     return res.status(500).json({
       success: false,
       message: "Otp failed!",
     });
   }
+});
+
+// session history
+app.get("/sessions/history/:userId", async (req, res) => {
+  const sessions = await Session.find({
+    userId,
+  }).sort({ createdAt: -1 });
+
+  res.json(sessions);
 });

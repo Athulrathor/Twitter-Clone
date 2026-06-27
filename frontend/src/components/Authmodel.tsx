@@ -13,6 +13,7 @@ import { Separator } from "./ui/separator";
 import { useAuth } from "@/context/AuthContext";
 import TwitterLogo from "./Twitterlogo";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -25,7 +26,7 @@ export default function AuthModal({
   onClose,
   initialMode = "login",
 }: AuthModalProps) {
-  const { login, signup, isLoading } = useAuth();
+  const { login, signup, isLoading, requireOtp } = useAuth();
   const [mode, setMode] = useState<"login" | "signup">(initialMode);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -35,6 +36,8 @@ export default function AuthModal({
     displayName: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const router = useRouter();
 
   if (!isOpen) return null;
 
@@ -75,10 +78,13 @@ export default function AuthModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm() || isLoading) return;
-
     try {
       if (mode === "login") {
-        await login(formData.email, formData.password);
+        const result = await login(formData.email, formData.password);
+
+        if (!result.requiresOtp) {
+          onClose();
+        }
       } else {
         await signup(
           formData.email,

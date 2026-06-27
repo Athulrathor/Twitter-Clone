@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const otpSchema = new mongoose.Schema({
   firebaseUid: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: "User",
     required: true,
   },

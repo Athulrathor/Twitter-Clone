@@ -23,7 +23,7 @@ export const createOtp = async ({ firebaseUid, email }) => {
   await Otp.create({
     firebaseUid,
     email,
-    otpHash,
+    otpHashed: otpHash,
     expiresAt,
   });
 
@@ -48,7 +48,7 @@ export const verifyOtp = async ({ firebaseUid, otp }) => {
     throw new Error("Maximum attempts exceeded");
   }
 
-  const matched = await bcrypt.compare(otp, record.otpHash);
+  const matched = await bcrypt.compare(otp, record.otpHashed);
 
   if (!matched) {
     record.attempts += 1;

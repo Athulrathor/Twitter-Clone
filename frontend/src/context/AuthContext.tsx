@@ -11,6 +11,8 @@ import {
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { auth } from "./firebase";
 import axiosInstance from "../lib/axiosInstance";
+import { useRouter } from "next/navigation";
+import { promises } from "dns";
 
 interface User {
   _id: string;
@@ -24,9 +26,39 @@ interface User {
   location: string;
 }
 
+interface sessionContents {
+   _id: string;
+  userId: string;
+  firebaseUid: string;
+  ipAddress: string;
+  browser: string;
+  os: string;
+  deviceType: "mobile" | "desktop" | "tablet" | "unknown";
+  loginTime: string;
+  location: {
+    country?: string;
+    region?: string;
+    city?: string;
+    latitude?: string;
+    longitude?: string;
+    timezone?: string;
+  };
+  status: "success" | "failed" | "pending";
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface AuthContextType {
+  firebaseUid: string;
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (
+    email: string,
+    password: string,
+  ) => Promise<
+    | { requiresOtp: boolean; expiresAt: Date }
+    | { requiresOtp: boolean; user: User }
+    | null
+  >;
   signup: (
     email: string,
     password: string,
@@ -42,7 +74,12 @@ interface AuthContextType {
   }) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
-  googlesignin: () => void;
+  googlesignin: () => Promise<
+    | { requiresOtp: boolean; expiresAt: Date }
+    | { requiresOtp: boolean; user: User }
+    | null
+  >;
+  session: () => Promise<sessionContents | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,8 +95,10 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [firebaseUid, setFirebaseUid] = useState(String);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -67,16 +106,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (firebaseUser) {
           const idToken = await firebaseUser.getIdToken();
 
-          const res = await axiosInstance.post(
-            "/firebase/login",
-            { idToken },
-            {
-              withCredentials: true,
+          const res = await axiosInstance.get("/auth/me", {
+            headers: {
+              Authorization: `Bearer ${idToken}`,
             },
-          );
-
+            withCredentials: true,
+          });
+          setFirebaseUid(res.data.user?.firebaseUid);
           setUser(res.data.user);
-
+          sessionStorage.setItem("firebaseToken", res.data?.firebaseUid);
           localStorage.setItem("twitter-user", JSON.stringify(res.data.user));
         } else {
           setUser(null);
@@ -103,15 +141,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const res = await axiosInstance.post(
         "/firebase/login",
-        { idToken },
+        { loginMethod: "email" }, // request body (empty)
         {
+          headers: { Authorization: `Bearer ${idToken}` },
           withCredentials: true,
         },
       );
 
-      setUser(res.data.user);
-
+      if (res.data.requiresOtp) {
+        router.push("/verify-otp");
+        setFirebaseUid(res.data?.firebaseUid);
+        return {
+          requiresOtp: true,
+          expiresAt: res.data.expiresAt,
+        };
+      }
+      setFirebaseUid(res.data?.firebaseUid);
+      sessionStorage.setItem("firebaseToken", res.data?.firebaseUid);
       localStorage.setItem("twitter-user", JSON.stringify(res.data.user));
+
+      return {
+        requiresOtp: false,
+        user: res.data.user,
+      };
     } catch (error) {
       console.error(error);
       throw error;
@@ -128,40 +180,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   ) => {
     try {
       setIsLoading(true);
-    // Mock authentication - in real app, this would call an API
-    const usercred = await createUserWithEmailAndPassword(
-      auth,
-      email,
-      password,
-    );
-    const user = usercred.user;
-    const newuser: any = {
-      username,
-      displayName,
-      avatar:
-        user.photoURL ||
-        "https://images.pexels.com/photos/1139743/pexels-photo-1139743.jpeg?auto=compress&cs=tinysrgb&w=400",
-      email: user.email,
-    };
-    const idToken = await user.getIdToken();
+      // Mock authentication - in real app, this would call an API
+      const usercred = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
+      const user = usercred.user;
+      const newuser: any = {
+        username,
+        displayName,
+        avatar:
+          user.photoURL ||
+          "https://images.pexels.com/photos/1139743/pexels-photo-1139743.jpeg?auto=compress&cs=tinysrgb&w=400",
+        email: user.email,
+      };
+      const idToken = await user.getIdToken();
 
-    const res = await axiosInstance.post(
-      "/firebase/login",
-      { idToken },
-      {
-        withCredentials: true,
-      },
-    );
-    if (res.data) {
-      setUser(res.data.user);
-      localStorage.setItem("twitter-user", JSON.stringify(res.data.user));
-    }
-    setIsLoading(false);
-    } catch (err) {
-        console.error("Auth signup failed:", err);
-      } finally {
-        setIsLoading(false);
+      const res = await axiosInstance.post(
+        "/firebase/login",
+        {}, // request body (empty)
+        {
+          headers: { Authorization: `Bearer ${idToken}` },
+          withCredentials: true,
+        },
+      );
+      if (res.data) {
+        setUser(res.data.user);
+        localStorage.setItem("twitter-user", JSON.stringify(res.data.user));
       }
+      setIsLoading(false);
+    } catch (err) {
+      console.error("Auth signup failed:", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const logout = async () => {
@@ -208,20 +261,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const res = await axiosInstance.post(
         "/firebase/login",
-        { idToken },
+        { loginMethod: "google" }, // request body (empty)
         {
+          headers: { Authorization: `Bearer ${idToken}` },
           withCredentials: true,
         },
       );
 
-      setUser(res.data.user);
-
-      localStorage.setItem("twitter-user", JSON.stringify(res.data.user));
-    } catch (err) {
-        console.error("Auth signup failed:", err);
-      } finally {
-        setIsLoading(false);
+      if (res.data.requiresOtp) {
+        router.push("/verify-otp");
+        setFirebaseUid(res.data?.firebaseUid);
+        return {
+          requiresOtp: true,
+          expiresAt: res.data.expiresAt,
+        };
       }
+      setFirebaseUid(res.data?.firebaseUid);
+      sessionStorage.setItem("firebaseToken", res.data?.firebaseUid);
+      localStorage.setItem("twitter-user", JSON.stringify(res.data.user));
+
+      return {
+        requiresOtp: false,
+        user: res.data.user,
+      };
+    } catch (err) {
+      console.error("Auth signup failed:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const session = async () => {
+    try {
+      setIsLoading(true);
+      const res = await axiosInstance.get("/sessions");
+
+      return res.data.sessions;
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -234,6 +314,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         logout,
         isLoading,
         googlesignin,
+        firebaseUid,
+        setUser,
+        session,
       }}
     >
       {children}

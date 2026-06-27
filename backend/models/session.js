@@ -9,8 +9,7 @@ const sessionSchema = new mongoose.Schema(
     },
 
     firebaseUid: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: String,
       required: true,
     },
 
