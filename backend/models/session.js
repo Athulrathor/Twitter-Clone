@@ -39,7 +39,11 @@ const sessionSchema = new mongoose.Schema(
       default: Date.now,
     },
 
-      location: {
+    logoutTime: {
+      type: Date,
+    },
+
+    location: {
       country: String,
       region: String,
       city: String,
@@ -48,13 +52,30 @@ const sessionSchema = new mongoose.Schema(
       timezone: String,
     },
 
+    loginMethod: {
+      type: String,
+      enum: ["google", "email"],
+      required: true,
+    },
+
+    // Whether OTP was completed
+    otpVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    // lastActiveAt: {
+    //   type: Date,
+    //   default: Date.now,
+    // },
+
     status: {
       type: String,
-      enum: ["success", "failed", "pending"],
+      enum: ["success", "failed", "blocked", "pending", "logged_out"],
       default: "pending",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model("Session", sessionSchema);

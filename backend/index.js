@@ -111,37 +111,33 @@ app.post("/register", registerLimiter, async (req, res) => {
 //   }
 // });
 // auth refresh token
-app.get(
-  "/auth/me",
-  verifyFirebaseToken,
-  async (req, res) => {
-    try {
-      const user = await User.findOne({
-        email: req.user.email,
-      });
+app.get("/auth/me", verifyFirebaseToken, async (req, res) => {
+  try {
+    const user = await User.findOne({
+      email: req.user.email,
+    });
 
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "User not found",
-        });
-      }
-
-      return res.status(200).json({
-        success: true,
-        user,
-        firebaseUid: req.user?.uid
-      });
-    } catch (error) {
-      console.error(error);
-
-      return res.status(500).json({
+    if (!user) {
+      return res.status(404).json({
         success: false,
-        message: "Unable to fetch user",
+        message: "User not found",
       });
     }
+
+    return res.status(200).json({
+      success: true,
+      user,
+      firebaseUid: req.user?.uid,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to fetch user",
+    });
   }
-);
+});
 // Firebase login
 app.post(
   "/firebase/login",
@@ -184,7 +180,7 @@ app.post(
 
         await sendOtpEmail(user.email, user.username, otp.otp, otp.expiresAt);
 
-        await Session.create({
+        const session = await Session.create({
           userId: user._id,
           firebaseUid: req.user.uid,
           ipAddress: req.deviceInfo.ipAddress,
@@ -193,7 +189,7 @@ app.post(
           deviceType: req.deviceInfo.deviceType,
           location: req.deviceInfo.location,
           status: "pending",
-          loginMethod: "google",
+          loginMethod: req.body.loginMethod,
           otpVerified: false,
           loginTime: Date.now(),
         });
@@ -204,9 +200,11 @@ app.post(
           expiresAt: otp.expiresAt,
           message: "OTP sent.",
           firebaseUid: req.user.uid,
+          session,
+          sessionId: session._id,
         });
       } else {
-        await Session.create({
+        const session = await Session.create({
           userId: user._id,
           firebaseUid: req.user.uid,
           ipAddress: req.deviceInfo.ipAddress,
@@ -215,6 +213,7 @@ app.post(
           deviceType: req.deviceInfo.deviceType,
           location: req.deviceInfo.location,
           status: "success",
+          loginMethod: req.body.loginMethod,
         });
       }
 
@@ -224,6 +223,8 @@ app.post(
         security: req.securityFlags,
         device: req.deviceInfo,
         firebaseUid: req.user.uid,
+        sessionId: session._id,
+        session
       });
     } catch (error) {
       console.error(error);
@@ -844,10 +845,134 @@ app.post("/login/verify", async (req, res) => {
 });
 
 // session history
-app.get("/sessions/history/:userId", async (req, res) => {
-  const sessions = await Session.find({
-    userId,
-  }).sort({ createdAt: -1 });
+app.get("/sessions/history",verifyFirebaseToken, async (req, res) => {
+  try {
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.min(parseInt(req.query.limit) || 10, 50);
+    const skip = (page - 1) * limit;
 
-  res.json(sessions);
+    const latestSession = await Session.findOne({
+      firebaseUid: req.user.uid,
+      status: "success",
+    }).sort({ createdAt: -1 });
+
+    const totalSessions = await Session.countDocuments({
+      userId: latestSession.userId,
+    });
+
+    const sessions = await Session.find({
+      userId: latestSession.userId,
+    })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+      console.log(sessions)
+
+    const data = sessions.map((session) => ({
+      ...session,
+      isCurrent:
+        latestSession &&
+        latestSession._id.toString() === session._id.toString(),
+    }));
+
+    res.json({
+      success: true,
+      sessions: data,
+
+      pagination: {
+        page,
+        limit,
+        total: totalSessions,
+        totalPages: Math.ceil(totalSessions / limit),
+        hasNext: page * limit < totalSessions,
+        hasPrev: page > 1,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch sessions",
+    });
+  }
+});
+
+// logs outs
+app.post("/auth/logout", verifyFirebaseToken, async (req, res) => {
+  try {
+    const uid = req.user.uid;
+    const { sessionId } = req.body;
+
+    await Session.findByIdAndUpdate(sessionId, {
+      logoutTime: new Date(),
+      status: "logged_out",
+    });
+
+    res.json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/auth/logout-all", verifyFirebaseToken, async (req, res) => {
+  try {
+    const uid = req.user.uid;
+
+    // 1. Firebase revoke
+    await admin.auth().revokeRefreshTokens(uid);
+
+    // 2. Close ALL sessions in DB
+    await Session.updateMany(
+      { firebaseUid: uid, status: "active" },
+      {
+        logoutTime: new Date(),
+        status: "logged_out",
+      }
+    );
+
+    res.json({
+      success: true,
+      message: "All sessions revoked successfully",
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/auth/logout-others", verifyFirebaseToken, async (req, res) => {
+  try {
+    const uid = req.user.uid;
+    const { sessionId } = req.body;
+
+    // 1. Mark OTHER sessions as logged out in DB
+    await Session.updateMany(
+      {
+        firebaseUid: uid,
+        _id: { $ne: sessionId },
+        status: "active",
+      },
+      {
+        status: "logged_out",
+        logoutTime: new Date(),
+      }
+    );
+
+    // 2. Revoke Firebase refresh tokens (affects all devices)
+    await admin.auth().revokeRefreshTokens(uid);
+
+    // 3. IMPORTANT: tell frontend to refresh current session
+    res.json({
+      success: true,
+      message: "Other sessions revoked. Refresh current session.",
+      requireRefresh: true,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });

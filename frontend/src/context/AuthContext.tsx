@@ -12,7 +12,6 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { auth } from "./firebase";
 import axiosInstance from "../lib/axiosInstance";
 import { useRouter } from "next/navigation";
-import { promises } from "dns";
 
 interface User {
   _id: string;
@@ -27,11 +26,12 @@ interface User {
 }
 
 interface sessionContents {
-   _id: string;
+  _id: string;
   userId: string;
   firebaseUid: string;
   ipAddress: string;
   browser: string;
+  isCurrent: boolean;
   os: string;
   deviceType: "mobile" | "desktop" | "tablet" | "unknown";
   loginTime: string;
@@ -43,13 +43,26 @@ interface sessionContents {
     longitude?: string;
     timezone?: string;
   };
-  status: "success" | "failed" | "pending";
+  status: "success" | "failed" | "pending" | "blocked" | "logged_out";
+  logoutTime?: string;
   createdAt: string;
   updatedAt: string;
 }
 
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
 interface AuthContextType {
-  firebaseUid: string;
+  sessionData: sessionContents[] | null;
+  firebaseUid: string | null;
+  pagination: Pagination;
+  page: number;
   user: User | null;
   login: (
     email: string,
@@ -79,7 +92,9 @@ interface AuthContextType {
     | { requiresOtp: boolean; user: User }
     | null
   >;
-  session: () => Promise<sessionContents | null>;
+  fetchSession: (page?: number) => Promise<void>;
+  logoutAll: () => Promise<void>;
+  logoutOthers: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -98,7 +113,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [firebaseUid, setFirebaseUid] = useState(String);
+  const [firebaseUid, setFirebaseUid] = useState<string | null>(null);
+  const [sessionData, setSessionData] = useState<sessionContents[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrev: false,
+  });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -151,11 +177,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (res.data.requiresOtp) {
         router.push("/verify-otp");
         setFirebaseUid(res.data?.firebaseUid);
+        sessionStorage.setItem("sessionId", res.data.session._id);
+        setSessionId(res.data.session._id);
         return {
           requiresOtp: true,
           expiresAt: res.data.expiresAt,
         };
       }
+      sessionStorage.setItem("sessionId", res.data.session._id);
+      setSessionId(res.data.session._id);
       setFirebaseUid(res.data?.firebaseUid);
       sessionStorage.setItem("firebaseToken", res.data?.firebaseUid);
       localStorage.setItem("twitter-user", JSON.stringify(res.data.user));
@@ -218,9 +248,85 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const logout = async () => {
-    setUser(null);
-    await signOut(auth);
-    localStorage.removeItem("twitter-user");
+    try {
+      setIsLoading(true);
+
+      const sessionId = sessionStorage.getItem("sessionId");
+
+      if (sessionId) {
+        await axiosInstance.post("/auth/logout", {
+          sessionId,
+        });
+      }
+
+      await signOut(auth);
+
+      setUser(null);
+      setFirebaseUid(null);
+
+      localStorage.removeItem("twitter-user");
+      sessionStorage.removeItem("sessionId");
+      sessionStorage.clear();
+
+      router.push("/login");
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logoutAll = async () => {
+    try {
+      setIsLoading(true);
+
+      const token = await auth.currentUser?.getIdToken();
+
+      await axiosInstance.post(
+        "/auth/logout-all",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      await signOut(auth);
+
+      setUser(null);
+      setFirebaseUid(null);
+
+      localStorage.clear();
+      sessionStorage.clear();
+
+      router.push("/login");
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logoutOthers = async () => {
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      const sessionId = sessionStorage.getItem("sessionId");
+
+      await axiosInstance.post(
+        "/auth/logout-others",
+        { sessionId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      await auth.currentUser?.getIdToken(true);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const updateProfile = async (profileData: {
@@ -271,11 +377,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (res.data.requiresOtp) {
         router.push("/verify-otp");
         setFirebaseUid(res.data?.firebaseUid);
+        sessionStorage.setItem("sessionId", res.data.session._id);
+        setSessionId(res.data.session._id);
         return {
           requiresOtp: true,
           expiresAt: res.data.expiresAt,
         };
       }
+      sessionStorage.setItem("sessionId", res.data.session._id);
+      setSessionId(res.data.session._id);
       setFirebaseUid(res.data?.firebaseUid);
       sessionStorage.setItem("firebaseToken", res.data?.firebaseUid);
       localStorage.setItem("twitter-user", JSON.stringify(res.data.user));
@@ -291,14 +401,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const session = async () => {
+  const fetchSession = async (page: number = 1) => {
     try {
       setIsLoading(true);
-      const res = await axiosInstance.get("/sessions");
 
-      return res.data.sessions;
-    } catch (err) {
-      console.error(err);
+      const token = await auth.currentUser?.getIdToken();
+
+      const res = await axiosInstance.get(
+        `/sessions/history?page=${page}&limit=10`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      setSessionData(res.data.sessions);
+      setPagination(res.data.pagination);
+      setPage(page);
     } finally {
       setIsLoading(false);
     }
@@ -312,11 +432,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         signup,
         updateProfile,
         logout,
+        logoutAll,
+        logoutOthers,
         isLoading,
         googlesignin,
         firebaseUid,
-        setUser,
-        session,
+        fetchSession,
+        sessionData,
+        pagination,
+        page,
       }}
     >
       {children}
