@@ -39,7 +39,7 @@ export default function VerifyOtpPage() {
 
   const refs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const { firebaseUid,setUser } = useAuth();
+  const { firebaseUid,fetchSession,setUser } = useAuth();
 
   // countdown timer
   useEffect(() => {
@@ -112,6 +112,7 @@ export default function VerifyOtpPage() {
       if (res.data.success) {
         setMsg({ text: "Verified! Logging you in…", type: "success" });
         setUser(res.data.user);
+        await fetchSession();
         setTimeout(() => router.push("/"), 800);
       }
     } catch (err: any) {

@@ -64,18 +64,50 @@ const sessionSchema = new mongoose.Schema(
       default: false,
     },
 
-    // lastActiveAt: {
-    //   type: Date,
-    //   default: Date.now,
-    // },
+    lastActiveAt: {
+      type: Date,
+      default: Date.now,
+    },
+
+    userAgent: {
+      type: String,
+    },
+
+    deviceName: {
+      type: String,
+      default: "",
+    },
+
+    expiresAt: {
+      type: Date,
+      index: {
+        expires: 0,
+      },
+    },
+
+    otpVerifiedAt: Date,
 
     status: {
       type: String,
-      enum: ["success", "failed", "blocked", "pending", "logged_out"],
+      enum: ["pending", "active", "logged_out", "failed", "blocked", "expired"],
       default: "pending",
     },
+
+    blockedAt: Date,
+
+    isCurrent: {
+      type: Boolean,
+      default: false,
+    },
+
+    blockedReason: String,
   },
   { timestamps: true },
 );
+
+sessionSchema.index({ userId: 1, createdAt: -1 });
+sessionSchema.index({ firebaseUid: 1 });
+sessionSchema.index({ status: 1 });
+sessionSchema.index({ lastActiveAt: -1 });
 
 export default mongoose.model("Session", sessionSchema);

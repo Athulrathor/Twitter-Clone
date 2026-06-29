@@ -23,6 +23,7 @@ import { createOtp, verifyOtp } from "./libs/otp.js";
 import { authRules } from "./middlewares/authRule.middleware.js";
 import { deviceInfoMiddleware } from "./middlewares/deviceDetection.middleware.js";
 import { verifyFirebaseToken } from "./middlewares/verifyFirebaseToken.js";
+import fireAuth from "./libs/firebaseAdmin.js";
 
 dotenv.config();
 const app = express();
@@ -65,6 +66,21 @@ const registerLimiter = rateLimit({
   },
 });
 
+const otpRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+
+  max: 5, // maximum 5 OTP requests
+
+  standardHeaders: true,
+  legacyHeaders: false,
+
+  message: {
+    success: false,
+    message:
+      "Too many OTP requests. Please wait 15 minutes before trying again.",
+  },
+});
+
 const forgotPasswordLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // 5 requests per IP
@@ -90,26 +106,6 @@ app.post("/register", registerLimiter, async (req, res) => {
     return res.status(400).send({ error: error.message });
   }
 });
-// loggedinuser
-// app.get("/loggedinuser", async (req, res) => {
-//   try {
-//     const { email } = req.query;
-//     if (!email) {
-//       return res.status(400).send({ error: "Email required" });
-//     }
-//     const user = await User.findOne({ email: email });
-
-//     if (!user) {
-//       return res.status(404).json({
-//         message: "User not found",
-//       });
-//     }
-
-//     return res.status(200).send(user);
-//   } catch (error) {
-//     return res.status(400).send({ error: error.message });
-//   }
-// });
 // auth refresh token
 app.get("/auth/me", verifyFirebaseToken, async (req, res) => {
   try {
@@ -150,6 +146,18 @@ app.post(
         email: req.user.email,
       });
 
+      await Session.updateMany(
+        {
+          userId: user?._id,
+          status: "active",
+          expiresAt: { $lt: new Date() },
+        },
+        {
+          status: "expired",
+          isCurrent: false,
+        },
+      );
+
       if (!user) {
         user = await User.create({
           username:
@@ -167,7 +175,46 @@ app.post(
         });
       }
 
+      let session;
+
+      if (req.securityFlags.blocked) {
+        session = await Session.create({
+          userId: user._id,
+          firebaseUid: req.user.uid,
+          ipAddress: req.deviceInfo.ipAddress,
+          browser: req.deviceInfo.browser,
+          os: req.deviceInfo.os,
+          deviceType: req.deviceInfo.deviceType,
+          location: req.deviceInfo.location,
+          loginMethod: req.body.loginMethod,
+
+          status: "blocked",
+          blockedReason: req.securityFlags.blockedReason,
+          blockedAt: new Date(),
+        });
+
+        return res.status(403).json({
+          success: false,
+          blocked: true,
+          reason: req.securityFlags.blockedReason,
+          session,
+        });
+      }
+
       if (req.securityFlags?.requiresStepUp) {
+        session = await Session.create({
+          userId: user._id,
+          firebaseUid: req.user.uid,
+          ipAddress: req.deviceInfo.ipAddress,
+          browser: req.deviceInfo.browser,
+          os: req.deviceInfo.os,
+          deviceType: req.deviceInfo.deviceType,
+          location: req.deviceInfo.location,
+          loginMethod: req.body.loginMethod,
+          otpVerified: false,
+          lastActiveAt: new Date(),
+        });
+
         const otp = await createOtp({
           firebaseUid: req.user.uid,
           email: req.user.email,
@@ -180,42 +227,30 @@ app.post(
 
         await sendOtpEmail(user.email, user.username, otp.otp, otp.expiresAt);
 
-        const session = await Session.create({
-          userId: user._id,
-          firebaseUid: req.user.uid,
-          ipAddress: req.deviceInfo.ipAddress,
-          browser: req.deviceInfo.browser,
-          os: req.deviceInfo.os,
-          deviceType: req.deviceInfo.deviceType,
-          location: req.deviceInfo.location,
-          status: "pending",
-          loginMethod: req.body.loginMethod,
-          otpVerified: false,
-          loginTime: Date.now(),
-        });
-
         return res.status(200).json({
           success: true,
           requiresOtp: true,
+          session,
           expiresAt: otp.expiresAt,
           message: "OTP sent.",
           firebaseUid: req.user.uid,
-          session,
-          sessionId: session._id,
-        });
-      } else {
-        const session = await Session.create({
-          userId: user._id,
-          firebaseUid: req.user.uid,
-          ipAddress: req.deviceInfo.ipAddress,
-          browser: req.deviceInfo.browser,
-          os: req.deviceInfo.os,
-          deviceType: req.deviceInfo.deviceType,
-          location: req.deviceInfo.location,
-          status: "success",
-          loginMethod: req.body.loginMethod,
         });
       }
+
+      session = await Session.create({
+        userId: user._id,
+        firebaseUid: req.user.uid,
+        ipAddress: req.deviceInfo.ipAddress,
+        browser: req.deviceInfo.browser,
+        os: req.deviceInfo.os,
+        deviceType: req.deviceInfo.deviceType,
+        location: req.deviceInfo.location,
+        status: "active",
+        isCurrent: true,
+        lastActiveAt: new Date(),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        loginMethod: req.body.loginMethod,
+      });
 
       return res.status(200).json({
         success: true,
@@ -223,8 +258,7 @@ app.post(
         security: req.securityFlags,
         device: req.deviceInfo,
         firebaseUid: req.user.uid,
-        sessionId: session._id,
-        session
+        session,
       });
     } catch (error) {
       console.error(error);
@@ -732,7 +766,7 @@ app.post("/auth/reset-password", async (req, res) => {
 });
 
 // otp verification
-app.post("/login/otp", async (req, res) => {
+app.post("/login/otp", otpRateLimiter, async (req, res) => {
   try {
     const { firebaseUid, email } = req.body;
 
@@ -784,22 +818,52 @@ app.post("/login/verify", async (req, res) => {
       otp,
     });
 
-    const session = await Session.findOneAndUpdate(
+    const sessionBlocked = await Session.findOne({
+      firebaseUid,
+      status: "blocked",
+    });
+
+    if (sessionBlocked) {
+      return res.status(403).json({
+        success: false,
+        message: "This login attempt was blocked.",
+      });
+    }
+
+    const pendingSession = await Session.findOne({
+      firebaseUid,
+      status: "pending",
+    }).sort({ createdAt: -1 });
+
+    if (!pendingSession) {
+      return res.status(404).json({
+        success: false,
+        message: "Pending session not found.",
+      });
+    }
+
+    await Session.updateMany(
       {
-        firebaseUid,
-        status: "pending",
+        userId: pendingSession.userId,
+        isCurrent: true,
       },
       {
-        $set: {
-          status: "success",
-          loginTime: Date.now(),
-          otpVerified: true,
-        },
+        isCurrent: false,
       },
+    );
+
+    const session = await Session.findByIdAndUpdate(
+      pendingSession._id,
       {
-        sort: { createdAt: -1 },
-        new: true,
+        status: "active",
+        otpVerified: true,
+        otpVerifiedAt: new Date(),
+        loginTime: new Date(),
+        lastActiveAt: new Date(),
+        isCurrent: true,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
+      { new: true },
     );
 
     if (!session) {
@@ -845,42 +909,102 @@ app.post("/login/verify", async (req, res) => {
 });
 
 // session history
-app.get("/sessions/history",verifyFirebaseToken, async (req, res) => {
+app.get("/sessions/history", verifyFirebaseToken, async (req, res) => {
   try {
+    await Session.updateMany(
+      {
+        expiresAt: { $lt: new Date() },
+        status: "active",
+      },
+      {
+        $set: {
+          status: "expired",
+        },
+      },
+    );
+
     const page = Math.max(parseInt(req.query.page) || 1, 1);
     const limit = Math.min(parseInt(req.query.limit) || 10, 50);
     const skip = (page - 1) * limit;
 
-    const latestSession = await Session.findOne({
-      firebaseUid: req.user.uid,
-      status: "success",
-    }).sort({ createdAt: -1 });
-
-    const totalSessions = await Session.countDocuments({
-      userId: latestSession.userId,
+    const user = await User.findOne({
+      email: req.user.email,
     });
 
+    // const latestSession = await Session.findOne({
+    //   userId: user._id,
+    //   isCurrent: true,
+    // }).sort({
+    //   lastActiveAt: -1,
+    // });
+
+    // if (!latestSession) {
+    //   return res.status(404).json({
+    //     success: false,
+    //     message: "No active session found",
+    //   });
+    // }
+
+    // const currentSession = await Session.findOne({
+    //   userId: user._id,
+    //   isCurrent: true,
+    //   status: "active",
+    // }).lean();
+
+        const userId = user._id;
+
+    const [currentSession, activeCount, blockedCount, otpCount, deviceTypes] =
+      await Promise.all([
+        Session.findOne({
+          userId,
+          isCurrent: true,
+          status: "active",
+        }).lean(),
+
+        Session.countDocuments({
+          userId,
+          status: "active",
+        }),
+
+        Session.countDocuments({
+          userId,
+          status: "blocked",
+        }),
+
+        Session.countDocuments({
+          userId,
+          otpVerified: true,
+        }),
+
+        Session.distinct("deviceType", {
+          userId,
+        }),
+      ]);
+
     const sessions = await Session.find({
-      userId: latestSession.userId,
+      userId: user._id,
+      _id: { $ne: currentSession?._id },
     })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
 
-      console.log(sessions)
-
-    const data = sessions.map((session) => ({
-      ...session,
-      isCurrent:
-        latestSession &&
-        latestSession._id.toString() === session._id.toString(),
-    }));
+    const totalSessions = await Session.countDocuments({
+      userId: user._id,
+      _id: { $ne: currentSession?._id },
+    });
 
     res.json({
       success: true,
-      sessions: data,
-
+      sessions,
+      currentSession,
+      stats: {
+        activeCount,
+        blockedCount,
+        otpCount,
+        deviceCount: deviceTypes.length,
+      },
       pagination: {
         page,
         limit,
@@ -906,10 +1030,21 @@ app.post("/auth/logout", verifyFirebaseToken, async (req, res) => {
     const uid = req.user.uid;
     const { sessionId } = req.body;
 
-    await Session.findByIdAndUpdate(sessionId, {
-      logoutTime: new Date(),
-      status: "logged_out",
+    const user = await User.findOne({
+      email: req.user.email,
     });
+
+    await Session.findOneAndUpdate(
+      {
+        _id: sessionId,
+        userId: user._id,
+      },
+      {
+        status: "logged_out",
+        logoutTime: new Date(),
+        isCurrent: false,
+      },
+    );
 
     res.json({
       success: true,
@@ -922,18 +1057,21 @@ app.post("/auth/logout", verifyFirebaseToken, async (req, res) => {
 
 app.post("/auth/logout-all", verifyFirebaseToken, async (req, res) => {
   try {
-    const uid = req.user.uid;
+    const email = req.user.email;
 
-    // 1. Firebase revoke
-    await admin.auth().revokeRefreshTokens(uid);
+    const user = await User.findOne({
+      email: req.user.email,
+    });
 
-    // 2. Close ALL sessions in DB
+    await fireAuth.revokeRefreshTokens(req.user.uid);
+
     await Session.updateMany(
-      { firebaseUid: uid, status: "active" },
+      { userId: user._id, status: "active" },
       {
-        logoutTime: new Date(),
         status: "logged_out",
-      }
+        logoutTime: new Date(),
+        isCurrent: false,
+      },
     );
 
     res.json({
@@ -947,26 +1085,24 @@ app.post("/auth/logout-all", verifyFirebaseToken, async (req, res) => {
 
 app.post("/auth/logout-others", verifyFirebaseToken, async (req, res) => {
   try {
-    const uid = req.user.uid;
+    const email = req.user.email;
     const { sessionId } = req.body;
 
-    // 1. Mark OTHER sessions as logged out in DB
     await Session.updateMany(
       {
-        firebaseUid: uid,
+        userId: user._id,
         _id: { $ne: sessionId },
         status: "active",
       },
       {
         status: "logged_out",
         logoutTime: new Date(),
-      }
+        isCurrent: false,
+      },
     );
 
-    // 2. Revoke Firebase refresh tokens (affects all devices)
-    await admin.auth().revokeRefreshTokens(uid);
+    await fireAuth.revokeRefreshTokens(req.user.uid);
 
-    // 3. IMPORTANT: tell frontend to refresh current session
     res.json({
       success: true,
       message: "Other sessions revoked. Refresh current session.",

@@ -7,10 +7,10 @@ import RightSidebar from "./Rightsidebar";
 import ProfilePage from "../ProfilePage";
 
 const Mainlayout = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useAuth();
+  const { user, isInitializing  } = useAuth();
   const [currentPage, setCurrentPage] = useState("home");
 
-  if (isLoading) {
+  if (isInitializing ) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">

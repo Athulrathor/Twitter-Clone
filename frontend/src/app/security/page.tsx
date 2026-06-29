@@ -1,5 +1,5 @@
 "use client";
- 
+
 import { useEffect, useState } from "react";
 import {
   Shield,
@@ -34,44 +34,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import LoadingSpinner from "@/components/loading-spinner";
-// import { Skeleton } from "@/components/ui/skeleton";
- 
-interface sessionContents {
-  _id: string;
-  userId: string;
-  firebaseUid: string;
-  ipAddress: string;
-  isCurrent: boolean;
-  browser: string;
-  os: string;
-  deviceType: "mobile" | "desktop" | "tablet" | "unknown";
-  loginTime?: string;
-  location?: {
-    country?: string;
-    region?: string;
-    city?: string;
-    latitude?: string;
-    longitude?: string;
-    timezone?: string;
-  };
-  status?: "success" | "failed" | "pending" | "blocked" | "logged_out";
-  otpVerified?: boolean;
-  loginMethod?: "google" | "email";
-  blocked?: boolean;
-  blockedReason?: string;
-  createdAt: string;
-  updatedAt: string;
-}
- 
+import { SessionContents } from "@/context/AuthContext";
+import AuthenticationCard from "@/components/authentication-card"
+
 function DeviceIcon({
   type,
   size = 16,
@@ -83,44 +51,31 @@ function DeviceIcon({
   if (type === "tablet") return <Laptop size={size} />;
   return <Monitor size={size} />;
 }
- 
-// function SessionCardSkeleton() {
-//   return (
-//     <div className="rounded-xl border border-white/[0.07] bg-[#1a1f2e] p-4">
-//       <div className="flex items-start gap-3">
-//         <Skeleton className="h-9 w-9 rounded-lg bg-white/5" />
-//         <div className="flex-1 space-y-2">
-//           <Skeleton className="h-4 w-40 bg-white/5" />
-//           <Skeleton className="h-3 w-56 bg-white/5" />
-//           <Skeleton className="h-3 w-32 bg-white/5" />
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
- 
+
 function SessionCard({
   session,
   onLogout,
   isLoggingOut,
 }: {
-  session: sessionContents;
+  session: SessionContents;
   onLogout: (id: string) => void;
   isLoggingOut: boolean;
 }) {
   if (!session || typeof session !== "object" || Array.isArray(session))
     return null;
- 
+
   return (
     <div
       className={`rounded-xl border p-4 transition-colors ${
         session.isCurrent
           ? "bg-blue-500/5 border-blue-500/20"
-          : session.blocked || session.status === "blocked"
+          : session.status === "blocked"
             ? "bg-red-500/5 border-red-500/15"
-            : session.status === "logged_out"
-              ? "bg-white/[0.02] border-white/[0.05] opacity-60"
-              : "bg-[#1a1f2e] border-white/[0.07] hover:border-white/[0.12]"
+            : session.status === "expired"
+              ? "bg-yellow-500/5 border-yellow-500/15"
+              : session.status === "logged_out"
+                ? "bg-white/[0.02] border-white/[0.05] opacity-60"
+                : "bg-[#1a1f2e] border-white/[0.07] hover:border-white/[0.12]"
       }`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -129,14 +84,16 @@ function SessionCard({
             className={`mt-0.5 shrink-0 rounded-lg p-2 ${
               session.isCurrent
                 ? "bg-blue-500/15 text-blue-400"
-                : session.blocked || session.status === "blocked"
+                : session.status === "blocked"
                   ? "bg-red-500/15 text-red-400"
-                  : "bg-white/5 text-gray-400"
+                  : session.status === "expired"
+                    ? "bg-yellow-500/15 text-yellow-400"
+                    : "bg-white/5 text-gray-400"
             }`}
           >
             <DeviceIcon type={session.deviceType} size={18} />
           </div>
- 
+
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-1.5 mb-1">
               <span className="text-sm font-medium text-white">
@@ -150,7 +107,8 @@ function SessionCard({
                   Current
                 </Badge>
               )}
-              {(session.blocked || session.status === "blocked") && (
+
+              {session.status === "blocked" && (
                 <Badge
                   variant="outline"
                   className="text-[10px] py-0 border-red-500/30 text-red-400 bg-red-500/10"
@@ -158,6 +116,25 @@ function SessionCard({
                   Blocked
                 </Badge>
               )}
+
+              {session.status === "expired" && (
+                <Badge
+                  variant="outline"
+                  className="text-[10px] py-0 border-yellow-500/30 text-yellow-400 bg-yellow-500/10"
+                >
+                  Expired
+                </Badge>
+              )}
+
+              {session.status === "failed" && (
+                <Badge
+                  variant="outline"
+                  className="text-[10px] py-0 border-orange-500/30 text-orange-400 bg-orange-500/10"
+                >
+                  Failed
+                </Badge>
+              )}
+
               {session.status === "logged_out" && (
                 <Badge
                   variant="outline"
@@ -175,7 +152,7 @@ function SessionCard({
                 </Badge>
               )}
             </div>
- 
+
             <div className="space-y-0.5">
               <div className="flex items-center gap-1.5 text-xs text-gray-500">
                 <MapPin size={11} />
@@ -200,14 +177,13 @@ function SessionCard({
                   </span>
                 </div>
               )}
-              {(session.blocked || session.status === "blocked") &&
-                session.blockedReason && (
-                  <div className="flex items-center gap-1.5 text-xs text-red-400 mt-1">
-                    <AlertTriangle size={11} />
-                    <span>{session.blockedReason}</span>
-                  </div>
-                )}
-              {!session.blocked && session.status !== "blocked" && (
+              {session.status === "blocked" && session.blockedReason && (
+                <div className="flex items-center gap-1.5 text-xs text-red-400 mt-1">
+                  <AlertTriangle size={11} />
+                  <span>{session.blockedReason}</span>
+                </div>
+              )}
+              {session.status === "active" && (
                 <div className="flex items-center gap-1.5 text-xs mt-1">
                   {session.otpVerified ? (
                     <>
@@ -216,8 +192,8 @@ function SessionCard({
                     </>
                   ) : (
                     <>
-                      <XCircle size={11} className="text-gray-600" />
-                      <span className="text-gray-600">No OTP required</span>
+                      <XCircle size={11} className="text-gray-500" />
+                      <span className="text-gray-500">No OTP required</span>
                     </>
                   )}
                 </div>
@@ -225,54 +201,56 @@ function SessionCard({
             </div>
           </div>
         </div>
- 
+
         {/* Logout button — only for non-current, active sessions */}
-        {!session.isCurrent &&
-          !session.blocked &&
-          session.status !== "blocked" &&
-          session.status !== "logged_out" && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={isLoggingOut}
-                  className="shrink-0 h-7 px-2.5 text-xs text-gray-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20"
+        {!session.isCurrent && session.status === "active" && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={isLoggingOut}
+                onClick={() => onLogout(session._id)}
+                className="shrink-0 h-7 px-2.5 text-xs text-gray-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20"
+              >
+                <LogOut size={13} className="mr-1" />
+                <span className="hidden sm:inline">Logout</span>
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-[#111827] border-white/10 text-white">
+              <AlertDialogHeader>
+                <AlertDialogTitle>End this session?</AlertDialogTitle>
+                <AlertDialogDescription className="text-gray-400">
+                  This will immediately log out the{" "}
+                  <span className="text-white">
+                    {session.browser} on {session.os}
+                  </span>{" "}
+                  session
+                  {session?.location?.city
+                    ? ` from ${session.location.city}`
+                    : ""}
+                  .
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10">
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => onLogout(session._id)}
+                  className="bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30"
                 >
-                  <LogOut size={13} className="mr-1" />
-                  <span className="hidden sm:inline">Logout</span>
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent className="bg-[#111827] border-white/10 text-white">
-                <AlertDialogHeader>
-                  <AlertDialogTitle>End this session?</AlertDialogTitle>
-                  <AlertDialogDescription className="text-gray-400">
-                    This will immediately log out the{" "}
-                    <span className="text-white">
-                      {session.browser} on {session.os}
-                    </span>{" "}
-                    session{session?.location?.city ? ` from ${session.location.city}` : ""}.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10">
-                    Cancel
-                  </AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => onLogout(session._id)}
-                    className="bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30"
-                  >
-                    End session
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
+                  End session
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
     </div>
   );
 }
- 
+
 function PaginationBar({
   pagination,
   page,
@@ -290,7 +268,7 @@ function PaginationBar({
   onPageChange: (p: number) => void;
 }) {
   if (pagination.totalPages <= 1) return null;
- 
+
   return (
     <div className="flex items-center justify-between mt-4">
       <span className="text-xs text-gray-500">
@@ -324,7 +302,7 @@ function PaginationBar({
     </div>
   );
 }
- 
+
 export default function SessionsPage() {
   const {
     fetchSession,
@@ -332,45 +310,42 @@ export default function SessionsPage() {
     pagination,
     page,
     user,
-    isLoading,
+    sessionLoading,
     logout,
     logoutAll,
     logoutOthers,
+    currentSession,
+    stats,
   } = useAuth();
- 
+
   const [loggingOutId, setLoggingOutId] = useState<string | null>(null);
   const [logoutOthersLoading, setLogoutOthersLoading] = useState(false);
   const [logoutAllLoading, setLogoutAllLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
- 
+
+  const router = useRouter();
+
   useEffect(() => {
     if (!user?._id) return;
     fetchSession(1);
-  }, [user]);
+  }, [user?._id]);
 
-  console.log(sessionData)
- 
-  const sessions = (sessionData as sessionContents[]) ?? [];
-  const currentSession = sessions.find((s) => s.isCurrent);
+  const sessions = sessionData ?? [];
+
   const otherActiveSessions = sessions.filter(
-    (s) => !s.isCurrent && s.status !== "logged_out"
+    (session) => !session.isCurrent && session.status === "active",
   );
+
   const historySessions = sessions.filter(
-    (s) => !s.isCurrent && s.status === "logged_out"
+    (session) =>
+      !session.isCurrent &&
+      ["logged_out", "expired", "blocked", "failed"].includes(session.status),
   );
- 
-  const activeCount = sessions.filter(
-    (s) => s.status !== "logged_out" && s.status !== "blocked"
-  ).length;
-  const blockedCount = sessions.filter(
-    (s) => s.blocked || s.status === "blocked"
-  ).length;
-  const otpCount = sessions.filter((s) => s.otpVerified).length;
-  const deviceTypes = new Set(sessions.map((s) => s.deviceType));
- 
+
   const handleLogoutSession = async (id: string) => {
     setLoggingOutId(id);
     try {
+      await logout(id);
       await fetchSession(page);
     } catch (err) {
       console.error(err);
@@ -378,7 +353,7 @@ export default function SessionsPage() {
       setLoggingOutId(null);
     }
   };
- 
+
   const handleLogoutOthers = async () => {
     setLogoutOthersLoading(true);
     try {
@@ -390,7 +365,7 @@ export default function SessionsPage() {
       setLogoutOthersLoading(false);
     }
   };
- 
+
   const handleLogoutAll = async () => {
     setLogoutAllLoading(true);
     try {
@@ -400,8 +375,9 @@ export default function SessionsPage() {
       setLogoutAllLoading(false);
     }
   };
- 
+
   const handleRefresh = async () => {
+    if (sessionLoading) return;
     setRefreshing(true);
     try {
       await fetchSession(page);
@@ -409,67 +385,82 @@ export default function SessionsPage() {
       setRefreshing(false);
     }
   };
- 
+
   const handlePageChange = (p: number) => {
     fetchSession(p);
   };
- 
+
   const STATS = [
     {
       label: "Devices",
-      value: deviceTypes.size,
+      value: stats?.deviceCount,
       icon: Monitor,
       color: "text-blue-400",
     },
     {
       label: "Active",
-      value: activeCount,
+      value: stats?.activeCount,
       icon: Wifi,
       color: "text-purple-400",
     },
     {
       label: "OTP logins",
-      value: otpCount,
+      value: stats?.otpCount,
       icon: KeyRound,
       color: "text-emerald-400",
     },
     {
       label: "Blocked",
-      value: blockedCount,
+      value: stats?.blockedCount,
       icon: Ban,
       color: "text-red-400",
     },
   ];
- 
+
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="max-w-2xl mx-auto px-4 py-6 pb-24 md:pb-8">
         {/* ── Header ── */}
-        <div className="mb-6 pb-5 border-b border-white/[0.07]">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 mb-1">
-              <Shield size={18} className="text-blue-400" />
-              <h1 className="text-lg font-semibold text-white">Security</h1>
-            </div>
+        <div className="mb-6 pb-5 flex w-full border-b border-white/[0.07]">
+          <div className="mr-3">
             <Button
               variant="ghost"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={refreshing || isLoading}
-              className="h-7 px-2.5 text-xs text-gray-500 hover:text-white hover:bg-white/5"
+              size="icon"
+              onClick={() => router.back()}
+              className="h-8 w-8 text-gray-400 hover:text-white hover:bg-white/5"
             >
-              <RefreshCw
-                size={13}
-                className={`mr-1.5 ${refreshing ? "animate-spin" : ""}`}
-              />
-              Refresh
+              <ArrowLeft size={18} />
             </Button>
           </div>
-          <p className="text-sm text-gray-500">
-            Monitor login activity and manage active sessions.
-          </p>
+
+          <div className="flex-1">
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                <Shield size={18} className="text-blue-400" />
+                <h1 className="text-lg font-semibold text-white">Security</h1>
+              </div>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={refreshing || sessionLoading}
+                className="h-7 px-2.5 text-xs text-gray-500 hover:text-white hover:bg-white/5"
+              >
+                <RefreshCw
+                  size={13}
+                  className={`mr-1.5 ${refreshing ? "animate-spin" : ""}`}
+                />
+                Refresh
+              </Button>
+            </div>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Monitor login activity and manage active sessions.
+            </p>
+          </div>
         </div>
- 
+
         {/* ── Stats ── */}
         <section className="mb-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -479,7 +470,7 @@ export default function SessionsPage() {
                 className="rounded-xl border border-white/[0.07] bg-[#111827] px-4 py-3.5 flex flex-col gap-1"
               >
                 <stat.icon size={15} className={stat.color} />
-                {isLoading ? (
+                {sessionLoading ? (
                   <LoadingSpinner />
                 ) : (
                   <span className="text-2xl font-semibold text-white tabular-nums">
@@ -493,13 +484,17 @@ export default function SessionsPage() {
             ))}
           </div>
         </section>
- 
+        {/* Authentications */}
+        <section className="mb-6">
+            <AuthenticationCard />
+        </section>
+
         {/* ── Current Device ── */}
         <section className="mb-6">
           <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
             Current device
           </h2>
-          {isLoading ? (
+          {sessionLoading ? (
             <LoadingSpinner />
           ) : currentSession ? (
             <SessionCard
@@ -508,12 +503,14 @@ export default function SessionsPage() {
               isLoggingOut={loggingOutId === currentSession._id}
             />
           ) : (
-            <p className="text-sm text-gray-600 italic">No active session found.</p>
+            <p className="text-sm text-gray-600 italic">
+              No active session found.
+            </p>
           )}
         </section>
- 
+
         {/* ── Other Active Sessions ── */}
-        {(otherActiveSessions.length > 0 || isLoading) && (
+        {(otherActiveSessions.length > 0 || sessionLoading) && (
           <section className="mb-6">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -539,7 +536,9 @@ export default function SessionsPage() {
                   </AlertDialogTrigger>
                   <AlertDialogContent className="bg-[#111827] border-white/10 text-white">
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Logout all other sessions?</AlertDialogTitle>
+                      <AlertDialogTitle>
+                        Logout all other sessions?
+                      </AlertDialogTitle>
                       <AlertDialogDescription className="text-gray-400">
                         This ends{" "}
                         <span className="text-white font-medium">
@@ -565,21 +564,22 @@ export default function SessionsPage() {
               )}
             </div>
             <div className="space-y-2">
-              {isLoading ? 
-              <LoadingSpinner />
-                : otherActiveSessions.map((s) => (
-                    <SessionCard
-                      key={s._id}
-                      session={s}
-                      onLogout={handleLogoutSession}
-                      isLoggingOut={loggingOutId === s._id}
-                    />
-                  ))}
-                  <LoadingSpinner />
+              {sessionLoading ? (
+                <LoadingSpinner />
+              ) : (
+                otherActiveSessions.map((s) => (
+                  <SessionCard
+                    key={s._id}
+                    session={s}
+                    onLogout={handleLogoutSession}
+                    isLoggingOut={loggingOutId === s._id}
+                  />
+                ))
+              )}
             </div>
           </section>
         )}
- 
+
         {/* ── Session History ── */}
         {historySessions.length > 0 && (
           <section className="mb-6">
@@ -603,7 +603,7 @@ export default function SessionsPage() {
             />
           </section>
         )}
- 
+
         {/* ── Danger Zone ── */}
         <section>
           <div className="rounded-xl border border-red-500/20 bg-red-500/5 overflow-hidden">
@@ -636,7 +636,8 @@ export default function SessionsPage() {
                       <AlertDialogTitle>Log out everywhere?</AlertDialogTitle>
                       <AlertDialogDescription className="text-gray-400">
                         This immediately ends all active sessions on every
-                        device, including this one. You will need to log in again.
+                        device, including this one. You will need to log in
+                        again.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
