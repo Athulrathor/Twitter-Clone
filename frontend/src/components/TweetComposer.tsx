@@ -8,13 +8,14 @@ import { Image, Smile, Calendar, MapPin, BarChart3, Globe } from "lucide-react";
 import { Separator } from "./ui/separator";
 import axios from "axios";
 import axiosInstance from "@/lib/axiosInstance";
-const TweetComposer = ({ onTweetPosted }: any) => {
+import { auth } from "@/context/firebase";
+const TweetComposer = ({ onTweetPosted }: { onTweetPosted: (tweet: any) => void }) => {
   const { user } = useAuth();
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [imageurl, setimageurl] = useState("");
   const maxLength = 200;
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if(!user || !content.trim())return
     try {
@@ -23,7 +24,12 @@ const TweetComposer = ({ onTweetPosted }: any) => {
         content,
         image:imageurl
       }
-      const res=await axiosInstance.post('/post',tweetdata)
+      const token = await auth.currentUser?.getIdToken();
+      const res=await axiosInstance.post('/post',tweetdata,{
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },)
       onTweetPosted(res.data)
       setContent("")
       setimageurl("")

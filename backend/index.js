@@ -24,6 +24,7 @@ import { authRules } from "./middlewares/authRule.middleware.js";
 import { deviceInfoMiddleware } from "./middlewares/deviceDetection.middleware.js";
 import { verifyFirebaseToken } from "./middlewares/verifyFirebaseToken.js";
 import fireAuth from "./libs/firebaseAdmin.js";
+import { startAccountCleanupCron } from "./cron/runCleanUp.js";
 
 dotenv.config();
 const app = express();
@@ -49,6 +50,9 @@ mongoose
   .connect(url)
   .then(() => {
     console.log("✅ Connected to MongoDB");
+
+    startAccountCleanupCron();
+    
     app.listen(port, () => {
       console.log(`🚀 Server running on port ${port}`);
     });
@@ -99,6 +103,12 @@ app.post("/register", registerLimiter, async (req, res) => {
     if (existinguser) {
       return res.status(200).send(existinguser);
     }
+    if (existinguser.deleted) {
+      return res.status(403).json({
+        message:
+          "Your account is scheduled for deletion.Restore it before continuing.",
+      });
+    }
     const newUser = new User(req.body);
     await newUser.save();
     return res.status(201).send(newUser);
@@ -135,16 +145,22 @@ app.get("/auth/me", verifyFirebaseToken, async (req, res) => {
   }
 });
 // Firebase login
-app.post(
-  "/firebase/login",
-  verifyFirebaseToken,
-  deviceInfoMiddleware,
+app.post("/firebase/login",verifyFirebaseToken,deviceInfoMiddleware,
   authRules,
   async (req, res) => {
     try {
       let user = await User.findOne({
         email: req.user.email,
       });
+
+      if (user.deleted) {
+        return res.status(403).json({
+          success: false,
+          code: "ACCOUNT_DELETED",
+          message: "Your account is scheduled for deletion.",
+          deleteAt: user.scheduledDeleteAt,
+        });
+      }
 
       await Session.updateMany(
         {
@@ -271,11 +287,10 @@ app.post(
   },
 );
 // update Profile
-app.patch("/userupdate/:email", async (req, res) => {
+app.patch("/userupdate/",verifyFirebaseToken, async (req, res) => {
   try {
-    const { email } = req.params;
     const updated = await User.findOneAndUpdate(
-      { email },
+      { email: req.user.email },
       { $set: req.body },
       { new: true, upsert: false },
     );
@@ -287,7 +302,7 @@ app.patch("/userupdate/:email", async (req, res) => {
 // Tweet API
 
 // POST
-app.post("/post", async (req, res) => {
+app.post("/post",verifyFirebaseToken, async (req, res) => {
   try {
     const userId = req.body.author;
 
@@ -312,7 +327,7 @@ app.post("/post", async (req, res) => {
   }
 });
 // get all tweet
-app.get("/post", async (req, res) => {
+app.get("/post",verifyFirebaseToken, async (req, res) => {
   try {
     const tweets = await Tweet.find()
       .sort({ timestamp: -1 })
@@ -326,7 +341,7 @@ app.get("/post", async (req, res) => {
   }
 });
 //  LIKE TWEET
-app.post("/like/:tweetid", async (req, res) => {
+app.post("/like/:tweetid",verifyFirebaseToken, async (req, res) => {
   try {
     const { userId } = req.body;
     const tweet = await Tweet.findById(req.params.tweetid);
@@ -341,7 +356,7 @@ app.post("/like/:tweetid", async (req, res) => {
   }
 });
 // retweet
-app.post("/retweet/:tweetid", async (req, res) => {
+app.post("/retweet/:tweetid",verifyFirebaseToken, async (req, res) => {
   try {
     const { userId } = req.body;
     const tweet = await Tweet.findById(req.params.tweetid);
@@ -357,10 +372,10 @@ app.post("/retweet/:tweetid", async (req, res) => {
 });
 
 // payment status time restrictions
-app.get("/payments/status", async (req, res) => {
+app.get("/payments/status",verifyFirebaseToken, async (req, res) => {
   try {
     if (!isPaymentAllowed()) {
-      return res.status(403).json({
+      return res.status(200).json({
         success: false,
         message: "Payments are allowed only between 10:00 AM and 11:00 AM IST",
       });
@@ -378,7 +393,7 @@ app.get("/payments/status", async (req, res) => {
 });
 
 // subscriptions status
-app.get("/subscriptions/status/:userId", async (req, res) => {
+app.get("/subscriptions/status/:userId",verifyFirebaseToken, async (req, res) => {
   try {
     const { userId } = req.params;
 
@@ -443,7 +458,7 @@ app.get("/subscriptions/status/:userId", async (req, res) => {
 });
 
 // payment create order
-app.post("/payments/create-order/:userId", async (req, res) => {
+app.post("/payments/create-order/:userId",verifyFirebaseToken, async (req, res) => {
   try {
     const { planName } = req.body;
 
@@ -484,7 +499,7 @@ app.post("/payments/create-order/:userId", async (req, res) => {
   }
 });
 // verify payment
-app.post("/payment/verify", async (req, res) => {
+app.post("/payment/verify",verifyFirebaseToken, async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
       req.body;
@@ -931,27 +946,7 @@ app.get("/sessions/history", verifyFirebaseToken, async (req, res) => {
       email: req.user.email,
     });
 
-    // const latestSession = await Session.findOne({
-    //   userId: user._id,
-    //   isCurrent: true,
-    // }).sort({
-    //   lastActiveAt: -1,
-    // });
-
-    // if (!latestSession) {
-    //   return res.status(404).json({
-    //     success: false,
-    //     message: "No active session found",
-    //   });
-    // }
-
-    // const currentSession = await Session.findOne({
-    //   userId: user._id,
-    //   isCurrent: true,
-    //   status: "active",
-    // }).lean();
-
-        const userId = user._id;
+    const userId = user._id;
 
     const [currentSession, activeCount, blockedCount, otpCount, deviceTypes] =
       await Promise.all([
@@ -1110,5 +1105,125 @@ app.post("/auth/logout-others", verifyFirebaseToken, async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+// change password
+app.post("/auth/change-password", verifyFirebaseToken, async (req, res) => {
+  const { newPassword } = req.body;
+
+  if (!newPassword) {
+    return res
+      .status(400)
+      .json({ success: false, message: "New passwords is required." });
+  }
+
+  if (newPassword.length < 8) {
+    return res.status(400).json({
+      success: false,
+      message: "Password must be at least 8 characters.",
+    });
+  }
+
+  try {
+    const user = await User.findOne({
+      email: req.user.email,
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    await fireAuth.updateUser(user.firebaseUid, {
+      password: newPassword,
+    });
+
+    return res.json({
+      success: true,
+      message: "Password changed successfully.",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to change password",
+    });
+  }
+});
+// Delete acount
+app.get("/auth/delete-account", verifyFirebaseToken, async (req, res) => {
+  try {
+    const deleteAfter = new Date();
+
+    deleteAfter.setDate(deleteAfter.getDate() + 30);
+
+    await User.findByIdAndUpdate(req.user.id, {
+      isDeleted: true,
+      deletedAt: new Date(),
+      scheduledDeleteAt: deleteAfter,
+    });
+
+    await Session.deleteMany({
+      userId: req.user.id,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Account scheduled for deletion.",
+      deleteAt: deleteAfter,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete account.",
+    });
+  }
+});
+// restore account
+app.get("/auth/restore-account", verifyFirebaseToken, async (req, res) => {
+  try {
+    await User.findByIdAndUpdate(req.user.id, {
+      isDeleted: false,
+      deletedAt: null,
+      scheduledDeleteAt: null,
+      restoreAt: new Date(),
+    });
+
+    return res.json({
+      success: true,
+      message: "Account restored successfully.",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to restore account.",
+    });
+  }
+});
+// get delete status
+app.get("/auth/account-status", verifyFirebaseToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select(
+      "deleted scheduledDeleteAt",
+    );
+
+    return res.json({
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to check status of account.",
+    });
   }
 });

@@ -6,7 +6,6 @@ import {
   Monitor,
   Smartphone,
   Laptop,
-  Globe,
   MapPin,
   Clock,
   CheckCircle2,
@@ -38,7 +37,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import LoadingSpinner from "@/components/loading-spinner";
 import { SessionContents } from "@/context/AuthContext";
-import AuthenticationCard from "@/components/authentication-card"
+import AuthenticationCard from "@/components/authentication-card";
 
 function DeviceIcon({
   type,
@@ -316,12 +315,22 @@ export default function SessionsPage() {
     logoutOthers,
     currentSession,
     stats,
+    fetchDeleteAccount,
+    fetchRecoverAccount,
+    fetchDeleteStatus,
   } = useAuth();
 
   const [loggingOutId, setLoggingOutId] = useState<string | null>(null);
   const [logoutOthersLoading, setLogoutOthersLoading] = useState(false);
   const [logoutAllLoading, setLogoutAllLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  const [deleteAccountLoading, setDeleteAccountLoading] = useState(false);
+  const [recoverAccountLoading, setRecoverAccountLoading] = useState(false);
+  const [deleteStatusLoading, setDeleteStatusLoading] = useState(false);
+  const [deleteStatus,setDeleteStatus] = useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
+  const [recoverOpen, setRecoverOpen] = useState(false);
 
   const router = useRouter();
 
@@ -389,6 +398,59 @@ export default function SessionsPage() {
   const handlePageChange = (p: number) => {
     fetchSession(p);
   };
+
+  const handleSoftDelete = async () => {
+    try {
+      setDeleteAccountLoading(true);
+
+      const response = await fetchDeleteAccount();
+
+      if (!response?.success)
+        return alert("Failed to delete account: " + response?.message);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setDeleteAccountLoading(false);
+    }
+  };
+
+  const handleRecoverAccount = async () => {
+    try {
+      setRecoverAccountLoading(true);
+
+      const response = await fetchRecoverAccount();
+
+      if (!response?.success)
+        return alert("Failed to recover account: " + response?.message);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setRecoverAccountLoading(false);
+    }
+  };
+
+  const handleDeleteAccountStatus = async () => {
+    try {
+      setDeleteStatusLoading(true);
+
+      const response = await fetchDeleteStatus();
+
+      if (!response?.success)
+        return alert("Failed to delete account status");
+
+      console.log(response)
+
+      setDeleteStatus(response?.data?.isDeleted ?? false);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setDeleteStatusLoading(false);
+    }
+  }
+
+  useEffect(() => {
+      handleDeleteAccountStatus();
+  },[])
 
   const STATS = [
     {
@@ -486,7 +548,7 @@ export default function SessionsPage() {
         </section>
         {/* Authentications */}
         <section className="mb-6">
-            <AuthenticationCard />
+          <AuthenticationCard />
         </section>
 
         {/* ── Current Device ── */}
@@ -653,6 +715,150 @@ export default function SessionsPage() {
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
+              </div>
+              {/* delete account dialog */}
+              
+              <div>
+                <AlertDialog open={recoverOpen} onOpenChange={setRecoverOpen}>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-green-600">
+                        Recover your account?
+                      </AlertDialogTitle>
+
+                      <AlertDialogDescription>
+                        Your account will become active immediately and the
+                        scheduled deletion will be cancelled.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                      <AlertDialogAction
+                        className="bg-green-600 hover:bg-green-700"
+                        onClick={handleRecoverAccount}
+                      >
+                        Recover Account
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+              <div>
+                {/* Account Delete / Recovery */}
+                {!user?.isDeleted ? (
+                  <div className="flex items-center justify-between mt-4">
+                    <div>
+                      <p className="text-sm text-gray-200">
+                        Delete your account
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Your account will be deactivated immediately and
+                        permanently deleted after 30 days unless you recover it.
+                      </p>
+                    </div>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-3 text-xs border border-red-500/30 text-red-500 hover:bg-red-500/10 hover:text-red-400"
+                        >
+                          Delete Account
+                        </Button>
+                      </AlertDialogTrigger>
+
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="text-red-600">
+                            Delete your account?
+                          </AlertDialogTitle>
+
+                          <AlertDialogDescription className="space-y-3">
+                            <p>
+                              Your account will be{" "}
+                              <strong>deactivated immediately</strong>.
+                            </p>
+
+                            <ul className="list-disc pl-5 space-y-1">
+                              <li>Your profile becomes inaccessible.</li>
+                              <li>All sessions are logged out.</li>
+                              <li>Your data is retained for 30 days.</li>
+                              <li>
+                                You can recover your account anytime during this
+                                period.
+                              </li>
+                              <li>
+                                After 30 days everything is permanently deleted.
+                              </li>
+                            </ul>
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                          <AlertDialogAction
+                            onClick={handleSoftDelete}
+                            disabled={deleteAccountLoading}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            {deleteAccountLoading
+                              ? "Deleting..."
+                              : "Delete Account"}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                ) : (
+                  <>
+                    {/* Status */}
+                    <div className="flex items-center justify-between mt-4">
+                      <div>
+                        <p className="text-sm text-gray-200">
+                          Account scheduled for deletion
+                        </p>
+
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Permanently deleted on{" "}
+                          {user?.deletedAt
+                            ? new Date(user.deletedAt).toLocaleDateString()
+                            : "N/A"}
+                        </p>
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setStatusOpen(true)}
+                      >
+                        View Status
+                      </Button>
+                    </div>
+
+                    {/* Recover */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-200">Recover account</p>
+
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Cancel scheduled deletion and restore access.
+                        </p>
+                      </div>
+
+                      <Button
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700"
+                        onClick={() => setRecoverOpen(true)}
+                      >
+                        Recover
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

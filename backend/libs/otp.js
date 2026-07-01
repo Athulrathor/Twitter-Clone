@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import Otp from "../models/Otp.js";
+import Otp from "../models/otp.js";
 
 const OTP_EXPIRY_MINUTES = 5;
 const MAX_ATTEMPTS = 5;

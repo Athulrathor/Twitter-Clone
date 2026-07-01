@@ -1,53 +1,84 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Lock, ChevronRight, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-
-const rows = [
-  {
-    label: "Password",
-    sub: "Last changed 15 Jun 2026",
-    badge: { text: "Change", variant: "outline" as const },
-    showChevron: true,
-  },
-  {
-    label: "Email",
-    badge: { text: "Verified", variant: "success" as const },
-    showCheck: true,
-  },
-  {
-    label: "Chrome login",
-    badge: { text: "OTP required", variant: "warning" as const },
-  },
-  {
-    label: "Microsoft browser",
-    badge: { text: "Direct login", variant: "info" as const },
-  },
-  {
-    label: "Mobile login",
-    badge: { text: "10 AM – 1 PM", variant: "outline" as const },
-  },
-]
+import ChangePasswordDialog from "@/modals/changePasswords/ChangePasswordDialog";
+import { useAuth } from "@/context/AuthContext";
 
 const badgeStyles: Record<string, string> = {
   success:
     "bg-green-100 text-green-700 border-transparent dark:bg-green-900/30 dark:text-green-400",
   warning:
     "bg-amber-100 text-amber-700 border-transparent dark:bg-amber-900/30 dark:text-amber-400",
-  info:
-    "bg-blue-100 text-blue-700 border-transparent dark:bg-blue-900/30 dark:text-blue-400",
-  outline:
-    "bg-muted text-muted-foreground border-transparent",
-}
+  info: "bg-blue-100 text-blue-700 border-transparent dark:bg-blue-900/30 dark:text-blue-400",
+  outline: "bg-muted text-muted-foreground border-transparent",
+};
 
 export default function AuthenticationCard() {
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const { currentSession, logoutOthers } = useAuth();
 
-  const [emailOpen,setEmailOpen] = useState(false);
-  const [passwordOpen,setpasswordOpen] = useState(false);
+  const handleRowClick = (id: string) => {
+    switch (id) {
+      case "password":
+        setPasswordOpen(true);
+        break;
 
-  
+      case "email":
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  const rows = [
+    {
+      id: "password",
+      label: "Password",
+      sub:
+        currentSession?.loginMethod.toLowerCase() === "email"
+          ? "Update your password"
+          : `Password managed & verified by ${currentSession?.loginMethod.toLowerCase()}`,
+      badge: {
+        text:
+          currentSession?.loginMethod.toLowerCase() === "email"
+            ? "Change"
+            : "Google verified",
+        variant: `${currentSession?.loginMethod.toLowerCase() === "google" ? "success" : "info"}` as const,
+      },
+      clickable: currentSession?.loginMethod.toLowerCase() === "email",
+    },
+    {
+      id: "email",
+      label: "Email",
+      badge: { text: `${currentSession?.otpVerified ? "Verified" : "Not Verified"}`, variant: currentSession?.otpVerified ? "success" : "warning" as const },
+      clickable: !currentSession?.otpVerified,
+    },
+    {
+      id: "chrome",
+      label: "Chrome login",
+      badge: { text: "OTP required", variant: "warning" as const },
+    },
+    {
+      id: "edge",
+      label: "Microsoft browser",
+      badge: { text: "Direct login", variant: "info" as const },
+    },
+    {
+      id: "mobile",
+      label: "Mobile login",
+      badge: { text: "10 AM – 1 PM", variant: "outline" as const },
+    },
+  ];
 
   return (
     <Card className="w-full">
@@ -64,19 +95,28 @@ export default function AuthenticationCard() {
       </CardHeader>
 
       <CardContent className="p-0">
-        {rows.map((row, i) => (
-          <div key={row.label} onclick={handleModels}>
+        {rows.map((row) => (
+          <div key={row.id}>
             <Separator />
-            <div
+
+            <button
+              type="button"
+              onClick={() => handleRowClick(row.id)}
+              disabled={!row.clickable}
               className={cn(
-                "flex items-center justify-between px-5 py-[0.875rem] gap-4",
-                row.showChevron && "cursor-pointer hover:bg-muted transition-colors"
+                "flex w-full items-center justify-between px-5 py-[0.875rem] gap-4 text-left transition-colors",
+                row.clickable
+                  ? "cursor-pointer hover:bg-muted"
+                  : "cursor-default ",
               )}
             >
               <div className="flex flex-col gap-0.5 min-w-0">
                 <span className="text-sm font-medium">{row.label}</span>
+
                 {row.sub && (
-                  <span className="text-xs text-muted-foreground">{row.sub}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {row.sub}
+                  </span>
                 )}
               </div>
 
@@ -85,22 +125,29 @@ export default function AuthenticationCard() {
                   variant="outline"
                   className={cn(
                     "text-[11px] font-medium px-2 py-0.5 rounded-full",
-                    badgeStyles[row.badge.variant]
+                    badgeStyles[row.badge.variant],
                   )}
                 >
                   {row.badge.text}
                 </Badge>
-                {row.showCheck && (
-                  <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
-                )}
-                {row.showChevron && (
+
+                {row.clickable && (
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 )}
               </div>
-            </div>
+            </button>
           </div>
         ))}
       </CardContent>
+
+        <ChangePasswordDialog
+          open={passwordOpen}
+          hasPassword={
+            currentSession?.loginMethod?.toLowerCase() === "email" ? false : true
+          }
+          providerName={currentSession?.loginMethod?.toLowerCase()}
+          onOpenChange={setPasswordOpen}
+        />
     </Card>
-  )
+  );
 }

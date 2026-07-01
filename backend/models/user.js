@@ -22,6 +22,15 @@ const UserSchema = mongoose.Schema({
   joinedDate: { type: Date, default: Date.now() },
   tempPassword: { type: String },
   lastPasswordResetRequestAt: Date,
+  deletedAt: {type: Date,default: null},
+  isDeleted: {type: Boolean,default: false},
+  scheduledDeleteAt : { type: Date, default: null },
+  restoreAt: { type: Date, default: null },
 });
+
+UserSchema.index(
+  { scheduledDeleteAt: 1 },
+  { expireAfterSeconds: 0 }
+);
 
 export default mongoose.model("User", UserSchema);

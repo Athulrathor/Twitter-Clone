@@ -8,6 +8,7 @@ import axiosInstance from "@/lib/axiosInstance";
 import { Button } from "./ui/button";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import { auth } from "@/context/firebase";
 
 interface Tweet {
   id: string;
@@ -95,7 +96,12 @@ const Feed = () => {
   const fetchTweets = async () => {
     try {
       setloading(true);
-      const res = await axiosInstance.get("/post");
+      const token = await auth.currentUser?.getIdToken();
+      const res = await axiosInstance.get("/post", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setTweets(res.data);
     } catch (error) {
       console.error(error);

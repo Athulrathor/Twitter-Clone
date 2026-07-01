@@ -2,8 +2,10 @@
 
 import {
   createUserWithEmailAndPassword,
+  EmailAuthProvider,
   GoogleAuthProvider,
   onAuthStateChanged,
+  reauthenticateWithCredential,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
@@ -23,13 +25,17 @@ interface User {
   email: string;
   website: string;
   location: string;
+  deletedAt?: Date;
+  isDeleted?: boolean;
+  scheduledDeleteAt?: Date;
+  restoreAt?: Date;
 }
 
 interface SessionStats {
   activeCount: number;
   blockedCount: number;
   otpCount: number;
-  deviceCount: number
+  deviceCount: number;
 }
 
 export interface SessionContents {
@@ -137,6 +143,20 @@ interface AuthContextType {
   fetchSession: (page?: number) => Promise<void>;
   logoutAll: () => Promise<void>;
   logoutOthers: () => Promise<void>;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string,
+  ) => Promise<{ success: boolean; message: string }>;
+  fetchDeleteAccount: () => Promise<{
+    success: boolean;
+    message: string;
+    deleteAt: Date;
+  } | null>;
+  fetchRecoverAccount: () => Promise<{
+    success: boolean;
+    message: string;
+  } | null>;
+  fetchDeleteStatus: () => Promise<{ success: boolean; data: User } | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -160,9 +180,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [firebaseUid, setFirebaseUid] = useState<string | null>(null);
   const [sessionData, setSessionData] = useState<SessionContents[]>([]);
   const [stats, setStats] = useState<SessionStats | null>(null);
-  const [currentSession, setCurrentSession] = useState<
-    SessionContents | null
-  >(null);
+  const [currentSession, setCurrentSession] = useState<SessionContents | null>(
+    null,
+  );
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -195,6 +215,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           setUser(null);
 
           localStorage.removeItem("twitter-user");
+          sessionStorage.removeItem("sessionId");
+          sessionStorage.removeItem("firebaseToken");
         }
       } catch (err) {
         console.error("Auth restore failed:", err);
@@ -206,7 +228,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => unsubscribe();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (
+    email: string,
+    password: string,
+  ): Promise<
+    | { requiresOtp: boolean; expiresAt: Date }
+    | { requiresOtp: boolean; user: User }
+    | null
+  > => {
     try {
       setAuthLoading(true);
 
@@ -214,7 +243,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const idToken = await usercred.user.getIdToken();
 
-      const res = await axiosInstance.post(
+      const res = await axiosInstance.post<{
+        requiresOtp: boolean;
+        expiresAt: string;
+        session: { _id: string };
+        firebaseUid: string;
+        user: User;
+      }>(
         "/firebase/login",
         { loginMethod: "email" },
         {
@@ -230,7 +265,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         router.push("/verify-otp");
         return {
           requiresOtp: true,
-          expiresAt: res.data.expiresAt,
+          expiresAt: new Date(res.data.expiresAt),
         };
       }
       sessionStorage.setItem("sessionId", res.data.session._id);
@@ -297,11 +332,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const logout = async (sessionId: string) => {
+  const logout = async (id: string) => {
     try {
-      setAuthLoading(true);
-
-      if (sessionId) {
+      if (id) {
         const token = await auth.currentUser?.getIdToken();
 
         await axiosInstance.post(
@@ -325,10 +358,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       sessionStorage.clear();
 
       router.push("/");
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setAuthLoading(false);
+    } catch (err: any) {
+      console.log(err);
     }
   };
 
@@ -393,6 +424,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     setProfileLoading(true);
 
+    const token = await auth.currentUser?.getIdToken();
+
     const updatedUser: User = {
       ...user,
       ...profileData,
@@ -400,6 +433,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const res = await axiosInstance.patch(
       `/userupdate/${user.email}`,
       updatedUser,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      },
     );
     if (res.data) {
       setUser(updatedUser);
@@ -408,7 +445,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     setProfileLoading(false);
   };
-  const googlesignin = async () => {
+  const googlesignin = async (): Promise<
+    | { requiresOtp: boolean; expiresAt: Date }
+    | { requiresOtp: boolean; user: User }
+    | null
+  > => {
     try {
       setAuthLoading(true);
 
@@ -416,7 +457,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const idToken = await result.user.getIdToken();
 
-      const res = await axiosInstance.post(
+      const res = await axiosInstance.post<{
+        requiresOtp: boolean;
+        expiresAt: string;
+        session: { _id: string };
+        firebaseUid: string;
+        user: User;
+      }>(
         "/firebase/login",
         { loginMethod: "google" },
         {
@@ -432,7 +479,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setSessionId(res.data.session._id);
         return {
           requiresOtp: true,
-          expiresAt: res.data.expiresAt,
+          expiresAt: new Date(res.data.expiresAt),
         };
       }
       sessionStorage.setItem("sessionId", res.data.session._id);
@@ -448,6 +495,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       };
     } catch (err) {
       console.error("Auth signup failed:", err);
+      return null;
     } finally {
       setAuthLoading(false);
     }
@@ -470,14 +518,108 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       setSessionData(res.data.sessions);
       if (res.data.currentSession) {
-        setCurrentSession(res.data.currentSession,
-);
+        setCurrentSession(res.data.currentSession);
       }
       setStats(res.data.stats);
       setPagination(res.data.pagination);
       setPage(page);
     } finally {
       setSessionLoading(false);
+    }
+  };
+
+  const changePassword = async (
+    currentPassword: string,
+    newPassword: string,
+  ) => {
+    try {
+      const userFirebase = auth.currentUser;
+
+      if (!userFirebase) {
+        throw new Error("User not authenticated");
+      }
+
+      const hasPasswordProvider = userFirebase.providerData.some(
+        (provider) => provider.providerId === "password",
+      );
+
+      if (!hasPasswordProvider) {
+        throw new Error("This account doesn't have a password.");
+      }
+
+      const credential = EmailAuthProvider.credential(
+        userFirebase.email!,
+        currentPassword,
+      );
+
+      await reauthenticateWithCredential(userFirebase, credential);
+
+      const token = await userFirebase.getIdToken(true);
+
+      const response = await axiosInstance.post(
+        "/auth/change-password",
+        { newPassword },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      console.log(response.data);
+      return response.data;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  const fetchDeleteAccount = async () => {
+    try {
+      const token = await auth.currentUser?.getIdToken();
+
+      const res = await axiosInstance.get(`/auth/delete-account`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return res.data;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  const fetchRecoverAccount = async () => {
+    try {
+      const token = await auth.currentUser?.getIdToken();
+
+      const res = await axiosInstance.get(`/auth/restore-account`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return res.data;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  const fetchDeleteStatus = async () => {
+    try {
+      const token = await auth.currentUser?.getIdToken();
+
+      const res = await axiosInstance.get(`/auth/account-status`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return res.data;
+    } catch (err) {
+      console.error(err);
+      throw err;
     }
   };
 
@@ -504,7 +646,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         page,
         sessionId,
         currentSession,
-        stats
+        stats,
+        changePassword,
+        fetchDeleteAccount,
+        fetchRecoverAccount,
+        fetchDeleteStatus,
       }}
     >
       {children}

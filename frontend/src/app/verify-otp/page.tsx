@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import axiosInstance from "@/lib/axiosInstance";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -22,10 +22,13 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
 
 export default function VerifyOtpPage() {
-  const searchParams = useSearchParams();
   const router = useRouter();
+  const [email, setEmail] = useState("");
 
-  const email = searchParams.get("email") || "";
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setEmail(params.get("email") || "");
+  }, []);
 
   const [digits, setDigits] = useState<string[]>(Array(6).fill(""));
   const [timer, setTimer] = useState(4 * 60 + 32);

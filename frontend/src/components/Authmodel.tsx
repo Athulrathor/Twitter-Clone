@@ -26,7 +26,7 @@ export default function AuthModal({
   onClose,
   initialMode = "login",
 }: AuthModalProps) {
-  const { login, signup, isLoading, requireOtp } = useAuth();
+  const { login, signup, authLoading } = useAuth();
   const [mode, setMode] = useState<"login" | "signup">(initialMode);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -77,12 +77,12 @@ export default function AuthModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm() || isLoading) return;
+    if (!validateForm() || authLoading) return;
     try {
       if (mode === "login") {
         const result = await login(formData.email, formData.password);
 
-        if (!result.requiresOtp) {
+        if (!result?.requiresOtp) {
           onClose();
         }
       } else {
@@ -161,7 +161,7 @@ export default function AuthModal({
                         handleInputChange("displayName", e.target.value)
                       }
                       className="pl-10 bg-transparent border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
-                      disabled={isLoading}
+                      disabled={authLoading}
                     />
                   </div>
                   {errors.displayName && (
@@ -186,7 +186,7 @@ export default function AuthModal({
                         handleInputChange("username", e.target.value)
                       }
                       className="pl-8 bg-transparent border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
-                      disabled={isLoading}
+                      disabled={authLoading}
                     />
                   </div>
                   {errors.username && (
@@ -209,7 +209,7 @@ export default function AuthModal({
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   className="pl-10 bg-transparent border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
-                  disabled={isLoading}
+                  disabled={authLoading}
                 />
               </div>
               {errors.email && (
@@ -232,7 +232,7 @@ export default function AuthModal({
                     handleInputChange("password", e.target.value)
                   }
                   className="pl-10 pr-10 bg-transparent border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
-                  disabled={isLoading}
+                  disabled={authLoading}
                 />
                 <Button
                   type="button"
@@ -273,9 +273,9 @@ export default function AuthModal({
             <Button
               type="submit"
               className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-full text-lg"
-              disabled={isLoading}
+              disabled={authLoading}
             >
-              {isLoading ? (
+              {authLoading ? (
                 <div className="flex items-center space-x-2">
                   <LoadingSpinner size="sm" />
                   <span>
@@ -306,7 +306,7 @@ export default function AuthModal({
                 variant="link"
                 className="text-blue-400 hover:text-blue-300 font-semibold pl-1"
                 onClick={switchMode}
-                disabled={isLoading}
+                disabled={authLoading}
               >
                 {mode === "login" ? "Sign up" : "Sign in"}
               </Button>

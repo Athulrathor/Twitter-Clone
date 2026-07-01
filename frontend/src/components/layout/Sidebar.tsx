@@ -10,14 +10,12 @@ import {
   Bookmark,
   User,
   MoreHorizontal,
-  Settings,
   LogOut,
 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 
@@ -25,8 +23,6 @@ import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import TwitterLogo from "../Twitterlogo";
 import { useAuth } from "@/context/AuthContext";
-import { Card, CardContent } from "../ui/card";
-import Link from "next/link";
 
 interface SidebarProps {
   currentPage?: string;
@@ -39,7 +35,7 @@ export default function Sidebar({
   onNavigate,
   mobile,
 }: SidebarProps) {
-  const { user, logout } = useAuth();
+  const { user, logout,currentSession } = useAuth();
 
   const navigation = [
     { name: "Home", icon: Home, current: currentPage === "home", page: "home" },
@@ -155,7 +151,7 @@ export default function Sidebar({
             </DropdownMenuTrigger>
 
             <DropdownMenuContent className="bg-black border-gray-800">
-              <DropdownMenuItem onClick={logout}>
+              <DropdownMenuItem onClick={() => logout(currentSession?._id as string)}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span className="text-white">Logout</span>
               </DropdownMenuItem>

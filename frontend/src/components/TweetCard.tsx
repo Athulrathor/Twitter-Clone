@@ -13,14 +13,20 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import axiosInstance from "@/lib/axiosInstance";
+import { auth } from "@/context/firebase";
 
 export default function TweetCard({ tweet }: any) {
   const { user } = useAuth();
   const [tweetstate, settweetstate] = useState(tweet);
   const likeTweet = async (tweetId: string) => {
     try {
+      const token = await auth.currentUser?.getIdToken();
       const res = await axiosInstance.post(`/like/${tweetId}`, {
         userId: user?._id,
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       settweetstate(res.data);
     } catch (error) {
@@ -30,9 +36,14 @@ export default function TweetCard({ tweet }: any) {
 
   const retweetTweet = async (tweetId: string) => {
     try {
+      const token = await auth.currentUser?.getIdToken();
       const res = await axiosInstance.post(`/retweet/${tweetId}`, {
         userId: user?._id,
-      });
+      },{
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },);
       settweetstate(res.data);
     } catch (error) {
       console.log(error);

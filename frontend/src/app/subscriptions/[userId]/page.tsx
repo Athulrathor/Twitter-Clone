@@ -7,6 +7,8 @@ import { Crown } from "lucide-react";
 import LoadingSpinner from "@/components/loading-spinner";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { auth } from "../../../context/firebase";
+import axiosInstance from "@/lib/axiosInstance";
 
 declare global {
   interface Window {
@@ -41,10 +43,13 @@ export default function SubscriptionPage() {
     }
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/subscriptions/status/${user._id}`,
-      );
-      const data = await res.json();
+      const token = await auth.currentUser?.getIdToken();
+      const res = await axiosInstance.get(`/subscriptions/status/${user._id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.data;
       setSubscription(data);
     } catch (error) {
       console.error(error);
@@ -59,20 +64,22 @@ export default function SubscriptionPage() {
     razorpay_signature: string,
   ) => {
     try {
-      const res = await fetch(
+      const token = await auth.currentUser?.getIdToken();
+      const res = await axiosInstance.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/payment/verify`,
         {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            razorpay_order_id,
-            razorpay_payment_id,
-            razorpay_signature,
-          }),
+          razorpay_order_id,
+          razorpay_payment_id,
+          razorpay_signature,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
       );
 
-      const data = await res.json();
+      const data = await res.data;
 
       if (data.success) {
         alert("Subscription activated");
@@ -105,36 +112,42 @@ export default function SubscriptionPage() {
 
   const createOrder = async (planName: string) => {
     if (!user?._id) return alert("User not logged in");
-
-    const res = await fetch(
+    const token = await auth.currentUser?.getIdToken();
+    const res = await axiosInstance.post(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/payments/create-order/${user._id}`,
+      { planName },
       {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planName }),
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       },
     );
 
-    const order = await res.json();
+    const order = await res.data;
     openRazorpay(order);
   };
 
   const fetchPaymentStatus = async () => {
+    if (!auth.currentUser) return;
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/payments/status`,
-      );
-      const data = await res.json();
-      setPaymentAvailable(data.success);
-      setPaymentMessage(data.message);
-    } catch (error) {
+      const token = await auth.currentUser?.getIdToken();
+      const res = await axiosInstance.get(`/payments/status`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setPaymentAvailable(res.data.success);
+      setPaymentMessage(res.data.message);
+    } catch (error: any) {
       console.error(error);
     }
   };
 
   useEffect(() => {
-    fetchPaymentStatus();
-  }, []);
+    if (auth.currentUser) {
+      fetchPaymentStatus();
+    }
+  }, [auth.currentUser]);
 
   useEffect(() => {
     fetchStatus();
@@ -153,19 +166,19 @@ export default function SubscriptionPage() {
       {/* Header (Feed style) */}
       <div className="flex ml-4 pt-4">
         {/* Back Button */}
-          <button
-            onClick={() => router.push("/")} // or "/feed"
-            className="flex items-center gap-2 text-gray-400 hover:text-white transition"
-          >
-            <ArrowLeft size={18} />
-            <span className="text-sm font-medium">Back</span>
-          </button>
-          <div className="sticky top-0 z-10 bg-black/90 backdrop-blur-md">
-        <div className="px-4 py-3">
-          <h1 className="text-xl font-bold">Subscription</h1>
-          <p className="text-sm text-gray-500">Manage your plan and usage</p>
+        <button
+          onClick={() => router.push("/")} // or "/feed"
+          className="flex items-center gap-2 text-gray-400 hover:text-white transition"
+        >
+          <ArrowLeft size={18} />
+          <span className="text-sm font-medium">Back</span>
+        </button>
+        <div className="sticky top-0 z-10 bg-black/90 backdrop-blur-md">
+          <div className="px-4 py-3">
+            <h1 className="text-xl font-bold">Subscription</h1>
+            <p className="text-sm text-gray-500">Manage your plan and usage</p>
+          </div>
         </div>
-      </div>
       </div>
 
       {/* Current subscription (tweet-like card) */}
@@ -215,7 +228,7 @@ export default function SubscriptionPage() {
               : "bg-red-500/10 text-red-400 border-red-500/20"
           }`}
         >
-          {paymentMessage}
+          {paymentMessage ?? "Payment status not available"}
         </div>
       </div>
 
