@@ -28,7 +28,7 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="mx-auto flex max-w-7xl w-full">
+      <div className="mx-auto flex w-full">
       {/* Sidebar */}
         <aside className="hidden md:flex md:w-20 lg:w-64 border-r border-gray-800 shrink-0 sticky top-0 h-screen">
           <Sidebar

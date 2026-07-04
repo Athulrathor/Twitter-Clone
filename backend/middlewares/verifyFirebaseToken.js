@@ -20,6 +20,7 @@ export const verifyFirebaseToken = async (req, res, next) => {
       {
         firebaseUid: decoded.uid,
         status: "active",
+        isCurrent: true,
       },
       {
         lastActiveAt: new Date(),
@@ -31,7 +32,7 @@ export const verifyFirebaseToken = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error(error)
+    console.error(error);
     return res.status(401).json({ message: "Invalid Firebase token" });
   }
 };

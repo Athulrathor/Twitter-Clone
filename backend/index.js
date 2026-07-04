@@ -8,10 +8,11 @@ import Plan from "./models/plan.js";
 import Payment from "./models/payment.js";
 import Subscription from "./models/subcriptions.js";
 import Session from "./models/session.js";
+import Audio from "./models/audioTweet.js";
 import crypto from "crypto";
 import Rzp from "./libs/paymentRazorpay.js";
 import { generateInvoice } from "./libs/generateInvoice.js";
-import { uploadInvoice } from "./libs/uploadInvoice.js";
+import uploadAudioToStorage from "./libs/uploadAudioCloud.js";
 import { sendOtpEmail, sendSubscriptionEmail } from "./libs/email.js";
 import isPaymentAllowed from "./libs/payment-time.js";
 import { checkTweetLimit } from "./libs/checkTweetLimit.js";
@@ -25,6 +26,13 @@ import { deviceInfoMiddleware } from "./middlewares/deviceDetection.middleware.j
 import { verifyFirebaseToken } from "./middlewares/verifyFirebaseToken.js";
 import fireAuth from "./libs/firebaseAdmin.js";
 import { startAccountCleanupCron } from "./cron/runCleanUp.js";
+import uploadAudioMulter from "./middlewares/uploadAudio.js";
+import verifyAudioPermission from "./middlewares/verifyAudioPermission.js";
+import audioUploadWindow from "./middlewares/audioUploadWindow.js";
+import validateAudio from "./middlewares/validateAudio.js";
+import { v2 as cloudinary } from "cloudinary";
+import { verifyAudioOtp } from "./libs/audio.js";
+import {deletePath} from "./libs/uploadAudioCloud.js";
 
 dotenv.config();
 const app = express();
@@ -52,7 +60,7 @@ mongoose
     console.log("✅ Connected to MongoDB");
 
     startAccountCleanupCron();
-    
+
     app.listen(port, () => {
       console.log(`🚀 Server running on port ${port}`);
     });
@@ -145,7 +153,10 @@ app.get("/auth/me", verifyFirebaseToken, async (req, res) => {
   }
 });
 // Firebase login
-app.post("/firebase/login",verifyFirebaseToken,deviceInfoMiddleware,
+app.post(
+  "/firebase/login",
+  verifyFirebaseToken,
+  deviceInfoMiddleware,
   authRules,
   async (req, res) => {
     try {
@@ -231,9 +242,22 @@ app.post("/firebase/login",verifyFirebaseToken,deviceInfoMiddleware,
           lastActiveAt: new Date(),
         });
 
+        const allowedPurposes = [
+          "VERIFY_EMAIL",
+          "AUDIO_UPLOAD",
+        ];
+
+        if (!allowedPurposes.includes(purpose)) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid OTP purpose.",
+          });
+        }
+
         const otp = await createOtp({
           firebaseUid: req.user.uid,
           email: req.user.email,
+          purpose: "VERIFY_EMAIL",
         });
 
         if (!otp)
@@ -250,6 +274,7 @@ app.post("/firebase/login",verifyFirebaseToken,deviceInfoMiddleware,
           expiresAt: otp.expiresAt,
           message: "OTP sent.",
           firebaseUid: req.user.uid,
+          purpose: "VERIFY_EMAIL",
         });
       }
 
@@ -287,7 +312,7 @@ app.post("/firebase/login",verifyFirebaseToken,deviceInfoMiddleware,
   },
 );
 // update Profile
-app.patch("/userupdate/",verifyFirebaseToken, async (req, res) => {
+app.patch("/userupdate/", verifyFirebaseToken, async (req, res) => {
   try {
     const updated = await User.findOneAndUpdate(
       { email: req.user.email },
@@ -302,11 +327,20 @@ app.patch("/userupdate/",verifyFirebaseToken, async (req, res) => {
 // Tweet API
 
 // POST
-app.post("/post",verifyFirebaseToken, async (req, res) => {
+app.post("/post", verifyFirebaseToken, async (req, res) => {
   try {
-    const userId = req.body.author;
+    const user = await User.findOne({
+      firebaseUid: req.user.uid,
+    });
 
-    const result = await checkTweetLimit(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    const result = await checkTweetLimit(user._id);
 
     if (!result.allowed) {
       return res.status(403).json({
@@ -315,23 +349,58 @@ app.post("/post",verifyFirebaseToken, async (req, res) => {
       });
     }
 
-    const tweet = new Tweet(req.body);
+    let audio = null;
 
-    await tweet.save();
+    if (req.body.audio) {
+      audio = await Audio.findById(req.body.audio);
 
-    return res.status(201).send(tweet);
+      if (!audio) {
+        return res.status(404).json({
+          success: false,
+          message: "Audio not found.",
+        });
+      }
+
+      if (audio.userId.toString() !== user._id.toString()) {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized audio.",
+        });
+      }
+    }
+
+    const tweet = await Tweet.create({
+      author: user._id,
+      content: req.body.content,
+      image: req.body.image || null,
+      audio: audio ? audio._id : null,
+    });
+
+    if (audio) {
+      audio.tweetId = tweet._id;
+      await audio.save();
+    }
+
+    return res.status(201).json({
+      success: true,
+      tweet,
+    });
   } catch (error) {
-    return res.status(400).send({
-      error: error.message,
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Tweet creation failed.",
     });
   }
 });
 // get all tweet
-app.get("/post",verifyFirebaseToken, async (req, res) => {
+app.get("/post", verifyFirebaseToken, async (req, res) => {
   try {
     const tweets = await Tweet.find()
       .sort({ timestamp: -1 })
-      .populate("author");
+      .populate("author")
+      .populate("audio");
 
     return res.status(200).send(tweets);
   } catch (error) {
@@ -341,7 +410,7 @@ app.get("/post",verifyFirebaseToken, async (req, res) => {
   }
 });
 //  LIKE TWEET
-app.post("/like/:tweetid",verifyFirebaseToken, async (req, res) => {
+app.post("/like/:tweetid", verifyFirebaseToken, async (req, res) => {
   try {
     const { userId } = req.body;
     const tweet = await Tweet.findById(req.params.tweetid);
@@ -356,7 +425,7 @@ app.post("/like/:tweetid",verifyFirebaseToken, async (req, res) => {
   }
 });
 // retweet
-app.post("/retweet/:tweetid",verifyFirebaseToken, async (req, res) => {
+app.post("/retweet/:tweetid", verifyFirebaseToken, async (req, res) => {
   try {
     const { userId } = req.body;
     const tweet = await Tweet.findById(req.params.tweetid);
@@ -372,7 +441,7 @@ app.post("/retweet/:tweetid",verifyFirebaseToken, async (req, res) => {
 });
 
 // payment status time restrictions
-app.get("/payments/status",verifyFirebaseToken, async (req, res) => {
+app.get("/payments/status", verifyFirebaseToken, async (req, res) => {
   try {
     if (!isPaymentAllowed()) {
       return res.status(200).json({
@@ -393,113 +462,121 @@ app.get("/payments/status",verifyFirebaseToken, async (req, res) => {
 });
 
 // subscriptions status
-app.get("/subscriptions/status/:userId",verifyFirebaseToken, async (req, res) => {
-  try {
-    const { userId } = req.params;
+app.get(
+  "/subscriptions/status/:userId",
+  verifyFirebaseToken,
+  async (req, res) => {
+    try {
+      const { userId } = req.params;
 
-    if (!userId || userId === "undefined") {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid userId",
+      if (!userId || userId === "undefined") {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid userId",
+        });
+      }
+
+      const tweetCount = await Tweet.countDocuments({
+        author: userId,
       });
-    }
 
-    const tweetCount = await Tweet.countDocuments({
-      author: userId,
-    });
+      const subscription = await Subscription.findOne({
+        userId,
+        isActive: true,
+        endDate: {
+          $gt: new Date(),
+        },
+      }).populate("planId");
 
-    const subscription = await Subscription.findOne({
-      userId,
-      isActive: true,
-      endDate: {
-        $gt: new Date(),
-      },
-    }).populate("planId");
+      if (!subscription) {
+        return res.status(200).json({
+          plan: "Free",
+          limit: 1,
+          used: tweetCount,
+          remaining: Math.max(1 - tweetCount, 0),
+          expiresAt: null,
+        });
+      }
 
-    if (!subscription) {
+      const PLAN_LIMITS = {
+        Free: 1,
+        Bronze: 3,
+        Silver: 5,
+        Gold: Infinity,
+      };
+
+      const planName = subscription.planId?.name || "Free";
+
+      const limit = PLAN_LIMITS[planName] ?? 1;
+
+      const remaining =
+        limit === Infinity ? null : Math.max(limit - tweetCount, 0);
+
       return res.status(200).json({
-        plan: "Free",
-        limit: 1,
+        plan: planName,
+        limit: limit === Infinity ? "Unlimited" : limit,
         used: tweetCount,
-        remaining: Math.max(1 - tweetCount, 0),
-        expiresAt: null,
+        remaining,
+        expiresAt: subscription.endDate,
+      });
+    } catch (error) {
+      console.error(error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch subscription status",
       });
     }
-
-    const PLAN_LIMITS = {
-      Free: 1,
-      Bronze: 3,
-      Silver: 5,
-      Gold: Infinity,
-    };
-
-    const planName = subscription.planId?.name || "Free";
-
-    const limit = PLAN_LIMITS[planName] ?? 1;
-
-    const remaining =
-      limit === Infinity ? null : Math.max(limit - tweetCount, 0);
-
-    return res.status(200).json({
-      plan: planName,
-      limit: limit === Infinity ? "Unlimited" : limit,
-      used: tweetCount,
-      remaining,
-      expiresAt: subscription.endDate,
-    });
-  } catch (error) {
-    console.error(error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch subscription status",
-    });
-  }
-});
+  },
+);
 
 // payment create order
-app.post("/payments/create-order/:userId",verifyFirebaseToken, async (req, res) => {
-  try {
-    const { planName } = req.body;
+app.post(
+  "/payments/create-order/:userId",
+  verifyFirebaseToken,
+  async (req, res) => {
+    try {
+      const { planName } = req.body;
 
-    const { userId } = req.params;
-    const plan = await Plan.findOne({
-      name: planName,
-    });
+      const { userId } = req.params;
+      const plan = await Plan.findOne({
+        name: planName,
+      });
 
-    if (!plan) {
-      return res.status(404).json({
-        message: "Plan not found",
+      if (!plan) {
+        return res.status(404).json({
+          message: "Plan not found",
+        });
+      }
+
+      const options = {
+        amount: plan.price * 100,
+        currency: "INR",
+        receipt: `receipt_${Date.now()}`,
+      };
+
+      const order = await Rzp.orders.create(options);
+
+      await Payment.create({
+        userId,
+        planId: plan._id,
+        amount: plan.price,
+        status: "PENDING",
+        razorpayOrderId: order.id,
+      });
+
+      return res.status(201).json(order);
+    } catch (error) {
+      console.error(error);
+
+      return res.status(500).json({
+        message: "Failed to place order",
       });
     }
-
-    const options = {
-      amount: plan.price * 100,
-      currency: "INR",
-      receipt: `receipt_${Date.now()}`,
-    };
-
-    const order = await Rzp.orders.create(options);
-
-    await Payment.create({
-      userId,
-      planId: plan._id,
-      amount: plan.price,
-      status: "PENDING",
-      razorpayOrderId: order.id,
-    });
-
-    return res.status(201).json(order);
-  } catch (error) {
-    console.error(error);
-
-    return res.status(500).json({
-      message: "Failed to place order",
-    });
-  }
-});
+  },
+);
 // verify payment
-app.post("/payment/verify",verifyFirebaseToken, async (req, res) => {
+app.post("/payment/verify", verifyFirebaseToken, async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
       req.body;
@@ -783,30 +860,43 @@ app.post("/auth/reset-password", async (req, res) => {
 // otp verification
 app.post("/login/otp", otpRateLimiter, async (req, res) => {
   try {
-    const { firebaseUid, email } = req.body;
+    const { firebaseUid, email, purpose="VERIFY_EMAIL" } = req.body;
 
-    if (!firebaseUid || !email)
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid credential!" });
+    if (!firebaseUid || !email || !purpose) {
+      return res.status(400).json({
+        success: false,
+        message: "firebaseUid, email and purpose are required.",
+      });
+    }
+
+    const allowedPurposes = [
+      "VERIFY_EMAIL",
+      "RESET_PASSWORD",
+      "CHANGE_EMAIL",
+      "AUDIO_UPLOAD",
+    ];
+
+    if (!allowedPurposes.includes(purpose)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP purpose.",
+      });
+    }
 
     const otp = await createOtp({
       firebaseUid,
       email,
+      purpose,
     });
-
-    if (!otp)
-      return res
-        .status(401)
-        .json({ success: false, message: "otp not initiated" });
 
     const username = email.split("@")[0];
 
-    await sendOtpEmail(email, username, otp.otp, otp.expiresAt);
+    await sendOtpEmail(email, username, otp.otp, otp.expiresAt, otp?.purpose);
 
     return res.status(200).json({
       success: true,
       requiresOtp: true,
+      purpose,
       expiresAt: otp.expiresAt,
       message: "OTP sent successfully.",
     });
@@ -815,110 +905,197 @@ app.post("/login/otp", otpRateLimiter, async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Otp failed!",
+      message: "Failed to send OTP.",
     });
   }
 });
 app.post("/login/verify", async (req, res) => {
-  try {
-    const { firebaseUid, otp } = req.body;
+  const { firebaseUid, otp, purpose="VERIFY_EMAIL" } = req.body;
 
-    if (!firebaseUid || !otp)
-      return res
-        .status(401)
-        .json({ success: false, message: "Otp is required!" });
+  try {
+    if (!firebaseUid || !otp || !purpose) {
+      return res.status(400).json({
+        success: false,
+        message: "firebaseUid, otp and purpose are required.",
+      });
+    }
+
+    const allowedPurposes = [
+      "VERIFY_EMAIL",
+      "AUDIO_UPLOAD",
+    ];
+
+    if (!allowedPurposes.includes(purpose)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP purpose.",
+      });
+    }
 
     const verify = await verifyOtp({
       firebaseUid,
       otp,
+      purpose,
     });
 
-    const sessionBlocked = await Session.findOne({
-      firebaseUid,
-      status: "blocked",
-    });
+    switch (purpose) {
+      // =============================
+      // LOGIN EMAIL VERIFICATION
+      // =============================
 
-    if (sessionBlocked) {
-      return res.status(403).json({
-        success: false,
-        message: "This login attempt was blocked.",
-      });
+      case "VERIFY_EMAIL": {
+        const sessionBlocked = await Session.findOne({
+          firebaseUid,
+          status: "blocked",
+        });
+
+        if (sessionBlocked) {
+          return res.status(403).json({
+            success: false,
+            message: "This login attempt was blocked.",
+          });
+        }
+
+        const pendingSession = await Session.findOne({
+          firebaseUid,
+          status: "pending",
+        }).sort({ createdAt: -1 });
+
+        if (!pendingSession) {
+          return res.status(404).json({
+            success: false,
+            message: "Pending session not found.",
+          });
+        }
+
+        await Session.updateMany(
+          {
+            userId: pendingSession.userId,
+            isCurrent: true,
+          },
+          {
+            isCurrent: false,
+          },
+        );
+
+        const session = await Session.findByIdAndUpdate(
+          pendingSession._id,
+          {
+            status: "active",
+            otpVerified: true,
+            otpVerifiedAt: new Date(),
+            loginTime: new Date(),
+            lastActiveAt: new Date(),
+            isCurrent: true,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          },
+          {
+            new: true,
+          },
+        );
+
+        const user = await User.findById(session.userId);
+
+        return res.status(200).json({
+          success: true,
+          verify,
+          user,
+          purpose,
+          message: "Login verified successfully.",
+        });
+      }
+
+      // =============================
+      // AUDIO UPLOAD
+      // =============================
+
+      case "AUDIO_UPLOAD": {
+        const session = await Session.findOneAndUpdate(
+          {
+            firebaseUid,
+            status: "active",
+            isCurrent: true,
+          },
+          {
+            audioUploadVerified: true,
+            audioUploadVerifiedAt: new Date(),
+            audioUploadExpiresAt: new Date(Date.now() + 5 * 60 * 1000),
+          },
+          {
+            new: true,
+          },
+        );
+
+        if (!session) {
+          return res.status(404).json({
+            success: false,
+            message: "Active session not found.",
+          });
+        }
+
+        return res.status(200).json({
+          success: true,
+          verify,
+          purpose,
+          expiresAt: session.audioUploadExpiresAt,
+          message: "Audio upload authorized.",
+        });
+      }
+
+      // =============================
+      // RESET PASSWORD
+      // =============================
+
+      // case "RESET_PASSWORD":
+      //   return res.status(200).json({
+      //     success: true,
+      //     verify,
+      //     purpose,
+      //     message: "OTP verified. Continue password reset.",
+      //   });
+
+      // =============================
+      // CHANGE EMAIL
+      // =============================
+
+      // case "CHANGE_EMAIL":
+      //   return res.status(200).json({
+      //     success: true,
+      //     verify,
+      //     purpose,
+      //     message: "OTP verified. Continue email change.",
+      //   });
+
+      default:
+        return res.status(400).json({
+          success: false,
+          message: "Unsupported OTP purpose.",
+        });
     }
-
-    const pendingSession = await Session.findOne({
-      firebaseUid,
-      status: "pending",
-    }).sort({ createdAt: -1 });
-
-    if (!pendingSession) {
-      return res.status(404).json({
-        success: false,
-        message: "Pending session not found.",
-      });
-    }
-
-    await Session.updateMany(
-      {
-        userId: pendingSession.userId,
-        isCurrent: true,
-      },
-      {
-        isCurrent: false,
-      },
-    );
-
-    const session = await Session.findByIdAndUpdate(
-      pendingSession._id,
-      {
-        status: "active",
-        otpVerified: true,
-        otpVerifiedAt: new Date(),
-        loginTime: new Date(),
-        lastActiveAt: new Date(),
-        isCurrent: true,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      },
-      { new: true },
-    );
-
-    if (!session) {
-      return res.status(404).json({
-        success: false,
-        message: "Pending session not found.",
-      });
-    }
-
-    const user = await User.findById({ _id: session.userId });
-
-    return res.status(200).json({
-      success: true,
-      user,
-      verify,
-      message: "Otp verified Successfully",
-    });
   } catch (error) {
     console.error(error);
 
-    const session = await Session.findOneAndUpdate(
-      {
-        firebaseUid,
-        status: "pending",
-      },
-      {
-        $set: {
+    if (purpose === "VERIFY_EMAIL") {
+      await Session.findOneAndUpdate(
+        {
+          firebaseUid,
+          status: "pending",
+        },
+        {
           status: "failed",
           otpVerified: false,
         },
-      },
-      {
-        sort: { createdAt: -1 },
-        new: true,
-      },
-    );
+        {
+          sort: {
+            createdAt: -1,
+          },
+        },
+      );
+    }
 
     return res.status(500).json({
       success: false,
-      message: "Otp failed!",
+      message: "OTP verification failed.",
     });
   }
 });
@@ -1224,6 +1401,109 @@ app.get("/auth/account-status", verifyFirebaseToken, async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to check status of account.",
+    });
+  }
+});
+// Audio tweet upload
+app.post(
+  "/upload/audio",
+  verifyFirebaseToken,
+  verifyAudioPermission,
+  audioUploadWindow,
+  uploadAudioMulter.single("audio"),
+  validateAudio,
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "Audio file is required.",
+        });
+      }
+
+      const { duration, size, mimeType } = req.audioMetadata;
+
+      const user = await User.findOne({ firebaseUid: req.user.uid });
+
+      const result = await uploadAudioToStorage(req.file,user._id);
+
+      if (duration < 1) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid audio file.",
+        });
+      }
+
+      await Session.findOneAndUpdate(
+        {
+          firebaseUid: req.user.uid,
+          isCurrent: true,
+        },
+        {
+          audioUploadVerified: false,
+          audioUploadVerifiedAt: null,
+          audioUploadExpiresAt: null,
+        },
+      );
+
+      const audio = await Audio.create({
+        userId: user._id,
+        audioUrl: result.audioUrl,
+  storagePath: result.storagePath,
+        duration,
+        size,
+        mimeType,
+      });
+
+      if (!audio) return res.json({message: "audio create error"})
+
+      return res.status(200).json({
+        success: true,
+        audio: {
+          _id: audio._id,
+          url: result.audioUrl,
+          storagePath: result.storagePath,
+          duration,
+          size,
+          mimeType,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Audio upload failed.",
+      });
+    }
+  },
+);
+// delete audio cloudinary
+app.delete("/delete/:audioId", verifyFirebaseToken, async (req, res) => {
+  try {
+    const { audioId } = req.params;
+
+    if (!audioId) {
+      return res.status(400).json({
+        success: false,
+        message: "Audio id is required.",
+      });
+    }
+
+    const audio = await Audio.findById(audioId);
+
+    await deletePath(audio.storagePath);
+
+    return res.status(200).json({
+      success: true,
+      message: "Audio deleted successfully.",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete audio.",
     });
   }
 });

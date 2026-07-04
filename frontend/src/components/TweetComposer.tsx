@@ -1,5 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Card, CardContent } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Textarea } from "./ui/textarea";
@@ -9,202 +9,276 @@ import { Separator } from "./ui/separator";
 import axios from "axios";
 import axiosInstance from "@/lib/axiosInstance";
 import { auth } from "@/context/firebase";
-const TweetComposer = ({ onTweetPosted }: { onTweetPosted: (tweet: any) => void }) => {
+import AudioButton from "@/components/audio/AudioButton";
+import useAudioUpload from "../components/audio/hook/useAudioUpload";
+import AudioOtpDialog from "./audio/AudioOtpDialog";
+import { uploadAudio } from "./audio/service/audio.service";
+import LoadingSpinner from "./loading-spinner";
+import AudioPlayer from "./audio/AudioPlayer";
+
+export interface AudioUpload {
+  _id: string;
+  url: string;
+  publicId: string;
+  duration: number;
+  size: number;
+  mimeType: string;
+}
+
+const TweetComposer = ({
+  onTweetPosted,
+}: {
+  onTweetPosted: (tweet: any) => void;
+}) => {
   const { user } = useAuth();
+  const { audio, setAudio } = useAudioUpload();
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [imageurl, setimageurl] = useState("");
+  const [audioLoading, setAudioLoading] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [imageUrl, setimageUrl] = useState("");
+  const [otpOpen, setOtpOpen] = useState(false);
   const maxLength = 200;
+  const hasContent = content.trim().length > 0;
+  const hasImage = Boolean(imageUrl);
+  const hasAudio = Boolean(audio);
+
+  console.log(audio);
+
+  const canPost = hasContent || hasImage || hasAudio;
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if(!user || !content.trim())return
+    if (!user || !canPost) return;
     try {
-      const tweetdata={
-        author:user?._id,
+      setIsLoading(true);
+      const tweetdata = {
         content,
-        image:imageurl
-      }
+        image: imageUrl || null,
+        audio: audio?._id ?? null,
+      };
+      console.log(tweetdata);
       const token = await auth.currentUser?.getIdToken();
-      const res=await axiosInstance.post('/post',tweetdata,{
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },)
-      onTweetPosted(res.data)
-      setContent("")
-      setimageurl("")
-    } catch (error) {
-      console.log(error)
-    }finally{
-      setIsLoading(false)
-    }
-  };
-
-  const characterCount = content.length;
-  const isOverLimit = characterCount > maxLength;
-  const isNearLimit = characterCount > maxLength * 0.8;
-  if (!user) return null;
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    setIsLoading(true);
-    const image = e.target.files[0];
-    const formdataimg = new FormData();
-    formdataimg.set("image", image);
-    try {
-      const res = await axios.post(
-        "https://api.imgbb.com/1/upload?key=9efc86bc91feea6eaa0459b22349c3af",
-        formdataimg
-      );
-      const url = res.data.data.display_url;
-      if (url) {
-        setimageurl(url);
-      }
+      const res = await axiosInstance.post("/post", tweetdata, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      onTweetPosted(res.data.tweet);
+      setContent("");
+      setimageUrl("");
+      setAudio(null);
     } catch (error) {
       console.log(error);
     } finally {
       setIsLoading(false);
     }
   };
+  const handleAudioSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+    setAudioLoading(true);
+    try {
+      const res = await uploadAudio(file);
+
+      setAudio(res.data.audio);
+    } catch (err) {
+      console.error("5. Upload error", err);
+    } finally {
+      setAudioLoading(false);
+    }
+  };
+  const characterCount = content.length;
+  const isOverLimit = characterCount > maxLength;
+  const isNearLimit = characterCount > maxLength * 0.8;
+  if (!user) return null;
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const image = e.target.files[0];
+    const formdataimg = new FormData();
+    setImageLoading(true);
+    formdataimg.set("image", image);
+    try {
+      const res = await axios.post(
+        "https://api.imgbb.com/1/upload?key=9efc86bc91feea6eaa0459b22349c3af",
+        formdataimg,
+      );
+      const url = res.data.data.display_url;
+      if (url) {
+        setimageUrl(url);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setImageLoading(false);
+    }
+  };
+  if (!user) return null;
+
   return (
-    <Card className="bg-black border-gray-800 border-x-0 border-t-0 rounded-none">
-      <CardContent className="p-3 sm:p-4">
-        <div className="flex gap-3">
-          <Avatar className="h-10 w-10 flex shrink-0 max-sm:flex-col">
-            <AvatarImage src={user.avatar} alt={user.displayName} />
-            <AvatarFallback>{user.displayName[0]}</AvatarFallback>
-          </Avatar>
+    <>
+      <Card className="bg-black border-gray-800 border-x-0 border-t-0 rounded-none">
+        <CardContent className="p-4">
+          <div className="flex gap-3">
+            <Avatar className="h-10 w-10 shrink-0">
+              <AvatarImage src={user.avatar} alt={user.displayName} />
+              <AvatarFallback>{user.displayName[0]}</AvatarFallback>
+            </Avatar>
 
-          <div className="flex-1">
-            <form onSubmit={handleSubmit}>
-              <Textarea
-                placeholder="What's happening?"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                className="bg-transparent border-none text-base sm:text-xl text-white placeholder-gray-500 resize-none min-h-[100px] sm:min-h-[120px] focus-visible:ring-0 focus-visible:ring-offset-0"
-              />
+            <div className="flex-1">
+              <form onSubmit={handleSubmit}>
+                {/* Textarea */}
 
-              <div className="flex gap-3 mt-4">
-                <div className="flex items-center gap-1 sm:gap-2 text-blue-400 overflow-x-auto">
-                  <label
-                    htmlFor="tweetImage"
-                    className="p-2 rounded-full hover:bg-blue-900/20 cursor-pointer"
-                  >
-                    
-                    <Image className="h-5 w-5" />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      id="tweetImage"
-                      className="hidden"
-                      onChange={handlePhotoUpload}
-                      disabled={isLoading}
-                    />
-                  </label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-2 rounded-full hover:bg-blue-900/20"
-                  >
-                    <BarChart3 className="h-5 w-5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-2 rounded-full hover:bg-blue-900/20"
-                  >
-                    <Smile className="h-5 w-5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-2 rounded-full hover:bg-blue-900/20"
-                  >
-                    <Calendar className="h-5 w-5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-2 rounded-full hover:bg-blue-900/20"
-                  >
-                    <MapPin className="h-5 w-5" />
-                  </Button>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <div className="hidden sm:flex items-center space-x-2">
-                    <Globe className="h-4 w-4 text-blue-400" />
-                    <span className="text-sm text-blue-400 font-semibold">
-                      Everyone can reply
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    {characterCount > 0 && (
-                      <div className="hidden sm:flex items-center space-x-2">
-                        <div className="relative w-8 h-8">
-                          <svg className="w-8 h-8 transform -rotate-90">
-                            <circle
-                              cx="16"
-                              cy="16"
-                              r="14"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              fill="none"
-                              className="text-gray-700"
-                            />
-                            <circle
-                              cx="16"
-                              cy="16"
-                              r="14"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              fill="none"
-                              strokeDasharray={`${2 * Math.PI * 14}`}
-                              strokeDashoffset={`${
-                                2 *
-                                Math.PI *
-                                14 *
-                                (1 - characterCount / maxLength)
-                              }`}
-                              className={
-                                isOverLimit
-                                  ? "text-red-500"
-                                  : isNearLimit
-                                  ? "text-yellow-500"
-                                  : "text-blue-500"
-                              }
-                            />
-                          </svg>
-                        </div>
-                        {isNearLimit && (
-                          <span
-                            className={`text-sm ${
-                              isOverLimit ? "text-red-500" : "text-yellow-500"
-                            }`}
-                          >
-                            {maxLength - characterCount}
-                          </span>
-                        )}
-                      </div>
+                <Textarea
+                  value={content}
+                  placeholder="What's happening?"
+                  onChange={(e) => setContent(e.target.value)}
+                  className="
+      bg-transparent
+      border-none
+      text-xl
+      text-white
+      placeholder:text-gray-500
+      resize-none
+      min-h-[120px]
+      focus-visible:ring-0
+      focus-visible:ring-offset-0
+  "
+                />
+
+                <div className="space-y-3 mt-4">
+                  {imageUrl && (
+                    <div className="relative overflow-hidden rounded-2xl">
+                      <img
+                        src={imageUrl}
+                        alt="Preview"
+                        width={800}
+                        height={450}
+                        className="w-full max-h-80 object-cover"
+                        style={{ objectFit: "cover" }}
+                      />
+
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="secondary"
+                        className="absolute top-2 right-2 rounded-full"
+                        onClick={() => setimageUrl("")}
+                      >
+                        ✕
+                      </Button>
+                    </div>
+                  )}
+
+                  <div className="space-y-3 mt-4">
+                    {audio && (
+                      <AudioPlayer
+                      verified={true}
+                        audio={audio}
+                        editable={true}
+                        onRemove={() => setAudio(null)}
+                      />
                     )}
-                    <Separator
-                      orientation="vertical"
-                      className="h-6 bg-gray-700"
-                    />
-
-                    <Button
-                      type="submit"
-                      disabled={!content.trim() || isOverLimit|| isLoading}
-                      className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold rounded-full px-4"
+                  </div>
+                </div>
+                <div className="flex items-center justify-between mt-5">
+                  <div className="flex items-center gap-1 text-blue-400">
+                    <label
+                      htmlFor="tweet-image"
+                      className="
+      cursor-pointer
+      rounded-lg
+      p-2
+      hover:bg-blue-900/20
+  "
                     >
-                      Post
+                      {imageLoading ? (
+                        <LoadingSpinner size="sm" />
+                      ) : (
+                        <Image className="w-5 h-5" />
+                      )}
+
+                      <input
+                        id="tweet-image"
+                        hidden
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoUpload}
+                      />
+                    </label>
+
+                    {audioLoading ? (
+                      <LoadingSpinner size="sm" />
+                    ) : (
+                      <AudioButton
+                        // onFileSelected={setSelectedAudio}
+                        onOtpRequested={() => setOtpOpen(true)}
+                      />
+                    )}
+                    <Button type="button" variant="ghost" size="icon">
+                      <BarChart3 className="h-5 w-5" />
+                    </Button>
+
+                    <Button type="button" variant="ghost" size="icon">
+                      <Smile className="h-5 w-5" />
+                    </Button>
+
+                    <Button type="button" variant="ghost" size="icon">
+                      <Calendar className="h-5 w-5" />
+                    </Button>
+
+                    <Button type="button" variant="ghost" size="icon">
+                      <MapPin className="h-5 w-5" />
                     </Button>
                   </div>
+                  <div className="flex items-center gap-4">
+                    <div className="hidden md:flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-blue-400" />
+
+                      <span className="text-sm text-blue-400 font-medium">
+                        Everyone can reply
+                      </span>
+                      {characterCount > 0 && (
+                        <span
+                          className={`text-sm ${
+                            isOverLimit
+                              ? "text-red-500"
+                              : isNearLimit
+                                ? "text-yellow-400"
+                                : "text-gray-500"
+                          }`}
+                        >
+                          {maxLength - characterCount}
+                        </span>
+                      )}
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={isLoading || isOverLimit || !canPost}
+                      className="
+      rounded-full
+      px-6
+      bg-blue-500
+      hover:bg-blue-600
+  "
+                    >
+                      {isLoading ? "Posting..." : "Post"}
+                    </Button>
+                  </div>
+                  <Separator orientation="vertical" className="h-6" />
                 </div>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      <AudioOtpDialog
+        open={otpOpen}
+        onClose={() => setOtpOpen(false)}
+        onUploaded={setAudio}
+      />
+    </>
   );
 };
 

@@ -31,6 +31,12 @@ const otpSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
-});
+  
+  purpose: {
+    type: String,
+    enum: [ "VERIFY_EMAIL", "AUDIO_UPLOAD"],
+    required: true,
+  },
+},{timestamps: true});
 
 export default mongoose.models.Otp || mongoose.model("Otp", otpSchema);

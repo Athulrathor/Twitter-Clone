@@ -111,6 +111,7 @@ export default function VerifyOtpPage() {
       const res = await axiosInstance.post("/login/verify", {
         otp,
         firebaseUid,
+        purpose
       });
       if (res.data.success) {
         setMsg({ text: "Verified! Logging you in…", type: "success" });
@@ -135,7 +136,7 @@ export default function VerifyOtpPage() {
     try {
       setResending(true);
       clearMsg();
-      await axiosInstance.post("/login/otp", { firebaseUid, email });
+      await axiosInstance.post("/login/otp", { firebaseUid, email,purpose });
       setDigits(Array(6).fill(""));
       setTimer(4 * 60 + 32);
       setCanResend(false);

@@ -101,6 +101,14 @@ const sessionSchema = new mongoose.Schema(
     },
 
     blockedReason: String,
+    audioUploadVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    audioUploadVerifiedAt: Date,
+
+    audioUploadExpiresAt: Date,
   },
   { timestamps: true },
 );

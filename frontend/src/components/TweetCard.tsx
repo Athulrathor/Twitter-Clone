@@ -14,6 +14,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import axiosInstance from "@/lib/axiosInstance";
 import { auth } from "@/context/firebase";
+import AudioPlayer from "./audio/AudioPlayer";
 
 export default function TweetCard({ tweet }: any) {
   const { user } = useAuth();
@@ -21,13 +22,17 @@ export default function TweetCard({ tweet }: any) {
   const likeTweet = async (tweetId: string) => {
     try {
       const token = await auth.currentUser?.getIdToken();
-      const res = await axiosInstance.post(`/like/${tweetId}`, {
-        userId: user?._id,
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const res = await axiosInstance.post(
+        `/like/${tweetId}`,
+        {
+          userId: user?._id,
         },
-      });
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
       settweetstate(res.data);
     } catch (error) {
       console.log(error);
@@ -37,13 +42,17 @@ export default function TweetCard({ tweet }: any) {
   const retweetTweet = async (tweetId: string) => {
     try {
       const token = await auth.currentUser?.getIdToken();
-      const res = await axiosInstance.post(`/retweet/${tweetId}`, {
-        userId: user?._id,
-      },{
+      const res = await axiosInstance.post(
+        `/retweet/${tweetId}`,
+        {
+          userId: user?._id,
+        },
+        {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },);
+        },
+      );
       settweetstate(res.data);
     } catch (error) {
       console.log(error);
@@ -159,7 +168,7 @@ export default function TweetCard({ tweet }: any) {
               {tweetstate.content}
             </div>
 
-            <div className="mb-3 rounded-2xl overflow-hidden">
+            <div className="mb-3 rounded-2xl overflow-hidden max-w-2xs aspect-auto">
               {tweetstate.image && tweetstate.image !== "" && (
                 <img
                   src={tweetstate.image}
@@ -174,7 +183,17 @@ export default function TweetCard({ tweet }: any) {
               )}
             </div>
 
-          <div className="flex items-center sm:gap-2 max-sm:justify-between w-full">
+            <div className="mb-3 rounded-2xl overflow-hidden  max-w-2xs aspect-auto">
+              {tweet?.audio && (
+                <AudioPlayer
+                      verified={true}
+                        audio={tweetstate.audio}
+                        editable={false}
+                      />
+              )}
+            </div>
+
+            <div className="flex items-center sm:gap-2 max-sm:justify-between w-full">
               <Button
                 variant="ghost"
                 size="sm"

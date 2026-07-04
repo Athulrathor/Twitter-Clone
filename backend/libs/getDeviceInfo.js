@@ -1,4 +1,4 @@
-import {UAParser} from "ua-parser-js";
+import { UAParser } from "ua-parser-js";
 
 export const getDeviceInfo = (req) => {
   const parser = new UAParser(req.headers["user-agent"]);
@@ -8,19 +8,26 @@ export const getDeviceInfo = (req) => {
   // Browser
   const browser = uaResult.browser.name || "unknown";
 
-  // OS
+  // Operating System
   const os = uaResult.os.name || "unknown";
 
-  // Device type detection
-  let deviceType = "unknown";
+  // Device
+  const deviceType = uaResult.device.type || "desktop";
+  const vendor = uaResult.device.vendor || "";
+  const model = uaResult.device.model || "";
 
-  const deviceModel = uaResult.device.type;
+  // Human-readable device name
+  let deviceName = "Unknown Device";
 
-  if (deviceModel === "mobile") deviceType = "mobile";
-  else if (deviceModel === "tablet") deviceType = "tablet";
-  else if (!deviceModel) deviceType = "desktop";
+  if (deviceType === "desktop") {
+    deviceName = `${os} PC`;
+  } else if (vendor || model) {
+    deviceName = `${vendor} ${model}`.trim();
+  } else {
+    deviceName = `${os} ${deviceType}`;
+  }
 
-  // IP Address extraction
+  // IP Address
   const ip =
     req.headers["x-forwarded-for"]?.split(",")[0] ||
     req.socket?.remoteAddress ||
@@ -31,5 +38,6 @@ export const getDeviceInfo = (req) => {
     browser,
     os,
     deviceType,
+    deviceName,
   };
 };

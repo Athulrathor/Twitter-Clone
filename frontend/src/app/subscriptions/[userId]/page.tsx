@@ -171,7 +171,7 @@ export default function SubscriptionPage() {
           className="flex items-center gap-2 text-gray-400 hover:text-white transition"
         >
           <ArrowLeft size={18} />
-          <span className="text-sm font-medium">Back</span>
+          {/* <span className="text-sm font-medium">Back</span> */}
         </button>
         <div className="sticky top-0 z-10 bg-black/90 backdrop-blur-md">
           <div className="px-4 py-3">

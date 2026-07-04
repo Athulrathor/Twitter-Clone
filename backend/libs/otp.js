@@ -8,10 +8,11 @@ const generateOtp = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-export const createOtp = async ({ firebaseUid, email }) => {
+export const createOtp = async ({ firebaseUid, email,purpose }) => {
   await Otp.deleteMany({
     firebaseUid,
     verified: false,
+    purpose,
   });
 
   const otp = generateOtp();
@@ -25,15 +26,17 @@ export const createOtp = async ({ firebaseUid, email }) => {
     email,
     otpHashed: otpHash,
     expiresAt,
+    purpose,
   });
 
   return {otp,expiresAt};
 };
 
-export const verifyOtp = async ({ firebaseUid, otp }) => {
+export const verifyOtp = async ({ firebaseUid, otp,purpose }) => {
   const record = await Otp.findOne({
     firebaseUid,
     verified: false,
+    purpose,
   });
 
   if (!record) {

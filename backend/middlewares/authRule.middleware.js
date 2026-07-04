@@ -15,7 +15,7 @@ export const authRules = (req, res, next) => {
 
       blocked = true;
       blockedReason = "Mobile login allowed only between 10 AM and 1 PM.";
-      return res.status(403).json({
+      return res.status(200).json({
         message: "Mobile access allowed only between 10 AM - 1 PM",
       });
     }
