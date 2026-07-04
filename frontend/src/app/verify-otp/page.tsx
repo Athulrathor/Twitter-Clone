@@ -35,6 +35,7 @@ export default function VerifyOtpPage() {
   const [canResend, setCanResend] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
+  const purpose = "VERIFY_EMAIL";
   const [msg, setMsg] = useState<{
     text: string;
     type: "error" | "success";

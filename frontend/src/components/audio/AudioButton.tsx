@@ -19,6 +19,7 @@ export default function AudioButton({
   const { user,firebaseUid } = useAuth();
 
   const handleRequestOtp = async () => {
+    if (!firebaseUid || !user) return;
     try {
         await requestAudioOtp(firebaseUid, user.email);
 

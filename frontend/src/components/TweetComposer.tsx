@@ -43,8 +43,6 @@ const TweetComposer = ({
   const hasImage = Boolean(imageUrl);
   const hasAudio = Boolean(audio);
 
-  console.log(audio);
-
   const canPost = hasContent || hasImage || hasAudio;
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -173,8 +171,8 @@ const TweetComposer = ({
                   <div className="space-y-3 mt-4">
                     {audio && (
                       <AudioPlayer
-                      verified={true}
-                        audio={audio}
+                        verified={true}
+                        audio={audio as any}
                         editable={true}
                         onRemove={() => setAudio(null)}
                       />

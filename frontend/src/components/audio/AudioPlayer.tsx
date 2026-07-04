@@ -6,7 +6,8 @@ import { Play } from 'next/font/google';
 interface AudioPlayerProps {
   verified?: boolean;
   audio: {
-    url: string;
+    url?: string;
+    audioUrl: string;
     duration: number;
     mimeType: string;
   };
