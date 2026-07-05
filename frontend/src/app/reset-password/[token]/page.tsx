@@ -12,6 +12,7 @@ CardDescription,
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { notify } from "@/lib/toast";
 
 export default function ResetPasswordPage() {
   const { token } = useParams();
@@ -74,6 +75,7 @@ export default function ResetPasswordPage() {
 
       if (!response.ok) {
         throw new Error(data.message);
+        notify.success("Password reset successfull!");
       }
 
       setMessage("Password reset successful. Redirecting to login...");
@@ -83,6 +85,7 @@ export default function ResetPasswordPage() {
       }, 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
+      notify.error("Password reset failed!");
     } finally {
       setLoading(false);
     }

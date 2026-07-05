@@ -8,18 +8,28 @@ export const authRules = (req, res, next) => {
   let blocked = false;
   let blockedReason = "";
 
-  if (device.deviceType === "mobile") {
-    const hour = new Date().getHours();
+if (device.deviceType === "mobile") {
+  const indiaTime = new Date(
+    new Date().toLocaleString("en-US", {
+      timeZone: "Asia/Kolkata",
+    })
+  );
 
-    if (hour < 10 || hour >= 13) {
+  const hour = indiaTime.getHours();
 
-      blocked = true;
-      blockedReason = "Mobile login allowed only between 10 AM and 1 PM.";
-      return res.status(200).json({
-        message: "Mobile access allowed only between 10 AM - 1 PM",
-      });
-    }
+  if (hour < 10 || hour >= 13) {
+    blocked = true;
+    blockedReason =
+      "Mobile login is allowed only between 10:00 AM and 1:00 PM IST.";
+
+    return res.status(403).json({
+      success: false,
+      code: "LOGIN_BLOCKED",
+      timestamp: Date.now(),
+      message: blockedReason,
+    });
   }
+}
 
   req.securityFlags = {
     requiresStepUp: isChrome,

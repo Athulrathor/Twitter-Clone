@@ -38,6 +38,7 @@ import { ArrowLeft } from "lucide-react";
 import LoadingSpinner from "@/components/loading-spinner";
 import { SessionContents } from "@/context/AuthContext";
 import AuthenticationCard from "@/components/authentication-card";
+import { notify } from "@/lib/toast";
 
 function DeviceIcon({
   type,
@@ -356,6 +357,7 @@ export default function SessionsPage() {
     try {
       await logout(id);
       await fetchSession(page);
+      notify.success("loggedout successfully!");
     } catch (err) {
       console.error(err);
     } finally {
@@ -368,6 +370,7 @@ export default function SessionsPage() {
     try {
       await logoutOthers();
       await fetchSession(page);
+      notify.success("loggedout successfully!");
     } catch (err) {
       console.error(err);
     } finally {
@@ -379,6 +382,7 @@ export default function SessionsPage() {
     setLogoutAllLoading(true);
     try {
       await logoutAll();
+      notify.success("loggedout successfully!");
     } catch (err) {
       console.error(err);
       setLogoutAllLoading(false);
@@ -406,7 +410,7 @@ export default function SessionsPage() {
       const response = await fetchDeleteAccount();
 
       if (!response?.success)
-        return alert("Failed to delete account: " + response?.message);
+        return notify.success(response?.message as string);
     } catch (err) {
       console.log(err);
     } finally {
@@ -421,7 +425,7 @@ export default function SessionsPage() {
       const response = await fetchRecoverAccount();
 
       if (!response?.success)
-        return alert("Failed to recover account: " + response?.message);
+        return notify.success(response?.message as string);
     } catch (err) {
       console.log(err);
     } finally {
@@ -437,8 +441,6 @@ export default function SessionsPage() {
 
       if (!response?.success)
         return alert("Failed to delete account status");
-
-      console.log(response)
 
       setDeleteStatus(response?.data?.isDeleted ?? false);
     } catch (err) {

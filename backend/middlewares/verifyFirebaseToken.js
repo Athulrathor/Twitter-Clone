@@ -33,6 +33,10 @@ export const verifyFirebaseToken = async (req, res, next) => {
     next();
   } catch (error) {
     console.error(error);
-    return res.status(401).json({ message: "Invalid Firebase token" });
+    return res.status(401).json({
+      success: false,
+      code: "INVALID_TOKEN",
+      message: "Your session has expired. Please login again.",
+    });
   }
 };

@@ -15,6 +15,7 @@ import AudioOtpDialog from "./audio/AudioOtpDialog";
 import { uploadAudio } from "./audio/service/audio.service";
 import LoadingSpinner from "./loading-spinner";
 import AudioPlayer from "./audio/AudioPlayer";
+import { notify } from "@/lib/toast";
 
 export interface AudioUpload {
   _id: string;
@@ -54,7 +55,7 @@ const TweetComposer = ({
         image: imageUrl || null,
         audio: audio?._id ?? null,
       };
-      console.log(tweetdata);
+
       const token = await auth.currentUser?.getIdToken();
       const res = await axiosInstance.post("/post", tweetdata, {
         headers: {
@@ -62,11 +63,16 @@ const TweetComposer = ({
         },
       });
       onTweetPosted(res.data.tweet);
+      notify.success(res.data.message);
       setContent("");
       setimageUrl("");
       setAudio(null);
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
+      notify.error(
+      error.response?.data?.message ||
+      "Tweet post failed."
+    );
     } finally {
       setIsLoading(false);
     }

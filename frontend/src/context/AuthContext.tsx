@@ -14,6 +14,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { auth } from "./firebase";
 import axiosInstance from "../lib/axiosInstance";
 import { useRouter } from "next/navigation";
+import { notify } from "@/lib/toast";
 
 interface User {
   _id: string;
@@ -117,8 +118,8 @@ interface AuthContextType {
     email: string,
     password: string,
   ) => Promise<
-    | { requiresOtp: boolean; expiresAt: Date }
-    | { requiresOtp: boolean; user: User }
+    | { requiresOtp: boolean; expiresAt: Date; displayName?: string; user?: User }
+    | { requiresOtp: boolean; user: User,displayName?: string; }
     | null
   >;
   signup: (
@@ -219,7 +220,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           sessionStorage.removeItem("firebaseToken");
         }
       } catch (err) {
-        console.error("Auth restore failed:", err);
+        console.error(err);
       } finally {
         setIsInitializing(false);
       }
@@ -476,6 +477,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         router.push("/verify-otp");
         setFirebaseUid(res.data?.firebaseUid);
         sessionStorage.setItem("sessionId", res.data.session._id);
+        notify.success("OTP sent successfully.")
         setSessionId(res.data.session._id);
         return {
           requiresOtp: true,
@@ -486,6 +488,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setSessionId(res.data.session._id);
       setFirebaseUid(res.data?.firebaseUid);
       setUser(res.data.user);
+      notify.success(`Welcome back, ${user?.displayName}`)
       sessionStorage.setItem("firebaseToken", res.data?.firebaseUid);
       localStorage.setItem("twitter-user", JSON.stringify(res.data.user));
 
@@ -493,8 +496,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         requiresOtp: false,
         user: res.data.user,
       };
-    } catch (err) {
-      console.error("Auth signup failed:", err);
+    } catch (err: any) {
+      const data = err.response?.data;
+      
+            switch (data?.code) {
+              case "ACCOUNT_DELETED":
+                notify.error("Your account is scheduled for deletion.");
+                break;
+      
+              case "MOBILE_LOGIN_TIME":
+                notify.error("Mobile login is allowed only between 10 AM and 1 PM.");
+                break;
+      
+              case "LOGIN_BLOCKED":
+                notify.error(data.message);
+                break;
+      
+              case "INVALID_TOKEN":
+                notify.error("Please login again.");
+                break;
+      
+              default:
+                notify.error(data?.message || "Something went wrong.");
+            }
       return null;
     } finally {
       setAuthLoading(false);

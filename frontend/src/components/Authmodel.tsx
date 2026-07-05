@@ -14,6 +14,7 @@ import { useAuth } from "@/context/AuthContext";
 import TwitterLogo from "./Twitterlogo";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { notify } from "@/lib/toast";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -77,12 +78,18 @@ export default function AuthModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm() || authLoading) return;
+    if (!validateForm() || authLoading) {
+      notify.warning("Please correct the highlighted fields.");
+      return;
+    }
     try {
       if (mode === "login") {
         const result = await login(formData.email, formData.password);
 
-        if (!result?.requiresOtp) {
+        if (result?.requiresOtp) {
+          notify.success("OTP sent successfully.");
+        } else {
+          notify.success(`Welcome back ${result?.user?.displayName}`);
           onClose();
         }
       } else {
@@ -92,12 +99,35 @@ export default function AuthModal({
           formData.username,
           formData.displayName,
         );
+
+        notify.success("Account created successfully. Welcome to X!");
       }
       onClose();
       setFormData({ email: "", password: "", username: "", displayName: "" });
       setErrors({});
-    } catch (error) {
-      setErrors({ general: "Authentication failed. Please try again." });
+    } catch (error: any) {
+      const data = error.response?.data;
+
+      switch (data?.code) {
+        case "ACCOUNT_DELETED":
+          notify.error("Your account is scheduled for deletion.");
+          break;
+
+        case "MOBILE_LOGIN_TIME":
+          notify.error("Mobile login is allowed only between 10 AM and 1 PM.");
+          break;
+
+        case "LOGIN_BLOCKED":
+          notify.error(data.message);
+          break;
+
+        case "INVALID_TOKEN":
+          notify.error("Please login again.");
+          break;
+
+        default:
+          notify.error(data?.message || "Something went wrong.");
+      }
     }
   };
 
@@ -112,6 +142,12 @@ export default function AuthModal({
     setMode(mode === "login" ? "signup" : "login");
     setErrors({});
     setFormData({ email: "", password: "", username: "", displayName: "" });
+
+    notify.info(
+      mode === "login"
+        ? "Create your new account."
+        : "Sign in to your account.",
+    );
   };
 
   return (

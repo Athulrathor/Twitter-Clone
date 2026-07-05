@@ -14,6 +14,10 @@ export const deviceInfoMiddleware = async (req, res, next) => {
 
     next();
   } catch (error) {
-    return res.status(500).json({ message: "Device tracking failed" });
+    return res.status(500).json({
+      success: false,
+      code: "DEVICE_ERROR",
+      message: "Unable to verify your device.",
+    });
   }
 };

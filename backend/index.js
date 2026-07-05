@@ -32,9 +32,10 @@ import audioUploadWindow from "./middlewares/audioUploadWindow.js";
 import validateAudio from "./middlewares/validateAudio.js";
 import { v2 as cloudinary } from "cloudinary";
 import { verifyAudioOtp } from "./libs/audio.js";
-import {deletePath} from "./libs/uploadAudioCloud.js";
+import { deletePath } from "./libs/uploadAudioCloud.js";
 
 dotenv.config();
+
 const app = express();
 app.use(
   cors({
@@ -113,15 +114,21 @@ app.post("/register", registerLimiter, async (req, res) => {
     }
     if (existinguser.deleted) {
       return res.status(403).json({
-        message:
-          "Your account is scheduled for deletion.Restore it before continuing.",
+        success: false,
+        code: "ACCOUNT_DELETED",
+        message: "Your account is scheduled for deletion.",
+        deleteAt: user.scheduledDeleteAt,
       });
     }
     const newUser = new User(req.body);
     await newUser.save();
     return res.status(201).send(newUser);
   } catch (error) {
-    return res.status(400).send({ error: error.message });
+    return res.status(401).json({
+      success: false,
+      code: "Internal server error",
+      message: "Something went wrong.",
+    });
   }
 });
 // auth refresh token
@@ -134,7 +141,7 @@ app.get("/auth/me", verifyFirebaseToken, async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found",
+        message: "not found",
       });
     }
 
@@ -222,8 +229,8 @@ app.post(
 
         return res.status(403).json({
           success: false,
-          blocked: true,
-          reason: req.securityFlags.blockedReason,
+          code: "LOGIN_BLOCKED",
+          message: req.securityFlags.blockedReason,
           session,
         });
       }
@@ -242,10 +249,7 @@ app.post(
           lastActiveAt: new Date(),
         });
 
-        const allowedPurposes = [
-          "VERIFY_EMAIL",
-          "AUDIO_UPLOAD",
-        ];
+        const allowedPurposes = ["VERIFY_EMAIL", "AUDIO_UPLOAD"];
 
         if (!allowedPurposes.includes(purpose)) {
           return res.status(400).json({
@@ -270,6 +274,7 @@ app.post(
         return res.status(200).json({
           success: true,
           requiresOtp: true,
+          displayName: user.displayName,
           session,
           expiresAt: otp.expiresAt,
           message: "OTP sent.",
@@ -306,7 +311,8 @@ app.post(
 
       return res.status(401).json({
         success: false,
-        message: "Firebase authentication failed",
+        code: "Internal server error",
+        message: "Something went wrong.",
       });
     }
   },
@@ -319,9 +325,20 @@ app.patch("/userupdate/", verifyFirebaseToken, async (req, res) => {
       { $set: req.body },
       { new: true, upsert: false },
     );
+
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        message: "not found.",
+      });
+    }
     return res.status(200).send(updated);
   } catch (error) {
-    return res.status(400).send({ error: error.message });
+    return res.status(400).json({
+      success: false,
+      code: "UPDATE_ERROR",
+      message: error.message,
+    });
   }
 });
 // Tweet API
@@ -336,7 +353,7 @@ app.post("/post", verifyFirebaseToken, async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found.",
+        message: "not found.",
       });
     }
 
@@ -346,6 +363,7 @@ app.post("/post", verifyFirebaseToken, async (req, res) => {
       return res.status(403).json({
         success: false,
         message: "Tweet limit reached. Upgrade your plan.",
+        code: "TWEET_LIMIT_EXCEEDED"
       });
     }
 
@@ -383,14 +401,15 @@ app.post("/post", verifyFirebaseToken, async (req, res) => {
 
     return res.status(201).json({
       success: true,
+      message: "Tweet posted successfully.",
       tweet,
     });
   } catch (error) {
     console.error(error);
 
-    return res.status(500).json({
+    return res.status(400).json({
       success: false,
-      message: "Tweet creation failed.",
+      message: "Tweet post error.",
     });
   }
 });
@@ -406,6 +425,8 @@ app.get("/post", verifyFirebaseToken, async (req, res) => {
   } catch (error) {
     return res.status(400).send({
       error: error.message,
+      success: false,
+      message: "Tweet posts fetch error",
     });
   }
 });
@@ -421,7 +442,7 @@ app.post("/like/:tweetid", verifyFirebaseToken, async (req, res) => {
     }
     res.send(tweet);
   } catch (error) {
-    return res.status(400).send({ error: error.message });
+    return res.status(400).send({ success: false, message: "Like fetch error!" });
   }
 });
 // retweet
@@ -436,27 +457,32 @@ app.post("/retweet/:tweetid", verifyFirebaseToken, async (req, res) => {
     }
     res.send(tweet);
   } catch (error) {
-    return res.status(400).send({ error: error.message });
+    return res.status(400).send({success: false,message: "Retweet fetch error!" });
   }
 });
 
 // payment status time restrictions
 app.get("/payments/status", verifyFirebaseToken, async (req, res) => {
   try {
-    if (!isPaymentAllowed()) {
-      return res.status(200).json({
-        success: false,
-        message: "Payments are allowed only between 10:00 AM and 11:00 AM IST",
-      });
-    } else {
-      return res.status(200).json({
-        success: true,
-        message: "Payments are currently available",
-      });
-    }
+    const allowed = isPaymentAllowed();
+
+    return res.status(200).json({
+      success: allowed,
+      message: allowed
+        ? "Payments are currently available."
+        : "Payments are available only between 10:00 AM and 11:00 AM IST.",
+      data: {
+        allowed,
+        startTime: "10:00 AM IST",
+        endTime: "11:00 AM IST",
+      },
+    });
   } catch (error) {
+    console.error(error);
+
     return res.status(500).json({
-      message: "Failed to check payment status",
+      success: false,
+      message: "Failed to check payment status.",
     });
   }
 });
@@ -491,6 +517,7 @@ app.get(
       if (!subscription) {
         return res.status(200).json({
           plan: "Free",
+          message: "Free plan is active.",
           limit: 1,
           used: tweetCount,
           remaining: Math.max(1 - tweetCount, 0),
@@ -516,6 +543,7 @@ app.get(
         plan: planName,
         limit: limit === Infinity ? "Unlimited" : limit,
         used: tweetCount,
+        message: "Subscription status fetched successfully.",
         remaining,
         expiresAt: subscription.endDate,
       });
@@ -598,6 +626,7 @@ app.post("/payment/verify", verifyFirebaseToken, async (req, res) => {
     if (generatedSignature !== razorpay_signature) {
       return res.status(400).json({
         success: false,
+        code: "INVALID_SIGNATURE",
         message: "Invalid payment signature",
       });
     }
@@ -618,6 +647,7 @@ app.post("/payment/verify", verifyFirebaseToken, async (req, res) => {
     if (payment.status === "SUCCESS") {
       return res.status(200).json({
         success: true,
+        code: "Payment_already_verified",
         message: "Payment already verified",
       });
     }
@@ -761,6 +791,8 @@ app.post("/auth/forgot-password", forgotPasswordLimiter, async (req, res) => {
       user.lastPasswordResetRequestAt.toDateString() === today.toDateString()
     ) {
       return res.status(429).json({
+        success: false,
+        code: "ONE_TIME_PER_DAY",
         message: "You can use this option only one time per day.",
       });
     }
@@ -832,7 +864,7 @@ app.post("/auth/reset-password", async (req, res) => {
 
     if (!user) {
       return res.status(404).json({
-        message: "User not found",
+        message: "not found",
       });
     }
 
@@ -860,7 +892,7 @@ app.post("/auth/reset-password", async (req, res) => {
 // otp verification
 app.post("/login/otp", otpRateLimiter, async (req, res) => {
   try {
-    const { firebaseUid, email, purpose="VERIFY_EMAIL" } = req.body;
+    const { firebaseUid, email, purpose = "VERIFY_EMAIL" } = req.body;
 
     if (!firebaseUid || !email || !purpose) {
       return res.status(400).json({
@@ -910,7 +942,7 @@ app.post("/login/otp", otpRateLimiter, async (req, res) => {
   }
 });
 app.post("/login/verify", async (req, res) => {
-  const { firebaseUid, otp, purpose="VERIFY_EMAIL" } = req.body;
+  const { firebaseUid, otp, purpose = "VERIFY_EMAIL" } = req.body;
 
   try {
     if (!firebaseUid || !otp || !purpose) {
@@ -920,10 +952,7 @@ app.post("/login/verify", async (req, res) => {
       });
     }
 
-    const allowedPurposes = [
-      "VERIFY_EMAIL",
-      "AUDIO_UPLOAD",
-    ];
+    const allowedPurposes = ["VERIFY_EMAIL", "AUDIO_UPLOAD"];
 
     if (!allowedPurposes.includes(purpose)) {
       return res.status(400).json({
@@ -1425,7 +1454,7 @@ app.post(
 
       const user = await User.findOne({ firebaseUid: req.user.uid });
 
-      const result = await uploadAudioToStorage(req.file,user._id);
+      const result = await uploadAudioToStorage(req.file, user._id);
 
       if (duration < 1) {
         return res.status(400).json({
@@ -1449,13 +1478,13 @@ app.post(
       const audio = await Audio.create({
         userId: user._id,
         audioUrl: result.audioUrl,
-  storagePath: result.storagePath,
+        storagePath: result.storagePath,
         duration,
         size,
         mimeType,
       });
 
-      if (!audio) return res.json({message: "audio create error"})
+      if (!audio) return res.json({ message: "audio create error" });
 
       return res.status(200).json({
         success: true,

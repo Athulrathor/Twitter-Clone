@@ -9,6 +9,7 @@ import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { auth } from "../../../context/firebase";
 import axiosInstance from "@/lib/axiosInstance";
+import { notify } from "@/lib/toast";
 
 declare global {
   interface Window {
@@ -51,8 +52,12 @@ export default function SubscriptionPage() {
       });
       const data = await res.data;
       setSubscription(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      notify.error(
+    error.response?.data?.message ??
+    "Unable to load subscription."
+  );
     } finally {
       setLoading(false);
     }
@@ -63,6 +68,7 @@ export default function SubscriptionPage() {
     razorpay_payment_id: string,
     razorpay_signature: string,
   ) => {
+    notify.loading("Verifying payment...");
     try {
       const token = await auth.currentUser?.getIdToken();
       const res = await axiosInstance.post(
@@ -81,17 +87,33 @@ export default function SubscriptionPage() {
 
       const data = await res.data;
 
+      notify.success(
+    "Subscription activated successfully!"
+);
+
       if (data.success) {
         alert("Subscription activated");
         fetchStatus();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+
+      if (error.response.data.code === "Payment_already_verified") {
+        return notify.error("Payment already verified.");
+      }
+
+      if (error.response.data.code === "INVALID_SIGNATURE") {
+        return notify.error("Invalid payment signature");
+      }
+    }finally{
+      notify.success(
+    "Subscription activated successfully!"
+);
     }
   };
 
   const openRazorpay = (order: any) => {
-    if (!window.Razorpay) return alert("Razorpay not loaded");
+    if (!window.Razorpay) return notify.info("Razorpay open failed!");;
 
     const options = {
       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY,
@@ -107,24 +129,35 @@ export default function SubscriptionPage() {
       },
     };
 
+    notify.info("Redirecting to secure payment...");
     new window.Razorpay(options).open();
   };
 
   const createOrder = async (planName: string) => {
     if (!user?._id) return alert("User not logged in");
-    const token = await auth.currentUser?.getIdToken();
-    const res = await axiosInstance.post(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/payments/create-order/${user._id}`,
-      { planName },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
 
-    const order = await res.data;
-    openRazorpay(order);
+    notify.loading("Creating payment order...");
+
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      const res = await axiosInstance.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/payments/create-order/${user._id}`,
+        { planName },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      notify.success("Order created successfully.");
+      const order = await res.data;
+      openRazorpay(order);
+    } catch (err: any) {
+      notify.error(
+    err.response?.data?.message ??
+      "Unable to create payment order.")
+    }
   };
 
   const fetchPaymentStatus = async () => {
@@ -140,6 +173,9 @@ export default function SubscriptionPage() {
       setPaymentMessage(res.data.message);
     } catch (error: any) {
       console.error(error);
+      notify.error(
+        error.response?.data?.message ?? "Unable to load payment.",
+      );
     }
   };
 

@@ -9,6 +9,7 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import LoadingSpinner from "./loading-spinner";
 import axios from "axios";
+import { notify } from "@/lib/toast";
 
 const Editprofile = ({ isopen, onclose }: any) => {
   const { user, updateProfile } = useAuth();
@@ -54,9 +55,18 @@ const Editprofile = ({ isopen, onclose }: any) => {
     setIsLoading(true);
     try {
       await updateProfile(formData);
+      notify.success("Profile updated successfully.");
       onclose();
-    } catch (error) {
-      setError({ general: "Failed to update profile. Please try again." });
+    } catch (error: any) {
+      const message =
+      error.response?.data?.message ||
+      "Failed to update profile.";
+
+    notify.error(message);
+
+    setError({
+      general: message,
+    });
     } finally {
       setIsLoading(false);
     }
@@ -81,11 +91,13 @@ const Editprofile = ({ isopen, onclose }: any) => {
         formdataimg
       );
       const url = res.data.data.display_url;
+      notify.success("Profile photo uploaded.");
       if (url) {
         setFormdata((prev) => ({ ...prev, avatar: url }));
       }
     } catch (error) {
       console.log(error);
+      notify.error("Failed to upload profile photo.");
     } finally {
       setIsLoading(false);
     }

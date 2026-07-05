@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { notify } from "@/lib/toast";
 
 export default function ForgotPasswordPage() {
   const [emailOrPhone, setEmailOrPhone] = useState("");
@@ -42,17 +43,18 @@ export default function ForgotPasswordPage() {
           }),
         },
       );
-
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.message);
+        notify.success("Password reset link send successfully!");
       }
 
       setMessage(data.message);
       setEmailOrPhone("");
-    } catch (err) {
+    } catch (err: any) {
       setError(err instanceof Error ? err.message : "Something went wrong");
+      notify.error(err.response.data.message);
     } finally {
       setLoading(false);
     }

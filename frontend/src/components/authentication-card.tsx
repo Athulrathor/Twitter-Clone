@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Lock, ChevronRight, Check } from "lucide-react";
+import { Lock, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import ChangePasswordDialog from "@/modals/changePasswords/ChangePasswordDialog";
@@ -24,7 +24,8 @@ const badgeStyles: Record<string, string> = {
 
 export default function AuthenticationCard() {
   const [passwordOpen, setPasswordOpen] = useState(false);
-  const { currentSession, logoutOthers } = useAuth();
+  const [emailOpen, setEmailOpen] = useState(false);
+  const { currentSession } = useAuth();
 
   const handleRowClick = (id: string) => {
     switch (id) {
@@ -33,6 +34,7 @@ export default function AuthenticationCard() {
         break;
 
       case "email":
+        setEmailOpen(false);
         break;
 
       default:
@@ -148,6 +150,15 @@ export default function AuthenticationCard() {
           providerName={currentSession?.loginMethod?.toLowerCase()}
           onOpenChange={setPasswordOpen}
         />
+
+        {/* <VerifyEmailDialog
+          open={EmailOpen}
+          hasVerified={
+            currentSession?.otpVerified
+          }
+          providerName={currentSession?.loginMethod?.toLowerCase()}
+          onOpenChange={setEmailOpen}
+        /> */}
     </Card>
   );
 }

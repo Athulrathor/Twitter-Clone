@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@radix-ui/react-separator";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
+import { notify } from "@/lib/toast";
 
 export default function VerifyOtpPage() {
   const router = useRouter();
@@ -118,6 +119,7 @@ export default function VerifyOtpPage() {
         setMsg({ text: "Verified! Logging you in…", type: "success" });
         setUser(res.data.user);
         await fetchSession();
+        notify.success("Otp verified successfully!");
         setTimeout(() => router.push("/"), 800);
       }
     } catch (err: any) {
@@ -142,6 +144,7 @@ export default function VerifyOtpPage() {
       setTimer(4 * 60 + 32);
       setCanResend(false);
       setMsg({ text: "A new code has been sent.", type: "success" });
+      notify.success("Otp send successfully!");
       refs.current[0]?.focus();
       setTimeout(() => setMsg(null), 3000);
     } catch {
