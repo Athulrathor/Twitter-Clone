@@ -33,6 +33,9 @@ export default function SubscriptionPage() {
   const [subscription, setSubscription] = useState<SubscriptionStatus | null>(
     null,
   );
+  const [pLanLoading,setPLanLoading] = useState<boolean>(false);
+  const [plans,setPlans] = useState(null);
+  const [error,setError] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
 
   const router = useRouter();
@@ -133,7 +136,7 @@ export default function SubscriptionPage() {
     new window.Razorpay(options).open();
   };
 
-  const createOrder = async (planName: string) => {
+  const createOrder = async (planId: string) => {
     if (!user?._id) return alert("User not logged in");
 
     notify.loading("Creating payment order...");
@@ -142,7 +145,7 @@ export default function SubscriptionPage() {
       const token = await auth.currentUser?.getIdToken();
       const res = await axiosInstance.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/payments/create-order/${user._id}`,
-        { planName },
+        { planId },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -178,6 +181,32 @@ export default function SubscriptionPage() {
       );
     }
   };
+
+  const fetchPlan = async () => {
+    try {
+      setPLanLoading(true);
+      const token = await auth.currentUser?.getIdToken();
+      const fetching = await axiosInstance.get("/plans", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      if (!fetching.data?.success) setError(fetching.data.message);
+  
+      setPlans(fetching.data.plans);
+    } catch (error: any) {
+      console.error(error?.message);
+    }finally{
+      setPLanLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (auth.currentUser) {
+      fetchPlan();
+    }
+  }, [auth.currentUser]);
 
   useEffect(() => {
     if (auth.currentUser) {
@@ -274,6 +303,7 @@ export default function SubscriptionPage() {
           paymentAvailable={paymentAvailable}
           createOrder={createOrder}
           currentPlan={subscription?.plan}
+          allPlan={plans}
         />
       </div>
     </div>

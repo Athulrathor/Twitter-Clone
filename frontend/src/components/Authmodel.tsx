@@ -13,7 +13,6 @@ import { Separator } from "./ui/separator";
 import { useAuth } from "@/context/AuthContext";
 import TwitterLogo from "./Twitterlogo";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { notify } from "@/lib/toast";
 
 interface AuthModalProps {
@@ -38,7 +37,7 @@ export default function AuthModal({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const router = useRouter();
+  // const router = useRouter();
 
   if (!isOpen) return null;
 
@@ -88,10 +87,9 @@ export default function AuthModal({
 
         if (result?.requiresOtp) {
           notify.success("OTP sent successfully.");
-        } else {
-          notify.success(`Welcome back ${result?.user?.displayName}`);
-          onClose();
         }
+          notify.success(`Welcome back ${result?.displayName}`);
+          setTimeout(() => onClose());
       } else {
         await signup(
           formData.email,

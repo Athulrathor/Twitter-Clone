@@ -315,6 +315,7 @@ export default function SessionsPage() {
     logoutAll,
     logoutOthers,
     currentSession,
+    // sessionId,
     stats,
     fetchDeleteAccount,
     fetchRecoverAccount,
@@ -341,6 +342,10 @@ export default function SessionsPage() {
   }, [user?._id]);
 
   const sessions = sessionData ?? [];
+
+  const sessionId = sessionStorage?.getItem("sessionId")
+  ? sessionStorage?.getItem("sessionId")
+  : localStorage?.getItem("sessionId");
 
   const otherActiveSessions = sessions.filter(
     (session) => !session.isCurrent && session.status === "active",

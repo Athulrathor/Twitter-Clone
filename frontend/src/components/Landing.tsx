@@ -10,7 +10,7 @@ import Feed from "./Feed";
 export default function LandingPage() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("signup");
-  const { user, logout ,googlesignin} = useAuth();
+  const { user ,googlesignin} = useAuth();
 
   const openAuthModal = (mode: "login" | "signup") => {
     setAuthMode(mode);

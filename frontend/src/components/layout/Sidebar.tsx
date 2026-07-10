@@ -37,7 +37,7 @@ export default function Sidebar({
   onNavigate,
   mobile,
 }: SidebarProps) {
-  const { user, logout, currentSession } = useAuth();
+  const { user, logout,sessionId } = useAuth();
 
   const router = useRouter();
 
@@ -144,7 +144,7 @@ return mobile ? (
         </DropdownMenuItem>
 
         <DropdownMenuItem
-          onClick={() => logout(currentSession?._id as string)}
+          onClick={() => logout(sessionId as string)}
           className="text-red-400 hover:bg-red-500/10 focus:bg-red-500/10 cursor-pointer"
         >
           <LogOut className="mr-2 h-4 w-4" />
@@ -222,7 +222,7 @@ return mobile ? (
                 Subscription
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => logout(currentSession?._id as string)}
+                onClick={() => logout(sessionId as string)}
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 <span className="text-white">Logout</span>

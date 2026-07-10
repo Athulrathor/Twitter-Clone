@@ -1,47 +1,52 @@
 import { CheckCircle, MessageSquare } from "lucide-react";
-import React from "react";
 
 type PlanCardProps = {
   createOrder: (planName: string) => void;
   paymentAvailable: boolean;
   currentPlan?: string;
+  allPlan: any;
 };
 
 const PlanCard = ({
   createOrder,
   paymentAvailable,
   currentPlan,
+  allPlan
 }: PlanCardProps) => {
   const plans = [
-    {
-      name: "FREE",
-      price: 0,
-      limit: "1 Tweet",
-      color: "text-gray-400",
-      border: "border-gray-800",
-    },
-    {
-      name: "BRONZE",
-      price: 100,
-      limit: "3 Tweets",
-      color: "text-amber-400",
-      border: "border-gray-800",
-    },
-    {
-      name: "SILVER",
-      price: 300,
-      limit: "5 Tweets",
-      color: "text-slate-300",
-      border: "border-gray-800",
-    },
-    {
-      name: "GOLD",
-      price: 1000,
-      limit: "Unlimited",
-      color: "text-yellow-400",
-      border: "border-gray-800",
-    },
-  ];
+  {
+    name: "FREE",
+    price: 0,
+    limit: "1 Tweet",
+    color: "text-gray-400",
+    border: "border-gray-800",
+    _id: allPlan?.find((plan: any) => plan.name === "Free")?._id,
+  },
+  {
+    name: "BRONZE",
+    price: 100,
+    limit: "3 Tweets",
+    color: "text-amber-400",
+    border: "border-gray-800",
+    _id: allPlan?.find((plan: any) => plan.name === "Bronze")?._id,
+  },
+  {
+    name: "SILVER",
+    price: 300,
+    limit: "5 Tweets",
+    color: "text-slate-300",
+    border: "border-gray-800",
+    _id: allPlan?.find((plan: any) => plan.name === "Silver")?._id,
+  },
+  {
+    name: "GOLD",
+    price: 1000,
+    limit: "Unlimited",
+    color: "text-yellow-400",
+    border: "border-gray-800",
+    _id: allPlan?.find((plan: any) => plan.name === "Gold")?._id,
+  },
+];
 
   return (
     <div className="min-h-screen w-full bg-black px-4 pb-20 md:pb-0">
@@ -63,7 +68,7 @@ const PlanCard = ({
 
           return (
             <div
-              key={plan.name}
+              key={plan._id}
               className={`rounded-xl border bg-black p-5 transition-all duration-300 hover:bg-gray-950 ${
                 isActive
                   ? "border-blue-500"
@@ -105,12 +110,12 @@ const PlanCard = ({
 
               {/* Button */}
               <button
-                disabled={
+               disabled={
                   !paymentAvailable ||
                   isActive ||
                   plan.name === "FREE"
                 }
-                onClick={() => createOrder(plan.name)}
+                onClick={() => createOrder(plan._id)}
                 className={`w-full mt-6 py-2.5 rounded-lg text-sm font-semibold transition ${
                   isActive
                     ? "bg-blue-600 text-white cursor-default"

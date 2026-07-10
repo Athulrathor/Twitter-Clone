@@ -118,8 +118,13 @@ interface AuthContextType {
     email: string,
     password: string,
   ) => Promise<
-    | { requiresOtp: boolean; expiresAt: Date; displayName?: string; user?: User }
-    | { requiresOtp: boolean; user: User,displayName?: string; }
+    | {
+        requiresOtp: boolean;
+        expiresAt: Date;
+        displayName?: string;
+        user?: User;
+      }
+    | { requiresOtp: boolean; user: User; displayName?: string }
     | null
   >;
   signup: (
@@ -260,10 +265,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       );
 
       if (res.data.requiresOtp) {
+        const email = res.data?.user?.email ?? res.data?.email;
         setFirebaseUid(res.data?.firebaseUid);
         sessionStorage.setItem("sessionId", res.data.session._id);
         setSessionId(res.data.session._id);
-        router.push("/verify-otp");
+        router.push(`/verify-otp/${email}`);
         return {
           requiresOtp: true,
           expiresAt: new Date(res.data.expiresAt),
@@ -338,15 +344,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (id) {
         const token = await auth.currentUser?.getIdToken();
 
-        await axiosInstance.post(
-          "/auth/logout",
-          { sessionId },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+        await axiosInstance.post("/auth/logout", id, {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-        );
+        });
       }
 
       await signOut(auth);
@@ -470,15 +472,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         {
           headers: { Authorization: `Bearer ${idToken}` },
           withCredentials: true,
-        },
+        }
       );
 
       if (res.data.requiresOtp) {
-        router.push("/verify-otp");
+        // server may not include email in the response type; fall back to Firebase user email
+        const email = res.data?.user?.email ?? res.data?.email;
         setFirebaseUid(res.data?.firebaseUid);
         sessionStorage.setItem("sessionId", res.data.session._id);
-        notify.success("OTP sent successfully.")
+        notify.success("OTP sent successfully.");
         setSessionId(res.data.session._id);
+        router.push(`/verify-otp/${email}`);
         return {
           requiresOtp: true,
           expiresAt: new Date(res.data.expiresAt),
@@ -488,7 +492,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setSessionId(res.data.session._id);
       setFirebaseUid(res.data?.firebaseUid);
       setUser(res.data.user);
-      notify.success(`Welcome back, ${user?.displayName}`)
+      notify.success(`Welcome back, ${res.data?.user.displayName}`);
       sessionStorage.setItem("firebaseToken", res.data?.firebaseUid);
       localStorage.setItem("twitter-user", JSON.stringify(res.data.user));
 
@@ -498,27 +502,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       };
     } catch (err: any) {
       const data = err.response?.data;
-      
-            switch (data?.code) {
-              case "ACCOUNT_DELETED":
-                notify.error("Your account is scheduled for deletion.");
-                break;
-      
-              case "MOBILE_LOGIN_TIME":
-                notify.error("Mobile login is allowed only between 10 AM and 1 PM.");
-                break;
-      
-              case "LOGIN_BLOCKED":
-                notify.error(data.message);
-                break;
-      
-              case "INVALID_TOKEN":
-                notify.error("Please login again.");
-                break;
-      
-              default:
-                notify.error(data?.message || "Something went wrong.");
-            }
+
+      switch (data?.code) {
+        case "ACCOUNT_DELETED":
+          notify.error("Your account is scheduled for deletion.");
+          break;
+
+        case "MOBILE_LOGIN_TIME":
+          notify.error("Mobile login is allowed only between 10 AM and 1 PM.");
+          break;
+
+        case "LOGIN_BLOCKED":
+          notify.error(data.message);
+          break;
+
+        case "INVALID_TOKEN":
+          notify.error("Please login again.");
+          break;
+
+        default:
+          notify.error(data?.message || "Something went wrong.");
+      }
       return null;
     } finally {
       setAuthLoading(false);
@@ -529,10 +533,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       setSessionLoading(true);
 
+      const sessionId = sessionStorage.getItem("sessionId")
+        ? sessionStorage.getItem("sessionId")
+        : localStorage.getItem("sessionId");
+
       const token = await auth.currentUser?.getIdToken();
 
       const res = await axiosInstance.get(
-        `/sessions/history?page=${page}&limit=10`,
+        `/sessions/history?page=${page}&limit=10&sessionId=${sessionId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

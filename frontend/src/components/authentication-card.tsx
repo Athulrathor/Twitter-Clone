@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import ChangePasswordDialog from "@/modals/changePasswords/ChangePasswordDialog";
 import { useAuth } from "@/context/AuthContext";
+import VerifyEmailDialog from "@/modals/VerifyEmailDialog.tsx/VerifyEmailDialog";
 
 const badgeStyles: Record<string, string> = {
   success:
@@ -49,7 +50,7 @@ export default function AuthenticationCard() {
       sub:
         currentSession?.loginMethod.toLowerCase() === "email"
           ? "Update your password"
-          : `Password managed & verified by ${currentSession?.loginMethod.toLowerCase()}`,
+          : currentSession?.loginMethod.toLowerCase() === `Password managed & verified by ${currentSession?.loginMethod.toLowerCase()}`,
       badge: {
         text:
           currentSession?.loginMethod.toLowerCase() === "email"
@@ -151,14 +152,11 @@ export default function AuthenticationCard() {
           onOpenChange={setPasswordOpen}
         />
 
-        {/* <VerifyEmailDialog
-          open={EmailOpen}
-          hasVerified={
-            currentSession?.otpVerified
-          }
-          providerName={currentSession?.loginMethod?.toLowerCase()}
+        <VerifyEmailDialog
+          open={emailOpen}
+          // providerName={currentSession?.loginMethod?.toLowerCase()}
           onOpenChange={setEmailOpen}
-        /> */}
+        />
     </Card>
   );
 }

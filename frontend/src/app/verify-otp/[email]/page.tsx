@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import axiosInstance from "@/lib/axiosInstance";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -26,10 +26,11 @@ export default function VerifyOtpPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
 
+  const params = useParams<{ email: string }>();
+
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    setEmail(params.get("email") || "");
-  }, []);
+    setEmail(params.email || "");
+  }, [params]);
 
   const [digits, setDigits] = useState<string[]>(Array(6).fill(""));
   const [timer, setTimer] = useState(4 * 60 + 32);
@@ -44,7 +45,7 @@ export default function VerifyOtpPage() {
 
   const refs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const { firebaseUid,fetchSession,setUser } = useAuth();
+  const { firebaseUid, fetchSession, setUser } = useAuth();
 
   // countdown timer
   useEffect(() => {
@@ -113,7 +114,7 @@ export default function VerifyOtpPage() {
       const res = await axiosInstance.post("/login/verify", {
         otp,
         firebaseUid,
-        purpose
+        purpose,
       });
       if (res.data.success) {
         setMsg({ text: "Verified! Logging you in…", type: "success" });
@@ -139,7 +140,7 @@ export default function VerifyOtpPage() {
     try {
       setResending(true);
       clearMsg();
-      await axiosInstance.post("/login/otp", { firebaseUid, email,purpose });
+      await axiosInstance.post("/login/otp", { firebaseUid, email, purpose });
       setDigits(Array(6).fill(""));
       setTimer(4 * 60 + 32);
       setCanResend(false);

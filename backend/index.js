@@ -171,7 +171,7 @@ app.post(
         email: req.user.email,
       });
 
-      if (user.deleted) {
+      if (user.isDeleted) {
         return res.status(403).json({
           success: false,
           code: "ACCOUNT_DELETED",
@@ -249,15 +249,6 @@ app.post(
           lastActiveAt: new Date(),
         });
 
-        const allowedPurposes = ["VERIFY_EMAIL", "AUDIO_UPLOAD"];
-
-        if (!allowedPurposes.includes(purpose)) {
-          return res.status(400).json({
-            success: false,
-            message: "Invalid OTP purpose.",
-          });
-        }
-
         const otp = await createOtp({
           firebaseUid: req.user.uid,
           email: req.user.email,
@@ -275,6 +266,7 @@ app.post(
           success: true,
           requiresOtp: true,
           displayName: user.displayName,
+          email: user.email,
           session,
           expiresAt: otp.expiresAt,
           message: "OTP sent.",
@@ -301,6 +293,7 @@ app.post(
       return res.status(200).json({
         success: true,
         user,
+        displayName: user.displayName,
         security: req.securityFlags,
         device: req.deviceInfo,
         firebaseUid: req.user.uid,
@@ -363,7 +356,7 @@ app.post("/post", verifyFirebaseToken, async (req, res) => {
       return res.status(403).json({
         success: false,
         message: "Tweet limit reached. Upgrade your plan.",
-        code: "TWEET_LIMIT_EXCEEDED"
+        code: "TWEET_LIMIT_EXCEEDED",
       });
     }
 
@@ -442,7 +435,9 @@ app.post("/like/:tweetid", verifyFirebaseToken, async (req, res) => {
     }
     res.send(tweet);
   } catch (error) {
-    return res.status(400).send({ success: false, message: "Like fetch error!" });
+    return res
+      .status(400)
+      .send({ success: false, message: "Like fetch error!" });
   }
 });
 // retweet
@@ -457,7 +452,9 @@ app.post("/retweet/:tweetid", verifyFirebaseToken, async (req, res) => {
     }
     res.send(tweet);
   } catch (error) {
-    return res.status(400).send({success: false,message: "Retweet fetch error!" });
+    return res
+      .status(400)
+      .send({ success: false, message: "Retweet fetch error!" });
   }
 });
 
@@ -564,12 +561,10 @@ app.post(
   verifyFirebaseToken,
   async (req, res) => {
     try {
-      const { planName } = req.body;
+      const { planId } = req.body;
 
       const { userId } = req.params;
-      const plan = await Plan.findOne({
-        name: planName,
-      });
+      const plan = await Plan.findById(planId);
 
       if (!plan) {
         return res.status(404).json({
@@ -1156,11 +1151,8 @@ app.get("/sessions/history", verifyFirebaseToken, async (req, res) => {
 
     const [currentSession, activeCount, blockedCount, otpCount, deviceTypes] =
       await Promise.all([
-        Session.findOne({
-          userId,
-          isCurrent: true,
-          status: "active",
-        }).lean(),
+        // Session.findById(sessionId).lean(),
+        Session.findOne({ userId: userId, isCurrent: true }).lean(),
 
         Session.countDocuments({
           userId,
@@ -1534,5 +1526,18 @@ app.delete("/delete/:audioId", verifyFirebaseToken, async (req, res) => {
       success: false,
       message: "Failed to delete audio.",
     });
+  }
+});
+
+// get plan
+app.get("/plans", verifyFirebaseToken, async (req, res) => {
+  try {
+    const plan = await Plan.find();
+
+    return res.status(200).json({messagea: "Plan fetched successfully!", success: false, plans: plan})
+     
+  } catch (error) {
+    console.error(error.message);
+    return res.status(200).json({message: "failed fetched successfully", success: false});
   }
 });
