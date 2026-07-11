@@ -7,7 +7,7 @@ export const authRules = (req, res, next) => {
 
   let blocked = false;
   let blockedReason = "";
-
+      
 if (device.deviceType === "mobile") {
   const indiaTime = new Date(
     new Date().toLocaleString("en-US", {
