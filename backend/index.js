@@ -171,7 +171,7 @@ app.post(
         email: req.user.email,
       });
 
-      if (user.isDeleted) {
+      if (user?.isDeleted || !user?.isDeleted) {
         return res.status(403).json({
           success: false,
           code: "ACCOUNT_DELETED",
@@ -205,7 +205,7 @@ app.post(
 
           email: req.user?.email,
           location:
-            req.deviceInfo.location?.city || req.deviceInfo.location?.country,
+            req.deviceInfo?.location?.city || req.deviceInfo.location?.country,
         });
       }
 
