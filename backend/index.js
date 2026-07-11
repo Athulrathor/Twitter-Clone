@@ -171,12 +171,12 @@ app.post(
         email: req.user.email,
       });
 
-      if (user?.isDeleted || !user?.isDeleted) {
+      if (user?.isDeleted) {
         return res.status(403).json({
           success: false,
           code: "ACCOUNT_DELETED",
           message: "Your account is scheduled for deletion.",
-          deleteAt: user.scheduledDeleteAt,
+          deleteAt: user?.scheduledDeleteAt,
         });
       }
 
