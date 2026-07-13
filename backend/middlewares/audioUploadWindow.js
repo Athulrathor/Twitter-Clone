@@ -1,5 +1,4 @@
 export default function audioUploadWindow(req, res, next) {
-
   const now = new Date();
 
   const formatter = new Intl.DateTimeFormat("en-IN", {
@@ -23,17 +22,16 @@ export default function audioUploadWindow(req, res, next) {
   const endMinutes = 19 * 60;
 
   if (currentMinutes < startMinutes || currentMinutes >= endMinutes) {
-    return res.status(403).json({
+    req.uploadAudioWindow = {
       success: false,
-      code: "AUDIO_UPLOAD_WINDOW_CLOSED",
-      timestamp: Date.now(),
       message:
         "Audio uploads are available only between 2:00 PM and 7:00 PM IST.",
-      allowedWindow: {
-        start: "2:00 PM IST",
-        end: "7:00 PM IST",
-      },
-    });
+    };
+  } else {
+    req.uploadAudioWindow = {
+      success: true,
+      message: "You can upload audio!",
+    };
   }
 
   next();

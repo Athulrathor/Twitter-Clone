@@ -33,10 +33,26 @@ import validateAudio from "./middlewares/validateAudio.js";
 import { v2 as cloudinary } from "cloudinary";
 import { verifyAudioOtp } from "./libs/audio.js";
 import { deletePath } from "./libs/uploadAudioCloud.js";
+import {
+  getNotificationUsers,
+  containsNotificationKeyword,
+  sendKeywordNotification
+} from "./libs/notificationKeywords.js";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { initializeSocket } from "./libs/socket.js";
+import Notification from "./models/notification.js";
 
 dotenv.config();
 
 const app = express();
+const httpServer = createServer(app);
+export const io = new Server(httpServer, {
+  /* options */
+});
+
+initializeSocket();
+
 app.use(
   cors({
     origin: [process.env.FRONTEND_URL, "http://localhost:3000"],
@@ -62,8 +78,8 @@ mongoose
 
     startAccountCleanupCron();
 
-    app.listen(port, () => {
-      console.log(`🚀 Server running on port ${port}`);
+    httpServer.listen(port, () => {
+      console.log(`🚀 Server running on port ${port} with Websocket`);
     });
   })
   .catch((err) => {
@@ -311,7 +327,7 @@ app.post(
   },
 );
 // update Profile
-app.patch("/userupdate/", verifyFirebaseToken, async (req, res) => {
+app.patch("/userupdate", verifyFirebaseToken, async (req, res) => {
   try {
     const updated = await User.findOneAndUpdate(
       { email: req.user.email },
@@ -386,6 +402,10 @@ app.post("/post", verifyFirebaseToken, async (req, res) => {
       image: req.body.image || null,
       audio: audio ? audio._id : null,
     });
+
+    if (containsNotificationKeyword(tweet.content)) {
+      await sendKeywordNotification(tweet);
+    }
 
     if (audio) {
       audio.tweetId = tweet._id;
@@ -1283,7 +1303,7 @@ app.post("/auth/logout-others", verifyFirebaseToken, async (req, res) => {
 
     await Session.updateMany(
       {
-        userId: user._id,
+        firebaseUid: req.user.uid,
         _id: { $ne: sessionId },
         status: "active",
       },
@@ -1467,6 +1487,20 @@ app.post(
         },
       );
 
+      if (!req?.uploadAudioWindow?.success) {
+        return res.status(403).json({
+          success: false,
+          code: "AUDIO_UPLOAD_WINDOW_CLOSED",
+          timestamp: Date.now(),
+          message:
+            "Audio uploads are available only between 2:00 PM and 7:00 PM IST.",
+          allowedWindow: {
+            start: "2:00 PM IST",
+            end: "7:00 PM IST",
+          },
+        });
+      }
+
       const audio = await Audio.create({
         userId: user._id,
         audioUrl: result.audioUrl,
@@ -1534,10 +1568,106 @@ app.get("/plans", verifyFirebaseToken, async (req, res) => {
   try {
     const plan = await Plan.find();
 
-    return res.status(200).json({messagea: "Plan fetched successfully!", success: false, plans: plan})
-     
+    return res
+      .status(200)
+      .json({
+        messagea: "Plan fetched successfully!",
+        success: false,
+        plans: plan,
+      });
   } catch (error) {
     console.error(error.message);
-    return res.status(200).json({message: "failed fetched successfully", success: false});
+    return res
+      .status(200)
+      .json({ message: "failed fetched successfully", success: false });
   }
 });
+
+// upload audio status
+app.get(
+  "/upload/status",
+  verifyFirebaseToken,
+  audioUploadWindow,
+  async (req, res) => {
+    try {
+      return res.status(200).json(req?.uploadAudioWindow);
+    } catch (error) {
+      console.log(error.message);
+      return res
+        .status(500)
+        .json({ message: "Something went wrong!", success: false });
+    }
+  },
+);
+
+// notification
+app.get("/notifications", verifyFirebaseToken, async (req, res) => {
+  try {
+    const user = await User.findOne({
+      email: req.user.email,
+    });
+
+    const notifications = await Notification.find({
+      userId: user._id,
+    })
+      .sort({ createdAt: -1 })
+      .limit(30)
+      .populate("tweetId", "content image");
+
+    res.json({
+      success: true,
+      notifications,
+      message: "Notification fetched successfully!"
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to load notifications",
+    });
+  }
+});
+
+// Mark as read 
+app.patch(
+  "/notifications/read-all",
+  verifyFirebaseToken,
+  async (req, res) => {
+    const user = await User.findOne({
+      email: req.user.email,
+    });
+
+    await Notification.updateMany(
+      {
+        userId: user._id,
+        read: false,
+      },
+      {
+        read: true,
+      }
+    );
+
+    res.json({
+      success: true,
+    });
+  }
+);
+// unread count
+app.get(
+  "/notifications/unread-count",
+  verifyFirebaseToken,
+  async (req, res) => {
+    const user = await User.findOne({
+      email: req.user.email,
+    });
+
+    const count = await Notification.countDocuments({
+      userId: user._id,
+      read: false,
+    });
+
+    res.json({
+      success: true,
+      count,
+    });
+  }
+);

@@ -298,7 +298,7 @@ export default function SubscriptionPage() {
       </div>
 
       {/* Plans */}
-      <div className="px-4 mt-6">
+      <div className="px-2 mt-6">
         <PlanCard
           paymentAvailable={paymentAvailable}
           createOrder={createOrder}

@@ -12,12 +12,12 @@ export const checkDeletedAccount = async (req, res, next) => {
       });
     }
 
-    if (user.deleted) {
+    if (user?.isDeleted) {
       return res.status(403).json({
         success: false,
         code: "ACCOUNT_DELETED",
         message: "Your account is scheduled for deletion.",
-        deleteAt: user.scheduledDeleteAt,
+        deleteAt: user?.scheduledDeleteAt,
       });
     }
 

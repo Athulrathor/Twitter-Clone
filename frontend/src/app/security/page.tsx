@@ -343,10 +343,6 @@ export default function SessionsPage() {
 
   const sessions = sessionData ?? [];
 
-  const sessionId = sessionStorage?.getItem("sessionId")
-  ? sessionStorage?.getItem("sessionId")
-  : localStorage?.getItem("sessionId");
-
   const otherActiveSessions = sessions.filter(
     (session) => !session.isCurrent && session.status === "active",
   );

@@ -21,6 +21,7 @@ import { Separator } from "@radix-ui/react-separator";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
 import { notify } from "@/lib/toast";
+import { requestNotificationPermission } from "@/lib/notification";
 
 export default function VerifyOtpPage() {
   const router = useRouter();
@@ -120,6 +121,7 @@ export default function VerifyOtpPage() {
         setMsg({ text: "Verified! Logging you in…", type: "success" });
         setUser(res.data.user);
         await fetchSession();
+        await requestNotificationPermission();
         notify.success("Otp verified successfully!");
         setTimeout(() => router.push("/"), 800);
       }

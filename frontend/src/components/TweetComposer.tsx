@@ -1,5 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Textarea } from "./ui/textarea";
@@ -39,6 +39,8 @@ const TweetComposer = ({
   const [imageLoading, setImageLoading] = useState(false);
   const [imageUrl, setimageUrl] = useState("");
   const [otpOpen, setOtpOpen] = useState(false);
+  const [message, setMessage] = useState(false);
+  const [success, setSuccess] = useState(false);
   const maxLength = 200;
   const hasContent = content.trim().length > 0;
   const hasImage = Boolean(imageUrl);
@@ -95,7 +97,6 @@ const TweetComposer = ({
   const characterCount = content.length;
   const isOverLimit = characterCount > maxLength;
   const isNearLimit = characterCount > maxLength * 0.8;
-  if (!user) return null;
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     const image = e.target.files[0];
@@ -117,6 +118,27 @@ const TweetComposer = ({
       setImageLoading(false);
     }
   };
+
+  const getUploadMessage = async () => {
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      const status = await axiosInstance.get("/upload/status",{
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setMessage(status?.data?.message);
+      setSuccess(status?.data?.success);
+    } catch (error) {
+      console.error(error)
+    }
+  };
+
+  useEffect(() => {
+    getUploadMessage();
+  },[]);
+
   if (!user) return null;
 
   return (
@@ -130,7 +152,7 @@ const TweetComposer = ({
             </Avatar>
 
             <div className="flex-1">
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} className="pb-3">
                 {/* Textarea */}
 
                 <Textarea
@@ -215,6 +237,7 @@ const TweetComposer = ({
                       <LoadingSpinner size="sm" />
                     ) : (
                       <AudioButton
+                        canSend={!success}
                         // onFileSelected={setSelectedAudio}
                         onOtpRequested={() => setOtpOpen(true)}
                       />
@@ -272,6 +295,15 @@ const TweetComposer = ({
                   <Separator orientation="vertical" className="h-6" />
                 </div>
               </form>
+              <div
+          className={`mt-4 rounded-xl p-3 text-sm border ${
+            success
+              ? "bg-green-500/10 text-green-400 border-green-500/20"
+              : "bg-red-500/10 text-red-400 border-red-500/20"
+          }`}
+        >
+          {message}
+        </div>
             </div>
           </div>
         </CardContent>

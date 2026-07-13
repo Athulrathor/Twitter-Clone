@@ -15,6 +15,8 @@ import { auth } from "./firebase";
 import axiosInstance from "../lib/axiosInstance";
 import { useRouter } from "next/navigation";
 import { notify } from "@/lib/toast";
+import { socket } from "@/lib/socket";
+import { requestNotificationPermission } from "@/lib/notification";
 
 interface User {
   _id: string;
@@ -30,6 +32,7 @@ interface User {
   isDeleted?: boolean;
   scheduledDeleteAt?: Date;
   restoreAt?: Date;
+  notificationEnabled?: boolean;
 }
 
 interface SessionStats {
@@ -234,6 +237,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    const id =
+      sessionStorage.getItem("sessionId") ?? localStorage.getItem("sessionId");
+
+    setSessionId(id);
+  }, []);
+
+  useEffect(() => {
+    if (!user?._id) return;
+
+    socket.connect();
+
+    socket.emit("join", user._id);
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [user]);
+
+  const showNotification = (data: { title: string; body: string }) => {
+    if (Notification.permission !== "granted") return;
+
+    new Notification(data.title, {
+      body: data.body,
+      icon: "/logo.png",
+    });
+  };
+
+  useEffect(() => {
+    if (!user?.notificationEnabled) return;
+
+    socket.on("keyword-notification", showNotification);
+
+    return () => {
+      socket.off("keyword-notification", showNotification);
+    };
+  }, [user?.notificationEnabled]);
+
   const login = async (
     email: string,
     password: string,
@@ -281,7 +322,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(res.data.user);
       sessionStorage.setItem("firebaseToken", res.data?.firebaseUid);
       localStorage.setItem("twitter-user", JSON.stringify(res.data.user));
-
+      await requestNotificationPermission();
       return {
         requiresOtp: false,
         user: res.data.user,
@@ -433,14 +474,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       ...user,
       ...profileData,
     };
-    const res = await axiosInstance.patch(
-      `/userupdate/${user.email}`,
-      updatedUser,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true,
-      },
-    );
+    const res = await axiosInstance.patch(`/userupdate`, updatedUser, {
+      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true,
+    });
     if (res.data) {
       setUser(updatedUser);
       localStorage.setItem("twitter-user", JSON.stringify(updatedUser));
@@ -472,7 +509,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         {
           headers: { Authorization: `Bearer ${idToken}` },
           withCredentials: true,
-        }
+        },
       );
 
       if (res.data.requiresOtp) {

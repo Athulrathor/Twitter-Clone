@@ -6,13 +6,14 @@ import { useAuth } from "@/context/AuthContext";
 
 interface AudioButtonProps {
   // onFileSelected: (file: File) => void;
+  canSend: boolean;
   onOtpRequested: () => void;
 }
 
 const MAX_SIZE = 100 * 1024 * 1024; //100MB
 
 export default function AudioButton({
-  // onFileSelected,
+  canSend,
   onOtpRequested,
 }: AudioButtonProps) {
 
@@ -36,6 +37,7 @@ export default function AudioButton({
         type="button"
         variant="ghost"
         size="sm"
+        disabled={canSend}
         className="p-2 rounded-lg hover:bg-blue-900/20 cursor-pointer"
         onClick={handleRequestOtp}
       >

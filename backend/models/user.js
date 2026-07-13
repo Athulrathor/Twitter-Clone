@@ -26,6 +26,10 @@ const UserSchema = mongoose.Schema({
   isDeleted: {type: Boolean,default: false},
   scheduledDeleteAt : { type: Date, default: null },
   restoreAt: { type: Date, default: null },
+  notificationEnabled: {
+  type: Boolean,
+  default: false,
+},
 });
 
 UserSchema.index(

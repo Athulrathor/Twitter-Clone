@@ -42,8 +42,6 @@ export default function ProfilePage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("posts");
   const [showEditModal, setShowEditModal] = useState(false);
-
-  if (!user) return null;
   const [tweets, setTweets] = useState<Tweet[]>([]);
   const [loading, setloading] = useState<boolean>(false);
   const fetchTweets = async () => {
@@ -66,6 +64,8 @@ export default function ProfilePage() {
     fetchTweets();
   }, []);
   // Filter tweets by current user
+
+  if (!user) return null;
   const userTweets = tweets.filter((tweet: Tweet) => tweet.author._id === user._id);
 
   return (
@@ -219,7 +219,7 @@ export default function ProfilePage() {
                 <CardContent className="py-12 text-center">
                   <div className="text-gray-400">
                     <h3 className="text-2xl font-bold mb-2">
-                      You haven't posted yet
+                      You haven&apos;t posted yet
                     </h3>
                     <p>When you post, it will show up here.</p>
                   </div>
@@ -238,7 +238,7 @@ export default function ProfilePage() {
             <CardContent className="py-12 text-center">
               <div className="text-gray-400">
                 <h3 className="text-2xl font-bold mb-2">
-                  You haven't replied yet
+                  You haven&apos;t replied yet
                 </h3>
                 <p>When you reply to a post, it will show up here.</p>
               </div>
@@ -264,7 +264,7 @@ export default function ProfilePage() {
             <CardContent className="py-12 text-center">
               <div className="text-gray-400">
                 <h3 className="text-2xl font-bold mb-2">
-                  You haven't written any articles
+                  You haven&apos;t written any articles
                 </h3>
                 <p>When you write articles, they will show up here.</p>
               </div>

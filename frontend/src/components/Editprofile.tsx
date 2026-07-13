@@ -10,16 +10,20 @@ import { Textarea } from "./ui/textarea";
 import LoadingSpinner from "./loading-spinner";
 import axios from "axios";
 import { notify } from "@/lib/toast";
+import * as Switch from "@radix-ui/react-switch";
 
 const Editprofile = ({ isopen, onclose }: any) => {
   const { user, updateProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormdata] = useState({
     displayName: user?.displayName || "",
     bio: user?.bio || "",
     location: "Earth",
     website: "example.com",
     avatar: user?.avatar || "",
+    notificationEnabled: user?.notificationEnabled || false,
   });
   const [error, setError] = useState<any>({});
   if (!isopen || !user) return null;
@@ -59,14 +63,13 @@ const Editprofile = ({ isopen, onclose }: any) => {
       onclose();
     } catch (error: any) {
       const message =
-      error.response?.data?.message ||
-      "Failed to update profile.";
+        error.response?.data?.message || "Failed to update profile.";
 
-    notify.error(message);
+      notify.error(message);
 
-    setError({
-      general: message,
-    });
+      setError({
+        general: message,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +91,7 @@ const Editprofile = ({ isopen, onclose }: any) => {
     try {
       const res = await axios.post(
         "https://api.imgbb.com/1/upload?key=97f3fb960c3520d6a88d7e29679cf96f",
-        formdataimg
+        formdataimg,
       );
       const url = res.data.data.display_url;
       notify.success("Profile photo uploaded.");
@@ -102,6 +105,31 @@ const Editprofile = ({ isopen, onclose }: any) => {
       setIsLoading(false);
     }
   };
+
+  const handleNotificationToggle = async (checked: boolean) => {
+    setNotificationsEnabled(checked);
+
+    try {
+      setLoading(true);
+
+      setFormdata((prev) => ({ ...prev, notificationEnabled: checked }));
+
+      notify.success(
+        checked
+          ? "Browser notifications enabled."
+          : "Browser notifications disabled.",
+      );
+    } catch (error) {
+      setNotificationsEnabled(!checked);
+      console.error("notification error: ",error);
+      notify.error("Unable to update notification preference.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  
+
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-2 sm:p-4">
       <Card className="w-full max-w-2xl bg-black border-gray-800 text-white max-sm:max-h-[calc(90vh_-_64px)] max-h-[90vh] overflow-y-auto">
@@ -298,6 +326,29 @@ const Editprofile = ({ isopen, onclose }: any) => {
                   <p className="text-gray-400 ml-auto">
                     {formData.website.length}/100
                   </p>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-1">
+                      <h3 className="text-sm font-medium">
+                        Browser notifications
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        Receive popup notifications for tweets containing{" "}
+                        <strong>cricket</strong> or <strong>science</strong>.
+                      </p>
+                    </div>
+
+                    <Switch.Root
+                      className="w-12 h-7 bg-gray-700 rounded-full relative shadow-inner"
+                      checked={notificationsEnabled}
+                      onCheckedChange={handleNotificationToggle}
+                      disabled={loading}
+                      aria-label="Browser notifications"
+                    >
+                      <Switch.Thumb className="block w-5 h-5 bg-white rounded-full transform transition-transform will-change-transform m-1" />
+                    </Switch.Root>
+                  </div>
                 </div>
               </div>
             </div>
