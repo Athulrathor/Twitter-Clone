@@ -92,14 +92,14 @@ export default function NotificationsPage() {
   return (
     <div className="">
       <div className="sticky top-0 z-10 bg-black/90 backdrop-blur border-b flex items-center">
-        <Button
+        {/* <Button
           variant="ghost"
           size="icon"
           onClick={() => router.back()}
           className="h-8 w-8 text-gray-400 hover:text-white hover:bg-white/5"
         >
           <ArrowLeft size={18} />
-        </Button>
+        </Button> */}
         <h1 className="text-2xl font-bold p-5">Notifications</h1>
         {count > 0 && (
           <Button variant="outline" size="sm" onClick={handleMarkAll}>

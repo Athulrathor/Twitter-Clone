@@ -15,7 +15,7 @@ import * as Switch from "@radix-ui/react-switch";
 const Editprofile = ({ isopen, onclose }: any) => {
   const { user, updateProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  // const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [loading, setLoading] = useState(false);
   const [formData, setFormdata] = useState({
     displayName: user?.displayName || "",
@@ -107,7 +107,7 @@ const Editprofile = ({ isopen, onclose }: any) => {
   };
 
   const handleNotificationToggle = async (checked: boolean) => {
-    setNotificationsEnabled(checked);
+    // setNotificationsEnabled(checked);
 
     try {
       setLoading(true);
@@ -120,15 +120,14 @@ const Editprofile = ({ isopen, onclose }: any) => {
           : "Browser notifications disabled.",
       );
     } catch (error) {
-      setNotificationsEnabled(!checked);
-      console.error("notification error: ",error);
+      // setNotificationsEnabled(!checked);
+      setFormdata((prev) => ({ ...prev, notificationEnabled: !checked }));
+      console.error("notification error: ", error);
       notify.error("Unable to update notification preference.");
     } finally {
       setLoading(false);
     }
   };
-
-  
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-2 sm:p-4">
@@ -340,13 +339,24 @@ const Editprofile = ({ isopen, onclose }: any) => {
                     </div>
 
                     <Switch.Root
-                      className="w-12 h-7 bg-gray-700 rounded-full relative shadow-inner"
-                      checked={notificationsEnabled}
+                      checked={formData.notificationEnabled}
                       onCheckedChange={handleNotificationToggle}
                       disabled={loading}
-                      aria-label="Browser notifications"
+                      className="
+    relative h-7 w-12 rounded-full
+    bg-gray-700
+    data-[state=checked]:bg-blue-600
+    transition-colors
+  "
                     >
-                      <Switch.Thumb className="block w-5 h-5 bg-white rounded-full transform transition-transform will-change-transform m-1" />
+                      <Switch.Thumb
+                        className="
+      block h-5 w-5 rounded-full bg-white
+      transition-transform
+      translate-x-1
+      data-[state=checked]:translate-x-6
+    "
+                      />
                     </Switch.Root>
                   </div>
                 </div>
