@@ -36,7 +36,7 @@ import { deletePath } from "./libs/uploadAudioCloud.js";
 import {
   getNotificationUsers,
   containsNotificationKeyword,
-  sendKeywordNotification
+  sendKeywordNotification,
 } from "./libs/notificationKeywords.js";
 import { createServer } from "http";
 import { Server } from "socket.io";
@@ -1568,13 +1568,11 @@ app.get("/plans", verifyFirebaseToken, async (req, res) => {
   try {
     const plan = await Plan.find();
 
-    return res
-      .status(200)
-      .json({
-        messagea: "Plan fetched successfully!",
-        success: false,
-        plans: plan,
-      });
+    return res.status(200).json({
+      messagea: "Plan fetched successfully!",
+      success: false,
+      plans: plan,
+    });
   } catch (error) {
     console.error(error.message);
     return res
@@ -1612,12 +1610,19 @@ app.get("/notifications", verifyFirebaseToken, async (req, res) => {
     })
       .sort({ createdAt: -1 })
       .limit(30)
-      .populate("tweetId", "content image");
-
+      .populate({
+        path: "tweetId",
+        populate: [
+          {
+            path: "author",
+            select: "displayName username avatar",
+          },
+        ],
+      });
     res.json({
       success: true,
       notifications,
-      message: "Notification fetched successfully!"
+      message: "Notification fetched successfully!",
     });
   } catch (err) {
     res.status(500).json({
@@ -1627,30 +1632,26 @@ app.get("/notifications", verifyFirebaseToken, async (req, res) => {
   }
 });
 
-// Mark as read 
-app.patch(
-  "/notifications/read-all",
-  verifyFirebaseToken,
-  async (req, res) => {
-    const user = await User.findOne({
-      email: req.user.email,
-    });
+// Mark as read
+app.patch("/notifications/read-all", verifyFirebaseToken, async (req, res) => {
+  const user = await User.findOne({
+    email: req.user.email,
+  });
 
-    await Notification.updateMany(
-      {
-        userId: user._id,
-        read: false,
-      },
-      {
-        read: true,
-      }
-    );
+  await Notification.updateMany(
+    {
+      userId: user._id,
+      read: false,
+    },
+    {
+      read: true,
+    },
+  );
 
-    res.json({
-      success: true,
-    });
-  }
-);
+  res.json({
+    success: true,
+  });
+});
 // unread count
 app.get(
   "/notifications/unread-count",
@@ -1669,5 +1670,5 @@ app.get(
       success: true,
       count,
     });
-  }
+  },
 );

@@ -5,6 +5,7 @@ import LoadingSpinner from "../loading-spinner";
 import Sidebar from "./Sidebar";
 import RightSidebar from "./Rightsidebar";
 import ProfilePage from "../ProfilePage";
+import NotificationsPage from "@/app/notification/page";
 
 const Mainlayout = ({ children }: { children: React.ReactNode }) => {
   const { user, isInitializing  } = useAuth();
@@ -36,10 +37,12 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
             onNavigate={setCurrentPage}
           />
         </aside>
-              {/* Main Feed */}
-        <main className="flex-1 min-w-0 border-x border-gray-800 pb-20 md:pb-0 overflow-hidden">
+        {/* Main Feed */}
+        <main className="flex-1 border-x border-gray-800 pb-20 md:pb-0 overflow-hidden">
           {currentPage === "profile" ? (
             <ProfilePage />
+          ) : currentPage === "notification" ? (
+            <NotificationsPage />
           ) : (
             children
           )}

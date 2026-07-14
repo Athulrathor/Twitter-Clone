@@ -1,5 +1,7 @@
 import { Bell } from "lucide-react";
 import formatDistanceToNow from "@/lib/formatDistanceToNow";
+import { useState } from "react";
+import NotificationDialogBox from "./NotificationDialogBox";
 
 interface Props {
   notification: any;
@@ -10,17 +12,19 @@ export default function NotificationCard({
   notification,
   onRead,
 }: Props) {
+  const [open,setOpen] = useState<boolean>(false);
+  
   const handleClick = () => {
     if (!notification.read) {
       onRead(notification._id);
     }
-
-    alert("onreaded");
-
-    //  router.push(`/tweet/${notification.tweetId}`);
+    setOpen(true);
   };
 
+  console.log(notification)
+
   return (
+    <>
     <div
       onClick={handleClick}
       className={`border-b p-4 hover:bg-muted transition cursor-pointer ${
@@ -47,7 +51,7 @@ export default function NotificationCard({
           </div>
 
           <p className="mt-2 text-sm whitespace-pre-wrap">
-            {notification.body}
+            {notification.message}
           </p>
 
           {!notification.read && (
@@ -56,5 +60,7 @@ export default function NotificationCard({
         </div>
       </div>
     </div>
+    <NotificationDialogBox open={open} onOpenChange={() => setOpen(false)} tweet={notification.tweetId} />
+    </>
   );
 }

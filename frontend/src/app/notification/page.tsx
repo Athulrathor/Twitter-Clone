@@ -90,7 +90,7 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="">
       <div className="sticky top-0 z-10 bg-black/90 backdrop-blur border-b flex items-center">
         <Button
           variant="ghost"

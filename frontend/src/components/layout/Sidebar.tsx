@@ -55,7 +55,7 @@ export default function Sidebar({
       name: "Notifications",
       icon: Bell,
       current: currentPage === "notifications",
-      page: "notifications",
+      page: "notification",
       badge: true,
     },
     {
