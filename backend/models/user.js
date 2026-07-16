@@ -22,19 +22,25 @@ const UserSchema = mongoose.Schema({
   joinedDate: { type: Date, default: Date.now() },
   tempPassword: { type: String },
   lastPasswordResetRequestAt: Date,
-  deletedAt: {type: Date,default: null},
-  isDeleted: {type: Boolean,default: false},
-  scheduledDeleteAt : { type: Date, default: null },
+  deletedAt: { type: Date, default: null },
+  isDeleted: { type: Boolean, default: false },
+  scheduledDeleteAt: { type: Date, default: null },
   restoreAt: { type: Date, default: null },
   notificationEnabled: {
-  type: Boolean,
-  default: false,
-},
+    type: Boolean,
+    default: false,
+  },
+  language: {
+    type: String,
+    enum: ["en", "es", "hi", "pt", "zh", "fr"],
+    default: "en",
+  },
+  phoneNumber: {
+    type: String,
+    default: null
+}
 });
 
-UserSchema.index(
-  { scheduledDeleteAt: 1 },
-  { expireAfterSeconds: 0 }
-);
+UserSchema.index({ scheduledDeleteAt: 1 }, { expireAfterSeconds: 0 });
 
 export default mongoose.model("User", UserSchema);

@@ -292,10 +292,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const res = await axiosInstance.post<{
         requiresOtp: boolean;
-        expiresAt: string;
+        expiresAt?: string;
         session: { _id: string };
-        firebaseUid: string;
-        user: User;
+        firebaseUid?: string;
+        email?: string;
+        user?: User;
       }>(
         "/firebase/login",
         { loginMethod: "email" },
@@ -307,25 +308,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (res.data.requiresOtp) {
         const email = res.data?.user?.email ?? res.data?.email;
-        setFirebaseUid(res.data?.firebaseUid);
+        setFirebaseUid(res.data?.firebaseUid ?? null);
         sessionStorage.setItem("sessionId", res.data.session._id);
         setSessionId(res.data.session._id);
-        router.push(`/verify-otp/${email}`);
+        if (email) {
+          router.push(`/verify-otp/${email}`);
+        }
         return {
           requiresOtp: true,
-          expiresAt: new Date(res.data.expiresAt),
+          expiresAt: res.data.expiresAt ? new Date(res.data.expiresAt) : new Date(),
         };
       }
       sessionStorage.setItem("sessionId", res.data.session._id);
       setSessionId(res.data.session._id);
-      setFirebaseUid(res.data?.firebaseUid);
-      setUser(res.data.user);
-      sessionStorage.setItem("firebaseToken", res.data?.firebaseUid);
-      localStorage.setItem("twitter-user", JSON.stringify(res.data.user));
+      setFirebaseUid(res.data?.firebaseUid ?? null);
+      const resolvedUser = res.data.user;
+      if (resolvedUser) {
+        setUser(resolvedUser);
+        sessionStorage.setItem("firebaseToken", res.data?.firebaseUid ?? "");
+        localStorage.setItem("twitter-user", JSON.stringify(resolvedUser));
+      }
       await requestNotificationPermission();
       return {
         requiresOtp: false,
-        user: res.data.user,
+        user: resolvedUser as User,
       };
     } catch (error) {
       console.error(error);
@@ -499,10 +505,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const res = await axiosInstance.post<{
         requiresOtp: boolean;
-        expiresAt: string;
+        expiresAt?: string;
         session: { _id: string };
-        firebaseUid: string;
-        user: User;
+        firebaseUid?: string;
+        email?: string;
+        user?: User;
       }>(
         "/firebase/login",
         { loginMethod: "google" },
@@ -513,29 +520,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       );
 
       if (res.data.requiresOtp) {
-        // server may not include email in the response type; fall back to Firebase user email
         const email = res.data?.user?.email ?? res.data?.email;
-        setFirebaseUid(res.data?.firebaseUid);
+        setFirebaseUid(res.data?.firebaseUid ?? null);
         sessionStorage.setItem("sessionId", res.data.session._id);
         notify.success("OTP sent successfully.");
         setSessionId(res.data.session._id);
-        router.push(`/verify-otp/${email}`);
+        if (email) {
+          router.push(`/verify-otp/${email}`);
+        }
         return {
           requiresOtp: true,
-          expiresAt: new Date(res.data.expiresAt),
+          expiresAt: res.data.expiresAt ? new Date(res.data.expiresAt) : new Date(),
         };
       }
       sessionStorage.setItem("sessionId", res.data.session._id);
       setSessionId(res.data.session._id);
-      setFirebaseUid(res.data?.firebaseUid);
-      setUser(res.data.user);
-      notify.success(`Welcome back, ${res.data?.user.displayName}`);
-      sessionStorage.setItem("firebaseToken", res.data?.firebaseUid);
-      localStorage.setItem("twitter-user", JSON.stringify(res.data.user));
+      setFirebaseUid(res.data?.firebaseUid ?? null);
+      const resolvedUser = res.data.user;
+      if (resolvedUser) {
+        setUser(resolvedUser);
+        notify.success(`Welcome back, ${resolvedUser.displayName}`);
+        sessionStorage.setItem("firebaseToken", res.data?.firebaseUid ?? "");
+        localStorage.setItem("twitter-user", JSON.stringify(resolvedUser));
+      }
 
       return {
         requiresOtp: false,
-        user: res.data.user,
+        user: resolvedUser as User,
       };
     } catch (err: any) {
       const data = err.response?.data;

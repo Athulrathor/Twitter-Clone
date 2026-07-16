@@ -6,10 +6,22 @@ import Sidebar from "./Sidebar";
 import RightSidebar from "./Rightsidebar";
 import ProfilePage from "../ProfilePage";
 import NotificationsPage from "@/app/notification/page";
+import { useTranslation } from "react-i18next";
+
 
 const Mainlayout = ({ children }: { children: React.ReactNode }) => {
   const { user, isInitializing  } = useAuth();
-  const [currentPage, setCurrentPage] = useState("home");
+  const { t } = useTranslation();
+  const [currentPage, setCurrentPage] = useState(t("home"));
+
+  const handleCurrentPage = (p: string) => {
+    try {
+      const pages = t(p);
+      setCurrentPage(pages);
+    } catch (error) {
+      console.warn(error);
+    }
+  } 
 
   if (isInitializing ) {
     return (
@@ -34,7 +46,7 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
         <aside className="hidden md:flex md:w-20 lg:w-64 border-r border-gray-800 shrink-0 sticky top-0 h-screen">
           <Sidebar
             currentPage={currentPage}
-            onNavigate={setCurrentPage}
+            onNavigate={handleCurrentPage}
           />
         </aside>
         {/* Main Feed */}
@@ -58,7 +70,7 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
         <Sidebar
           mobile
           currentPage={currentPage}
-          onNavigate={setCurrentPage}
+          onNavigate={handleCurrentPage}
         />
       </div>
     </div>
