@@ -8,29 +8,17 @@ import pt from "./locales/pt/common.json";
 import zh from "./locales/zh/common.json";
 import fr from "./locales/fr/common.json";
 
-if (typeof window !== "undefined") {
-  i18n.use(initReactI18next).init({
+i18n
+  .use(initReactI18next)
+  .init({
     resources: {
-      en: {
-        translation: en,
-      },
-      hi: {
-        translation: hi,
-      },
-      es: {
-        translation: es,
-      },
-      pt: {
-        translation: pt,
-      },
-      zh: {
-        translation: zh,
-      },
-      fr: {
-        translation: fr,
-      },
+      en: { translation: en },
+      hi: { translation: hi },
+      es: { translation: es },
+      pt: { translation: pt },
+      zh: { translation: zh },
+      fr: { translation: fr },
     },
-
     lng: "en",
     fallbackLng: "en",
 
@@ -38,6 +26,6 @@ if (typeof window !== "undefined") {
       escapeValue: false,
     },
   });
-}
+
 
 export default i18n;

@@ -32,7 +32,7 @@ export function LanguageProvider({
   children: ReactNode;
 }) {
   const [language, setLanguage] =
-    useState<Language>("en");
+    useState<Language>("hi");
 
   useEffect(() => {
     const savedLanguage = localStorage.getItem(

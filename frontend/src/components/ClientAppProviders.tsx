@@ -1,11 +1,17 @@
 "use client";
 
+import "@/i18n";
+
 import { ReactNode } from "react";
-import { AuthProvider } from "@/context/AuthContext";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "sonner";
 
-export function ClientAppProviders({ children }: { children: ReactNode }) {
+export function ClientAppProviders({
+  children,
+}: {
+  children: ReactNode;
+}) {
   return (
     <LanguageProvider>
       <AuthProvider>

@@ -6,13 +6,15 @@ import Sidebar from "./Sidebar";
 import RightSidebar from "./Rightsidebar";
 import ProfilePage from "../ProfilePage";
 import NotificationsPage from "@/app/notification/page";
+import "@/i18n";
 import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/context/LanguageContext";
 
 
 const Mainlayout = ({ children }: { children: React.ReactNode }) => {
   const { user, isInitializing  } = useAuth();
   const { t } = useTranslation();
-  const [currentPage, setCurrentPage] = useState(t("home"));
+  const [currentPage, setCurrentPage] = useState("home");
 
   const handleCurrentPage = (p: string) => {
     try {
@@ -21,7 +23,9 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.warn(error);
     }
-  } 
+  }
+
+  const { changeLanguage } = useLanguage();
 
   if (isInitializing ) {
     return (
@@ -45,13 +49,13 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
       {/* Sidebar */}
         <aside className="hidden md:flex md:w-20 lg:w-64 border-r border-gray-800 shrink-0 sticky top-0 h-screen">
           <Sidebar
-            currentPage={currentPage}
+            currentPage={t(currentPage)}
             onNavigate={handleCurrentPage}
           />
         </aside>
         {/* Main Feed */}
         <main className="flex-1 border-x border-gray-800 pb-20 md:pb-0 overflow-hidden">
-          {currentPage === "profile" ? (
+          {currentPage === "Profile" ? (
             <ProfilePage />
           ) : currentPage === "notification" ? (
             <NotificationsPage />
@@ -69,7 +73,7 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
       <div className="md:hidden sticky bottom-0 border-t border-gray-800 bg-black z-50">
         <Sidebar
           mobile
-          currentPage={currentPage}
+          currentPage={t(currentPage)}
           onNavigate={handleCurrentPage}
         />
       </div>
