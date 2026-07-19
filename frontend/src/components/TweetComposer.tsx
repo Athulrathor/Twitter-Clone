@@ -16,6 +16,7 @@ import { uploadAudio } from "./audio/service/audio.service";
 import LoadingSpinner from "./loading-spinner";
 import AudioPlayer from "./audio/AudioPlayer";
 import { notify } from "@/lib/toast";
+import { useTranslation } from "react-i18next";
 
 export interface AudioUpload {
   _id: string;
@@ -45,6 +46,7 @@ const TweetComposer = ({
   const hasContent = content.trim().length > 0;
   const hasImage = Boolean(imageUrl);
   const hasAudio = Boolean(audio);
+  const { t } = useTranslation();
 
   const canPost = hasContent || hasImage || hasAudio;
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -157,7 +159,7 @@ const TweetComposer = ({
 
                 <Textarea
                   value={content}
-                  placeholder="What's happening?"
+                  placeholder={`${t("what's_happening")}?`}
                   onChange={(e) => setContent(e.target.value)}
                   className="
       bg-transparent
@@ -263,7 +265,7 @@ const TweetComposer = ({
                       <Globe className="h-4 w-4 text-blue-400" />
 
                       <span className="text-sm text-blue-400 font-medium">
-                        Everyone can reply
+                        {t("everyone_can_reply")}
                       </span>
                       {characterCount > 0 && (
                         <span

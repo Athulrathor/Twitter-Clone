@@ -1,0 +1,56 @@
+{
+  "security": "Security",
+
+  "change_password": "Change Password",
+  "update_password": "Update Password",
+
+  "current_password": "Current Password",
+  "new_password": "New Password",
+  "confirm_password": "Confirm Password",
+
+  "password_strength": "Password Strength",
+  "password_requirements": "Password Requirements",
+
+  "very_weak": "Very Weak",
+  "weak": "Weak",
+  "fair": "Fair",
+  "strong": "Strong",
+  "very_strong": "Very Strong",
+
+  "at_least_8_characters": "At least 8 characters",
+  "one_uppercase_letter": "One uppercase letter (A-Z)",
+  "one_lowercase_letter": "One lowercase letter (a-z)",
+  "one_number": "One number (0-9)",
+  "one_special_character": "One special character (!@#$...)",
+
+  "current_password_required": "Current password is required.",
+  "new_password_required": "New password is required.",
+  "confirm_password_required": "Please confirm your password.",
+  "passwords_do_not_match": "Passwords don't match.",
+  "new_password_different": "New password must be different.",
+  "minimum_8_characters": "Minimum 8 characters.",
+
+  "sign_out_other_devices": "Sign out all other devices",
+
+  "browser_notifications": "Browser Notifications",
+  "browser_notifications_description": "Receive browser notifications for important activities.",
+
+  "email_verification": "Email Verification",
+  "verify_email": "Verify Email",
+  "verification_code": "Verification Code",
+  "verification_email_sent": "We've sent a verification code to your email.",
+  "enter_verification_code": "Enter the verification code below.",
+  "email_verified": "Email verified successfully.",
+  "verification_required": "Please verify your email to continue.",
+
+  "two_factor_authentication": "Two-Factor Authentication",
+
+  "sessions": "Sessions",
+  "active_sessions": "Active Sessions",
+
+  "logout_other_devices": "Log out other devices",
+
+  "verify": "Verify",
+
+  "loading": "Loading..."
+}

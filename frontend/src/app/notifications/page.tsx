@@ -13,6 +13,7 @@ import {
 } from "../../components/notifications/hook/useNotification.hook";
 import { auth } from "../../context/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslation } from "react-i18next";
 
 type Notification = {
   _id: string;
@@ -27,6 +28,7 @@ export default function NotificationsPage() {
   const { isInitializing,user } = useAuth();
 
   const router = useRouter();
+  const { t } = useTranslation();
 
   const loadNotifications = async () => {
     try {
@@ -86,7 +88,7 @@ export default function NotificationsPage() {
   };
 
   if (loading) {
-    return <div className="p-6">Loading...</div>;
+    return <div className="p-6">{t("common.loading")}</div>;
   }
 
   return (
@@ -100,17 +102,17 @@ export default function NotificationsPage() {
         >
           <ArrowLeft size={18} />
         </Button> */}
-        <h1 className="text-2xl font-bold p-5">Notifications</h1>
+        <h1 className="text-2xl font-bold p-5"> {t("common.notifications")}</h1>
         {count > 0 && (
           <Button variant="outline" size="sm" onClick={handleMarkAll}>
-            Mark all read
+            {t("notification.mark_all_read")}
           </Button>
         )}
       </div>
 
       {notifications?.length === 0 ? (
         <div className="text-center text-muted-foreground py-16">
-          No notifications
+          {t("notification.no_notifications")}
         </div>
       ) : (
         notifications?.map((notification: any) => (

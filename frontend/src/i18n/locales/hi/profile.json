@@ -1,0 +1,37 @@
+{
+  "edit_profile": "प्रोफ़ाइल संपादित करें",
+  "save_profile": "प्रोफ़ाइल सहेजें",
+
+  "profile_updated": "प्रोफ़ाइल सफलतापूर्वक अपडेट की गई।",
+  "failed_profile_update": "प्रोफ़ाइल अपडेट करने में विफल।",
+
+  "change_photo": "फ़ोटो बदलें",
+  "remove_photo": "फ़ोटो हटाएं",
+
+  "name": "नाम",
+  "username": "यूज़रनेम",
+  "bio": "परिचय",
+  "location": "स्थान",
+  "website": "वेबसाइट",
+  "birthday": "जन्मदिन",
+
+  "your_display_name": "आपका प्रदर्शित नाम",
+  "tell_the_world_about_yourself": "दुनिया को अपने बारे में बताएं",
+  "where_are_you_located": "आप कहाँ रहते हैं?",
+  "your_website_url": "आपकी वेबसाइट का URL",
+
+  "followers": "फ़ॉलोअर्स",
+  "following": "फ़ॉलोइंग",
+  "posts": "पोस्ट",
+  "replies": "उत्तर",
+  "media": "मीडिया",
+  "likes": "पसंद",
+
+  "joined": "शामिल हुए",
+  "verified": "सत्यापित खाता",
+
+  "avatar_updated": "प्रोफ़ाइल फ़ोटो अपडेट की गई।",
+  "avatar_removed": "प्रोफ़ाइल फ़ोटो हटा दी गई।",
+  "cover_updated": "कवर फ़ोटो अपडेट की गई।",
+  "cover_removed": "कवर फ़ोटो हटा दी गई।"
+}

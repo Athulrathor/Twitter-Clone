@@ -1,0 +1,56 @@
+{
+  "security": "Seguridad",
+
+  "change_password": "Cambiar contraseña",
+  "update_password": "Actualizar contraseña",
+
+  "current_password": "Contraseña actual",
+  "new_password": "Nueva contraseña",
+  "confirm_password": "Confirmar contraseña",
+
+  "password_strength": "Seguridad de la contraseña",
+  "password_requirements": "Requisitos de la contraseña",
+
+  "very_weak": "Muy débil",
+  "weak": "Débil",
+  "fair": "Aceptable",
+  "strong": "Fuerte",
+  "very_strong": "Muy fuerte",
+
+  "at_least_8_characters": "Al menos 8 caracteres",
+  "one_uppercase_letter": "Una letra mayúscula (A-Z)",
+  "one_lowercase_letter": "Una letra minúscula (a-z)",
+  "one_number": "Un número (0-9)",
+  "one_special_character": "Un carácter especial (!@#$...)",
+
+  "current_password_required": "La contraseña actual es obligatoria.",
+  "new_password_required": "La nueva contraseña es obligatoria.",
+  "confirm_password_required": "Confirma tu contraseña.",
+  "passwords_do_not_match": "Las contraseñas no coinciden.",
+  "new_password_different": "La nueva contraseña debe ser diferente.",
+  "minimum_8_characters": "Mínimo 8 caracteres.",
+
+  "sign_out_other_devices": "Cerrar sesión en todos los demás dispositivos",
+
+  "browser_notifications": "Notificaciones del navegador",
+  "browser_notifications_description": "Recibe notificaciones del navegador para actividades importantes.",
+
+  "email_verification": "Verificación de correo electrónico",
+  "verify_email": "Verificar correo electrónico",
+  "verification_code": "Código de verificación",
+  "verification_email_sent": "Hemos enviado un código de verificación a tu correo electrónico.",
+  "enter_verification_code": "Introduce el código de verificación a continuación.",
+  "email_verified": "Correo electrónico verificado correctamente.",
+  "verification_required": "Verifica tu correo electrónico para continuar.",
+
+  "two_factor_authentication": "Autenticación de dos factores",
+
+  "sessions": "Sesiones",
+  "active_sessions": "Sesiones activas",
+
+  "logout_other_devices": "Cerrar sesión en otros dispositivos",
+
+  "verify": "Verificar",
+
+  "loading": "Cargando..."
+}

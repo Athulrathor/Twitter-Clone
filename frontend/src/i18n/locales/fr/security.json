@@ -1,0 +1,56 @@
+{
+  "security": "Sécurité",
+
+  "change_password": "Changer le mot de passe",
+  "update_password": "Mettre à jour le mot de passe",
+
+  "current_password": "Mot de passe actuel",
+  "new_password": "Nouveau mot de passe",
+  "confirm_password": "Confirmer le mot de passe",
+
+  "password_strength": "Solidité du mot de passe",
+  "password_requirements": "Exigences du mot de passe",
+
+  "very_weak": "Très faible",
+  "weak": "Faible",
+  "fair": "Moyen",
+  "strong": "Fort",
+  "very_strong": "Très fort",
+
+  "at_least_8_characters": "Au moins 8 caractères",
+  "one_uppercase_letter": "Une lettre majuscule (A-Z)",
+  "one_lowercase_letter": "Une lettre minuscule (a-z)",
+  "one_number": "Un chiffre (0-9)",
+  "one_special_character": "Un caractère spécial (!@#$...)",
+
+  "current_password_required": "Le mot de passe actuel est requis.",
+  "new_password_required": "Le nouveau mot de passe est requis.",
+  "confirm_password_required": "Veuillez confirmer votre mot de passe.",
+  "passwords_do_not_match": "Les mots de passe ne correspondent pas.",
+  "new_password_different": "Le nouveau mot de passe doit être différent.",
+  "minimum_8_characters": "Minimum 8 caractères.",
+
+  "sign_out_other_devices": "Se déconnecter de tous les autres appareils",
+
+  "browser_notifications": "Notifications du navigateur",
+  "browser_notifications_description": "Recevez des notifications du navigateur pour les activités importantes.",
+
+  "email_verification": "Vérification de l'e-mail",
+  "verify_email": "Vérifier l'e-mail",
+  "verification_code": "Code de vérification",
+  "verification_email_sent": "Nous avons envoyé un code de vérification à votre e-mail.",
+  "enter_verification_code": "Saisissez le code de vérification ci-dessous.",
+  "email_verified": "E-mail vérifié avec succès.",
+  "verification_required": "Veuillez vérifier votre e-mail pour continuer.",
+
+  "two_factor_authentication": "Authentification à deux facteurs",
+
+  "sessions": "Sessions",
+  "active_sessions": "Sessions actives",
+
+  "logout_other_devices": "Déconnecter les autres appareils",
+
+  "verify": "Vérifier",
+
+  "loading": "Chargement..."
+}

@@ -1,0 +1,90 @@
+{
+  "auth": {
+    "login_success": "Bem-vindo de volta, {{name}}!",
+    "login_failed": "E-mail ou senha inválidos.",
+    "login_loading": "Entrando...",
+    "logout_success": "Sessão encerrada com sucesso.",
+    "signup_success": "Conta criada com sucesso.",
+    "signup_failed": "Falha ao criar a conta.",
+    "email_exists": "O e-mail já existe.",
+    "session_expired": "Sua sessão expirou. Faça login novamente."
+  },
+
+  "email": {
+    "verification_sent": "E-mail de verificação enviado.",
+    "verification_success": "E-mail verificado com sucesso.",
+    "verification_expired": "O link de verificação expirou."
+  },
+
+  "otp": {
+    "sent": "OTP enviado com sucesso.",
+    "verified": "OTP verificado.",
+    "invalid": "OTP inválido.",
+    "expired": "O OTP expirou.",
+    "too_many_attempts": "Muitas tentativas de OTP."
+  },
+
+  "tweet": {
+    "posting": "Publicando...",
+    "posted": "Publicação feita com sucesso.",
+    "failed": "Falha ao publicar.",
+    "deleted": "Publicação excluída.",
+    "liked": "Publicação curtida.",
+    "unliked": "Curtida removida.",
+    "bookmarked": "Adicionado aos favoritos.",
+    "bookmark_removed": "Removido dos favoritos."
+  },
+
+  "reply": {
+    "posted": "Resposta publicada.",
+    "deleted": "Resposta excluída."
+  },
+
+  "comment": {
+    "added": "Comentário adicionado.",
+    "deleted": "Comentário excluído."
+  },
+
+  "profile": {
+    "updated": "Perfil atualizado com sucesso.",
+    "image_updated": "Foto de perfil atualizada.",
+    "cover_updated": "Foto de capa atualizada."
+  },
+
+  "password": {
+    "changed": "Senha atualizada com sucesso.",
+    "reset_sent": "E-mail de redefinição enviado.",
+    "reset_success": "Senha redefinida com sucesso."
+  },
+
+  "audio": {
+    "uploading": "Enviando áudio...",
+    "uploaded": "Áudio enviado com sucesso.",
+    "removed": "Áudio removido.",
+    "failed": "Falha ao enviar o áudio.",
+    "limit": "É permitido apenas um áudio por publicação.",
+    "duration": "O áudio excede a duração máxima.",
+    "size": "O áudio excede 100 MB.",
+    "unsupported": "Formato de áudio não suportado."
+  },
+
+  "image": {
+    "uploading": "Enviando imagem...",
+    "uploaded": "Imagem enviada com sucesso.",
+    "failed": "Falha ao enviar a imagem.",
+    "limit": "Máximo de quatro imagens permitido.",
+    "size": "A imagem excede o tamanho máximo.",
+    "unsupported": "Formato de imagem não suportado."
+  },
+
+  "follow": {
+    "following": "Agora você está seguindo {{name}}.",
+    "unfollowed": "Você deixou de seguir {{name}}."
+  },
+
+  "security": {
+    "permission": "Você não tem permissão para realizar esta ação.",
+    "logout_others": "Sessão encerrada em todos os outros dispositivos.",
+    "password_required": "Verifique sua senha primeiro."
+  }
+}

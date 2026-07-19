@@ -1,0 +1,37 @@
+{
+  "edit_profile": "Modifier le profil",
+  "save_profile": "Enregistrer le profil",
+
+  "profile_updated": "Profil mis à jour avec succès.",
+  "failed_profile_update": "Échec de la mise à jour du profil.",
+
+  "change_photo": "Changer la photo",
+  "remove_photo": "Supprimer la photo",
+
+  "name": "Nom",
+  "username": "Nom d'utilisateur",
+  "bio": "Biographie",
+  "location": "Localisation",
+  "website": "Site Web",
+  "birthday": "Date de naissance",
+
+  "your_display_name": "Votre nom d'affichage",
+  "tell_the_world_about_yourself": "Parlez de vous au monde",
+  "where_are_you_located": "Où êtes-vous situé ?",
+  "your_website_url": "URL de votre site Web",
+
+  "followers": "Abonnés",
+  "following": "Abonnements",
+  "posts": "Publications",
+  "replies": "Réponses",
+  "media": "Médias",
+  "likes": "J'aime",
+
+  "joined": "Inscrit en",
+  "verified": "Compte vérifié",
+
+  "avatar_updated": "Photo de profil mise à jour.",
+  "avatar_removed": "Photo de profil supprimée.",
+  "cover_updated": "Photo de couverture mise à jour.",
+  "cover_removed": "Photo de couverture supprimée."
+}

@@ -1,0 +1,56 @@
+{
+  "security": "Segurança",
+
+  "change_password": "Alterar senha",
+  "update_password": "Atualizar senha",
+
+  "current_password": "Senha atual",
+  "new_password": "Nova senha",
+  "confirm_password": "Confirmar senha",
+
+  "password_strength": "Força da senha",
+  "password_requirements": "Requisitos da senha",
+
+  "very_weak": "Muito fraca",
+  "weak": "Fraca",
+  "fair": "Razoável",
+  "strong": "Forte",
+  "very_strong": "Muito forte",
+
+  "at_least_8_characters": "Pelo menos 8 caracteres",
+  "one_uppercase_letter": "Uma letra maiúscula (A-Z)",
+  "one_lowercase_letter": "Uma letra minúscula (a-z)",
+  "one_number": "Um número (0-9)",
+  "one_special_character": "Um caractere especial (!@#$...)",
+
+  "current_password_required": "A senha atual é obrigatória.",
+  "new_password_required": "A nova senha é obrigatória.",
+  "confirm_password_required": "Confirme sua senha.",
+  "passwords_do_not_match": "As senhas não coincidem.",
+  "new_password_different": "A nova senha deve ser diferente.",
+  "minimum_8_characters": "Mínimo de 8 caracteres.",
+
+  "sign_out_other_devices": "Sair de todos os outros dispositivos",
+
+  "browser_notifications": "Notificações do navegador",
+  "browser_notifications_description": "Receba notificações do navegador para atividades importantes.",
+
+  "email_verification": "Verificação de e-mail",
+  "verify_email": "Verificar e-mail",
+  "verification_code": "Código de verificação",
+  "verification_email_sent": "Enviamos um código de verificação para seu e-mail.",
+  "enter_verification_code": "Digite o código de verificação abaixo.",
+  "email_verified": "E-mail verificado com sucesso.",
+  "verification_required": "Verifique seu e-mail para continuar.",
+
+  "two_factor_authentication": "Autenticação em dois fatores",
+
+  "sessions": "Sessões",
+  "active_sessions": "Sessões ativas",
+
+  "logout_other_devices": "Sair de outros dispositivos",
+
+  "verify": "Verificar",
+
+  "loading": "Carregando..."
+}

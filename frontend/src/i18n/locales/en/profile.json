@@ -1,0 +1,37 @@
+{
+  "edit_profile": "Edit Profile",
+  "save_profile": "Save Profile",
+
+  "profile_updated": "Profile updated successfully.",
+  "failed_profile_update": "Failed to update profile.",
+
+  "change_photo": "Change Photo",
+  "remove_photo": "Remove Photo",
+
+  "name": "Name",
+  "username": "Username",
+  "bio": "Bio",
+  "location": "Location",
+  "website": "Website",
+  "birthday": "Birthday",
+
+  "your_display_name": "Your display name",
+  "tell_the_world_about_yourself": "Tell the world about yourself",
+  "where_are_you_located": "Where are you located",
+  "your_website_url": "Your website URL",
+
+  "followers": "Followers",
+  "following": "Following",
+  "posts": "Posts",
+  "replies": "Replies",
+  "media": "Media",
+  "likes": "Likes",
+
+  "joined": "Joined",
+  "verified": "Verified Account",
+
+  "avatar_updated": "Profile picture updated.",
+  "avatar_removed": "Profile picture removed.",
+  "cover_updated": "Cover photo updated.",
+  "cover_removed": "Cover photo removed."
+}

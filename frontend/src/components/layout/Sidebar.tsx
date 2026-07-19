@@ -25,6 +25,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import TwitterLogo from "../Twitterlogo";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 interface SidebarProps {
   currentPage?: string;
@@ -40,43 +41,42 @@ export default function Sidebar({
   const { user, logout,sessionId } = useAuth();
 
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
 
-  const navigation = [
-    { name: "Home", icon: Home, current: currentPage === "home", page: "home" },
-    {
-      name: "Explore",
-      icon: Search,
-      current: currentPage === "explore",
-      page: "explore",
-    },
-    {
-      name: "Notifications",
-      icon: Bell,
-      current: currentPage === "notifications",
-      page: "notification",
-      badge: true,
-    },
-    {
-      name: "Messages",
-      icon: Mail,
-      current: currentPage === "messages",
-      page: "messages",
-    },
-    {
-      name: "Bookmarks",
-      icon: Bookmark,
-      current: currentPage === "bookmarks",
-      page: "bookmarks",
-    },
-    {
-      name: "Profile",
-      icon: User,
-      current: currentPage === "profile",
-      page: "profile",
-    },
-  ];
+const navigation = [
+  {
+    page: "home",
+    icon: Home,
+    current: currentPage === "home",
+  },
+  {
+    page: "explore",
+    icon: Search,
+    current: currentPage === "explore",
+  },
+  {
+    page: "notifications",
+    icon: Bell,
+    current: currentPage === "notifications",
+  },
+  {
+    page: "messages",
+    icon: Mail,
+    current: currentPage === "messages",
+  },
+  {
+    page: "bookmarks",
+    icon: Bookmark,
+    current: currentPage === "bookmarks",
+  },
+  {
+    page: "profile",
+    icon: User,
+    current: currentPage === "profile",
+  },
+];
 
 return mobile ? (
   <div className="flex items-center justify-around h-16 px-2">
@@ -132,7 +132,7 @@ return mobile ? (
           className="hover:bg-gray-900 focus:bg-gray-900 cursor-pointer"
         >
           <Shield className="mr-2 h-4 w-4" />
-          Security
+          {t("security")}
         </DropdownMenuItem>
 
         <DropdownMenuItem
@@ -140,7 +140,7 @@ return mobile ? (
           className="hover:bg-gray-900 focus:bg-gray-900 cursor-pointer"
         >
           <Bookmark className="mr-2 h-4 w-4" />
-          Subscription
+          {t("subscription")}
         </DropdownMenuItem>
 
         <DropdownMenuItem
@@ -148,7 +148,7 @@ return mobile ? (
           className="text-red-400 hover:bg-red-500/10 focus:bg-red-500/10 cursor-pointer"
         >
           <LogOut className="mr-2 h-4 w-4" />
-          Logout
+          {t("logout")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -164,7 +164,7 @@ return mobile ? (
       <nav className="flex-1 px-2">
         <ul className="space-y-1">
           {navigation.map((item) => (
-            <li key={item.name}>
+            <li key={item.page}>
               <Button
                 variant="ghost"
                 onClick={() => onNavigate?.(item.page)}
@@ -174,7 +174,7 @@ return mobile ? (
               `}
               >
                 <item.icon className="h-5 w-5 lg:mr-4" />
-                <span className="hidden lg:block">{item.name}</span>
+                <span className="hidden lg:block">{t(item.page)}</span>
               </Button>
             </li>
           ))}
@@ -184,7 +184,7 @@ return mobile ? (
           className="hidden lg:flex mt-6 w-full rounded-lg
         bg-blue-500 hover:bg-blue-600"
         >
-          Post
+          {t("post")}
         </Button>
       </nav>
 
@@ -212,20 +212,20 @@ return mobile ? (
             <DropdownMenuContent className="bg-black border-gray-800">
               <DropdownMenuItem onClick={() => router.push(`security`)}>
                 <Shield className="mr-2 h-4 w-4" />
-                Security
+                {t("security")}
               </DropdownMenuItem>
 
               <DropdownMenuItem
                 onClick={() => router.push(`subscriptions/${user?._id}`)}
               >
                 <Bookmark className="mr-2 h-4 w-4" />
-                Subscription
+                {t("subscription")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => logout(sessionId as string)}
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                <span className="text-white">Logout</span>
+                <span className="text-white">{t("logout")}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

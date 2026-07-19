@@ -45,18 +45,15 @@ export function LanguageProvider({
     }
   }, []);
 
-  const changeLanguage = async (
-    newLanguage: Language
-  ) => {
-    setLanguage(newLanguage);
+  const changeLanguage = async (newLanguage: Language) => {
+  setLanguage(newLanguage);
 
-    localStorage.setItem(
-      "language",
-      newLanguage
-    );
+  if (typeof window !== "undefined") {
+    localStorage.setItem("language", newLanguage);
+  }
 
-    await i18n.changeLanguage(newLanguage);
-  };
+  await i18n.changeLanguage(newLanguage);
+};
 
   return (
     <LanguageContext.Provider

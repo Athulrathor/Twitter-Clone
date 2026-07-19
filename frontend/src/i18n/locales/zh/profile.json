@@ -1,0 +1,37 @@
+{
+  "edit_profile": "编辑个人资料",
+  "save_profile": "保存个人资料",
+
+  "profile_updated": "个人资料更新成功。",
+  "failed_profile_update": "更新个人资料失败。",
+
+  "change_photo": "更换头像",
+  "remove_photo": "删除头像",
+
+  "name": "姓名",
+  "username": "用户名",
+  "bio": "简介",
+  "location": "所在地",
+  "website": "网站",
+  "birthday": "生日",
+
+  "your_display_name": "您的显示名称",
+  "tell_the_world_about_yourself": "向大家介绍一下自己",
+  "where_are_you_located": "您位于哪里？",
+  "your_website_url": "您的网站地址",
+
+  "followers": "粉丝",
+  "following": "正在关注",
+  "posts": "帖子",
+  "replies": "回复",
+  "media": "媒体",
+  "likes": "喜欢",
+
+  "joined": "加入时间",
+  "verified": "已验证账户",
+
+  "avatar_updated": "头像更新成功。",
+  "avatar_removed": "头像已删除。",
+  "cover_updated": "封面图片更新成功。",
+  "cover_removed": "封面图片已删除。"
+}

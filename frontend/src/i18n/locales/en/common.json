@@ -1,8 +1,26 @@
 {
-  "home": "Home",
-  "profile": "Profile",
-  "notifications": "Notifications",
-  "post": "Post",
+  "save": "Save",
+  "cancel": "Cancel",
+  "close": "Close",
+  "continue": "Continue",
+  "back": "Back",
+  "delete": "Delete",
+  "edit": "Edit",
+  "update": "Update",
+  "loading": "Loading...",
+  "search": "Search",
+  "language": "Language",
   "logout": "Logout",
-  "search": "Search"
+  "yes": "Yes",
+  "no": "No",
+
+  "success": "Success.",
+  "failed": "Something went wrong.",
+  "saved": "Changes saved successfully.",
+  "deleted": "Deleted successfully.",
+  "updated": "Updated successfully.",
+  "copied": "Copied to clipboard.",
+  "network_error": "Network error. Please check your connection.",
+  "server_error": "Internal server error.",
+  "try_again": "Please try again."
 }

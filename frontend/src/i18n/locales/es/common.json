@@ -1,8 +1,26 @@
 {
-  "home": "Inicio",
-  "profile": "Perfil",
-  "notifications": "Notificaciones",
-  "post": "Publicar",
+  "save": "Guardar",
+  "cancel": "Cancelar",
+  "close": "Cerrar",
+  "continue": "Continuar",
+  "back": "Atrás",
+  "delete": "Eliminar",
+  "edit": "Editar",
+  "update": "Actualizar",
+  "loading": "Cargando...",
+  "search": "Buscar",
+  "language": "Idioma",
   "logout": "Cerrar sesión",
-  "search": "Buscar"
+  "yes": "Sí",
+  "no": "No",
+
+  "success": "Éxito.",
+  "failed": "Algo salió mal.",
+  "saved": "Los cambios se guardaron correctamente.",
+  "deleted": "Eliminado correctamente.",
+  "updated": "Actualizado correctamente.",
+  "copied": "Copiado al portapapeles.",
+  "network_error": "Error de red. Comprueba tu conexión a Internet.",
+  "server_error": "Error interno del servidor.",
+  "try_again": "Por favor, inténtalo de nuevo."
 }

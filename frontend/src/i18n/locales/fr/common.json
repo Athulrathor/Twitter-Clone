@@ -1,8 +1,26 @@
 {
-  "home": "Accueil",
-  "profile": "Profil",
-  "notifications": "Notifications",
-  "post": "Publier",
+  "save": "Enregistrer",
+  "cancel": "Annuler",
+  "close": "Fermer",
+  "continue": "Continuer",
+  "back": "Retour",
+  "delete": "Supprimer",
+  "edit": "Modifier",
+  "update": "Mettre à jour",
+  "loading": "Chargement...",
+  "search": "Rechercher",
+  "language": "Langue",
   "logout": "Se déconnecter",
-  "search": "Rechercher"
+  "yes": "Oui",
+  "no": "Non",
+
+  "success": "Succès.",
+  "failed": "Une erreur s'est produite.",
+  "saved": "Modifications enregistrées avec succès.",
+  "deleted": "Supprimé avec succès.",
+  "updated": "Mis à jour avec succès.",
+  "copied": "Copié dans le presse-papiers.",
+  "network_error": "Erreur réseau. Vérifiez votre connexion Internet.",
+  "server_error": "Erreur interne du serveur.",
+  "try_again": "Veuillez réessayer."
 }

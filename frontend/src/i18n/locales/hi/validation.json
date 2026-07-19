@@ -1,0 +1,44 @@
+{
+  "required": "यह फ़ील्ड आवश्यक है।",
+
+  "invalid_email": "कृपया एक वैध ईमेल पता दर्ज करें।",
+  "invalid_username": "अमान्य यूज़रनेम।",
+  "invalid_url": "कृपया एक वैध URL दर्ज करें।",
+  "invalid_phone": "कृपया एक वैध फोन नंबर दर्ज करें।",
+
+  "name_required": "नाम आवश्यक है।",
+  "username_required": "यूज़रनेम आवश्यक है।",
+  "email_required": "ईमेल आवश्यक है।",
+  "password_required": "पासवर्ड आवश्यक है।",
+  "confirm_password_required": "कृपया पासवर्ड की पुष्टि करें।",
+  "bio_required": "परिचय आवश्यक है।",
+
+  "password_min": "पासवर्ड कम से कम 8 अक्षरों का होना चाहिए।",
+  "password_uppercase": "पासवर्ड में कम से कम एक बड़ा अक्षर होना चाहिए।",
+  "password_lowercase": "पासवर्ड में कम से कम एक छोटा अक्षर होना चाहिए।",
+  "password_number": "पासवर्ड में कम से कम एक संख्या होनी चाहिए।",
+  "password_special": "पासवर्ड में कम से कम एक विशेष चिन्ह होना चाहिए।",
+  "password_match": "पासवर्ड मेल नहीं खाते।",
+  "password_different": "नया पासवर्ड अलग होना चाहिए।",
+
+  "otp_required": "OTP आवश्यक है।",
+  "otp_invalid": "अमान्य OTP।",
+  "otp_expired": "OTP की समय सीमा समाप्त हो गई है।",
+
+  "tweet_required": "पोस्ट खाली नहीं हो सकती।",
+  "tweet_limit": "पोस्ट अक्षर सीमा से अधिक है।",
+
+  "audio_limit": "ऑडियो अधिकतम अवधि से अधिक है।",
+  "audio_size": "ऑडियो अधिकतम फ़ाइल आकार से अधिक है।",
+  "audio_format": "असमर्थित ऑडियो प्रारूप।",
+
+  "image_limit": "अधिकतम चार चित्रों की अनुमति है।",
+  "image_size": "चित्र अधिकतम फ़ाइल आकार से अधिक है।",
+  "image_format": "असमर्थित चित्र प्रारूप।",
+
+  "website_invalid": "कृपया एक वैध वेबसाइट दर्ज करें।",
+  "location_required": "स्थान आवश्यक है।",
+
+  "minimum_length": "कम से कम {{count}} अक्षर।",
+  "maximum_length": "अधिकतम {{count}} अक्षर।"
+}

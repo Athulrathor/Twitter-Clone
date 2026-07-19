@@ -11,6 +11,7 @@ import LoadingSpinner from "./loading-spinner";
 import axios from "axios";
 import { notify } from "@/lib/toast";
 import * as Switch from "@radix-ui/react-switch";
+import { useTranslation } from "react-i18next";
 
 const Editprofile = ({ isopen, onclose }: any) => {
   const { user, updateProfile } = useAuth();
@@ -26,6 +27,7 @@ const Editprofile = ({ isopen, onclose }: any) => {
     notificationEnabled: user?.notificationEnabled || false,
   });
   const [error, setError] = useState<any>({});
+  const { t } = useTranslation();
   if (!isopen || !user) return null;
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -144,7 +146,7 @@ const Editprofile = ({ isopen, onclose }: any) => {
               >
                 <X className="h-5 w-5" />
               </Button>
-              <CardTitle className="text-xl font-bold">Edit profile</CardTitle>
+              <CardTitle className="text-xl font-bold">{t("edit_profile")}</CardTitle>
             </div>
             <Button
               type="submit"
@@ -158,7 +160,7 @@ const Editprofile = ({ isopen, onclose }: any) => {
                   <span>Saving...</span>
                 </div>
               ) : (
-                "Save"
+                `${t("save")}`
               )}
             </Button>
           </div>
@@ -222,7 +224,7 @@ const Editprofile = ({ isopen, onclose }: any) => {
               {/* Display Name */}
               <div className="space-y-2">
                 <Label htmlFor="displayName" className="text-white">
-                  Name
+                  {t("name")}
                 </Label>
                 <Input
                   id="displayName"
@@ -232,7 +234,7 @@ const Editprofile = ({ isopen, onclose }: any) => {
                     handleInputChange("displayName", e.target.value)
                   }
                   className="bg-transparent border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
-                  placeholder="Your display name"
+                  placeholder={t("your_display_name")}
                   maxLength={50}
                   disabled={isLoading}
                 />
@@ -249,14 +251,14 @@ const Editprofile = ({ isopen, onclose }: any) => {
               {/* Bio */}
               <div className="space-y-2">
                 <Label htmlFor="bio" className="text-white">
-                  Bio
+                  {t("bio")}
                 </Label>
                 <Textarea
                   id="bio"
                   value={formData.bio}
                   onChange={(e) => handleInputChange("bio", e.target.value)}
                   className="bg-transparent border-gray-600 text-white placeholder-gray-400 focus:border-blue-500 resize-none min-h-[100px]"
-                  placeholder="Tell the world about yourself"
+                  placeholder={t("tell_the_world_about_yourself")}
                   maxLength={160}
                   disabled={isLoading}
                 />
@@ -271,7 +273,7 @@ const Editprofile = ({ isopen, onclose }: any) => {
               {/* Location */}
               <div className="space-y-2">
                 <Label htmlFor="location" className="text-white">
-                  Location
+                  {t("location")}
                 </Label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -283,7 +285,7 @@ const Editprofile = ({ isopen, onclose }: any) => {
                       handleInputChange("location", e.target.value)
                     }
                     className="pl-10 bg-transparent border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
-                    placeholder="Where are you located?"
+                    placeholder={`${t("where_are_you_located")}?`}
                     maxLength={30}
                     disabled={isLoading}
                   />
@@ -301,7 +303,7 @@ const Editprofile = ({ isopen, onclose }: any) => {
               {/* Website */}
               <div className="space-y-2">
                 <Label htmlFor="website" className="text-white">
-                  Website
+                  {t("website")}
                 </Label>
                 <div className="relative">
                   <LinkIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -313,7 +315,7 @@ const Editprofile = ({ isopen, onclose }: any) => {
                       handleInputChange("website", e.target.value)
                     }
                     className="pl-10 bg-transparent border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
-                    placeholder="Your website URL"
+                    placeholder={t("your_website_url")}
                     maxLength={100}
                     disabled={isLoading}
                   />
@@ -330,11 +332,11 @@ const Editprofile = ({ isopen, onclose }: any) => {
                   <div className="flex items-center justify-between rounded-lg border p-4">
                     <div className="space-y-1">
                       <h3 className="text-sm font-medium">
-                        Browser notifications
+                        {t("browser_notifications")}
                       </h3>
                       <p className="text-xs text-muted-foreground">
-                        Receive popup notifications for tweets containing{" "}
-                        <strong>cricket</strong> or <strong>science</strong>.
+                        {t("browser_notifications_description")}{" "}
+                        <strong>{t("cricket")}</strong> {t("or")} <strong>{t("science")}</strong>.
                       </p>
                     </div>
 

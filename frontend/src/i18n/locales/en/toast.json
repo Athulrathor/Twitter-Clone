@@ -1,0 +1,90 @@
+{
+  "auth": {
+    "login_success": "Welcome back, {{name}}!",
+    "login_failed": "Invalid email or password.",
+    "login_loading": "Signing you in...",
+    "logout_success": "Logged out successfully.",
+    "signup_success": "Account created successfully.",
+    "signup_failed": "Failed to create account.",
+    "email_exists": "Email already exists.",
+    "session_expired": "Session expired. Please login again."
+  },
+
+  "email": {
+    "verification_sent": "Verification email sent.",
+    "verification_success": "Email verified successfully.",
+    "verification_expired": "Verification link has expired."
+  },
+
+  "otp": {
+    "sent": "OTP sent successfully.",
+    "verified": "OTP verified.",
+    "invalid": "Invalid OTP.",
+    "expired": "OTP has expired.",
+    "too_many_attempts": "Too many OTP attempts."
+  },
+
+  "tweet": {
+    "posting": "Posting tweet...",
+    "posted": "Tweet posted successfully.",
+    "failed": "Failed to post tweet.",
+    "deleted": "Tweet deleted.",
+    "liked": "Tweet liked.",
+    "unliked": "Like removed.",
+    "bookmarked": "Added to bookmarks.",
+    "bookmark_removed": "Removed from bookmarks."
+  },
+
+  "reply": {
+    "posted": "Reply posted.",
+    "deleted": "Reply deleted."
+  },
+
+  "comment": {
+    "added": "Comment added.",
+    "deleted": "Comment deleted."
+  },
+
+  "profile": {
+    "updated": "Profile updated successfully.",
+    "image_updated": "Profile picture updated.",
+    "cover_updated": "Cover photo updated."
+  },
+
+  "password": {
+    "changed": "Password updated successfully.",
+    "reset_sent": "Password reset email sent.",
+    "reset_success": "Password reset successfully."
+  },
+
+  "audio": {
+    "uploading": "Uploading audio...",
+    "uploaded": "Audio uploaded successfully.",
+    "removed": "Audio removed.",
+    "failed": "Audio upload failed.",
+    "limit": "Maximum one audio per tweet.",
+    "duration": "Audio exceeds maximum duration.",
+    "size": "Audio exceeds 100MB.",
+    "unsupported": "Unsupported audio format."
+  },
+
+  "image": {
+    "uploading": "Uploading image...",
+    "uploaded": "Image uploaded successfully.",
+    "failed": "Image upload failed.",
+    "limit": "Maximum four images allowed.",
+    "size": "Image exceeds maximum size.",
+    "unsupported": "Unsupported image format."
+  },
+
+  "follow": {
+    "following": "You are now following {{name}}.",
+    "unfollowed": "You unfollowed {{name}}."
+  },
+
+  "security": {
+    "permission": "You don't have permission to perform this action.",
+    "logout_others": "Logged out from all other devices.",
+    "password_required": "Please verify your password first."
+  }
+}

@@ -21,8 +21,6 @@ export default function NotificationCard({
     setOpen(true);
   };
 
-  console.log(notification)
-
   return (
     <>
     <div

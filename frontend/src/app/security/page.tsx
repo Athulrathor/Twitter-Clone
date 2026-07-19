@@ -456,31 +456,31 @@ export default function SessionsPage() {
   },[])
 
   const STATS = [
-    {
-      label: "Devices",
-      value: stats?.deviceCount,
-      icon: Monitor,
-      color: "text-blue-400",
-    },
-    {
-      label: "Active",
-      value: stats?.activeCount,
-      icon: Wifi,
-      color: "text-purple-400",
-    },
-    {
-      label: "OTP logins",
-      value: stats?.otpCount,
-      icon: KeyRound,
-      color: "text-emerald-400",
-    },
-    {
-      label: "Blocked",
-      value: stats?.blockedCount,
-      icon: Ban,
-      color: "text-red-400",
-    },
-  ];
+  {
+    label: t("security:devices"),
+    value: stats?.deviceCount,
+    icon: Monitor,
+    color: "text-blue-400",
+  },
+  {
+    label: t("security:active"),
+    value: stats?.activeCount,
+    icon: Wifi,
+    color: "text-purple-400",
+  },
+  {
+    label: t("security:otp_logins"),
+    value: stats?.otpCount,
+    icon: KeyRound,
+    color: "text-emerald-400",
+  },
+  {
+    label: t("security:blocked"),
+    value: stats?.blockedCount,
+    icon: Ban,
+    color: "text-red-400",
+  },
+];
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -502,7 +502,7 @@ export default function SessionsPage() {
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-2">
                 <Shield size={18} className="text-blue-400" />
-                <h1 className="text-lg font-semibold text-white">Security</h1>
+                <h1 className="text-lg font-semibold text-white"> {t("security:title")}</h1>
               </div>
 
               <Button
@@ -516,12 +516,12 @@ export default function SessionsPage() {
                   size={13}
                   className={`mr-1.5 ${refreshing ? "animate-spin" : ""}`}
                 />
-                Refresh
+                {t("common:refresh")}
               </Button>
             </div>
 
             <p className="mt-1 text-sm text-gray-500">
-              Monitor login activity and manage active sessions.
+              {t("security:session_description")}
             </p>
           </div>
         </div>
@@ -557,7 +557,7 @@ export default function SessionsPage() {
         {/* ── Current Device ── */}
         <section className="mb-6">
           <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-            Current device
+            {t("security:current_device")}
           </h2>
           {sessionLoading ? (
             <LoadingSpinner />
@@ -569,7 +569,7 @@ export default function SessionsPage() {
             />
           ) : (
             <p className="text-sm text-gray-600 italic">
-              No active session found.
+              {t("security:no_active_session")}
             </p>
           )}
         </section>
@@ -579,7 +579,7 @@ export default function SessionsPage() {
           <section className="mb-6">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Other sessions
+                {t("security:other_sessions")}
                 {otherActiveSessions.length > 0 && (
                   <span className="ml-1.5 text-gray-600">
                     ({otherActiveSessions.length})
@@ -596,13 +596,13 @@ export default function SessionsPage() {
                       className="h-6 px-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10"
                     >
                       <LogOut size={12} className="mr-1" />
-                      {logoutOthersLoading ? "Logging out…" : "Logout others"}
+                      {logoutOthersLoading ? {t("security:logging_out")} : {t("security:logout_others")}}
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent className="bg-[#111827] border-white/10 text-white">
                     <AlertDialogHeader>
                       <AlertDialogTitle>
-                        Logout all other sessions?
+                        {t("security:logout_other_sessions")}
                       </AlertDialogTitle>
                       <AlertDialogDescription className="text-gray-400">
                         This ends{" "}
@@ -610,18 +610,20 @@ export default function SessionsPage() {
                           {otherActiveSessions.length} other session
                           {otherActiveSessions.length !== 1 ? "s" : ""}
                         </span>{" "}
-                        immediately. Your current session stays active.
+                        {t("security:logout_other_sessions_description", {
+  count: otherActiveSessions.length,
+})}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10">
-                        Cancel
+                        {t("common:cancel")}
                       </AlertDialogCancel>
                       <AlertDialogAction
                         onClick={handleLogoutOthers}
                         className="bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30"
                       >
-                        Logout others
+                        {t("security:logout_others")}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -649,7 +651,7 @@ export default function SessionsPage() {
         {historySessions.length > 0 && (
           <section className="mb-6">
             <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-              Session history
+              {t("security:session_history")}
             </h2>
             <div className="space-y-2">
               {historySessions.map((s) => (
@@ -679,9 +681,9 @@ export default function SessionsPage() {
             <div className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-200">Log out everywhere</p>
+                  <p className="text-sm text-gray-200">{t("security:logout_everywhere")}</p>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    Ends all sessions across every device immediately.
+                    {t("security:logout_everywhere_description")}
                   </p>
                 </div>
                 <AlertDialog>
@@ -698,11 +700,9 @@ export default function SessionsPage() {
                   </AlertDialogTrigger>
                   <AlertDialogContent className="bg-[#111827] border-white/10 text-white">
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Log out everywhere?</AlertDialogTitle>
+                      <AlertDialogTitle>{t("security:logout_everywhere")}</AlertDialogTitle>
                       <AlertDialogDescription className="text-gray-400">
-                        This immediately ends all active sessions on every
-                        device, including this one. You will need to log in
-                        again.
+                        {t("security:logout_everywhere_confirm")}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

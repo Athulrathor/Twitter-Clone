@@ -10,11 +10,13 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { auth } from "@/context/firebase";
 import { notify } from "@/lib/toast";
+import { useTranslation } from "react-i18next";
 
 const Feed = () => {
   const [tweets, setTweets] = useState<any>([]);
   const [loading, setloading] = useState(false);
   const { user } = useAuth();
+  const { t } = useTranslation();
   const fetchTweets = async () => {
     try {
       setloading(true);
@@ -41,7 +43,7 @@ const Feed = () => {
     <div className="min-h-screen w-full pb-20 md:pb-0">
       <div className="sticky top-0 bg-black/90 backdrop-blur-md border-b border-gray-800 z-10">
         <div className="px-4 py-3 flex gap-4">
-          <h1 className="text-xl font-bold text-white">Home</h1>
+          <h1 className="text-xl font-bold text-white">{t("home")}</h1>
           {/* <div className="hidden max-sm:flex">
           <Link href={`/subscriptions/${user?._id}`}>
             <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-full">
@@ -57,13 +59,13 @@ const Feed = () => {
               value="foryou"
               className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:border-b-1 data-[state=active]:border-blue-100 data-[state=active]:rounded-none text-gray-400 hover:bg-gray-900/50 py-4 font-semibold"
             >
-              For you
+              {t("for_you")}
             </TabsTrigger>
             <TabsTrigger
               value="following"
               className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:border-b-1 data-[state=active]:border-blue-100 data-[state=active]:rounded-none text-gray-400 hover:bg-gray-900/50 py-4 font-semibold"
             >
-              Following
+              {t("following")}
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -72,15 +74,14 @@ const Feed = () => {
         <Card className="bg-gray-900 border-gray-800 m-4 xl:hidden">
           <CardContent className="p-2 flex justify-evenly max-sm:flex-wrap">
             <div><h3 className="text-white text-xl font-bold mb-2">
-              Subscribe to Premium
+              {t("subscribe_premium")}
             </h3>
             <p className="text-gray-400 text-sm mb-4 max-md:hidden">
-              Subscribe to unlock new features and if eligible, receive a share
-              of revenue.
+              {t("subscribe_description")}
             </p></div>
             <div className="flex items-center"><Link  href={`/subscriptions/${user?._id}`}>
               <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-full">
-                Subscribe Now
+                {t("subscribe_now")}
               </Button>
             </Link></div>
           </CardContent>

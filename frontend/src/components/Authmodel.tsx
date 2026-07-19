@@ -14,6 +14,7 @@ import { useAuth } from "@/context/AuthContext";
 import TwitterLogo from "./Twitterlogo";
 import Link from "next/link";
 import { notify } from "@/lib/toast";
+import { useTranslation } from "react-i18next";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -36,6 +37,7 @@ export default function AuthModal({
     displayName: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { t } = useTranslation();
 
   // const router = useRouter();
 
@@ -232,7 +234,7 @@ export default function AuthModal({
 
             <div className="space-y-2">
               <Label htmlFor="email" className="text-white">
-                Email
+                {t("email", {ns: "auth"})}
               </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -253,7 +255,7 @@ export default function AuthModal({
 
             <div className="space-y-2">
               <Label htmlFor="password" className="text-white">
-                Password
+                {t("password", {ns: "auth"})}
               </Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -298,7 +300,7 @@ export default function AuthModal({
         transition-colors
       "
                   >
-                    Forgot password?
+                    {t("forgot_password", {ns: "auth"}) + "?"}
                   </Link>
                 </div>
               )}
@@ -317,9 +319,9 @@ export default function AuthModal({
                   </span>
                 </div>
               ) : mode === "login" ? (
-                "Sign in"
+                t("login", {ns: "auth"})
               ) : (
-                "Create account"
+                t("signup", {ns: "auth"})
               )}
             </Button>
           </form>
@@ -342,7 +344,7 @@ export default function AuthModal({
                 onClick={switchMode}
                 disabled={authLoading}
               >
-                {mode === "login" ? "Sign up" : "Sign in"}
+                {mode === "login" ? t("Signup") : t("login")}
               </Button>
             </p>
           </div>

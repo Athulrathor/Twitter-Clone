@@ -1,0 +1,90 @@
+{
+  "auth": {
+    "login_success": "欢迎回来，{{name}}！",
+    "login_failed": "电子邮箱或密码无效。",
+    "login_loading": "正在登录...",
+    "logout_success": "已成功退出登录。",
+    "signup_success": "账户创建成功。",
+    "signup_failed": "账户创建失败。",
+    "email_exists": "该电子邮箱已存在。",
+    "session_expired": "登录已过期，请重新登录。"
+  },
+
+  "email": {
+    "verification_sent": "验证邮件已发送。",
+    "verification_success": "邮箱验证成功。",
+    "verification_expired": "验证链接已过期。"
+  },
+
+  "otp": {
+    "sent": "OTP 已成功发送。",
+    "verified": "OTP 验证成功。",
+    "invalid": "OTP 无效。",
+    "expired": "OTP 已过期。",
+    "too_many_attempts": "OTP 尝试次数过多。"
+  },
+
+  "tweet": {
+    "posting": "正在发布帖子...",
+    "posted": "帖子发布成功。",
+    "failed": "帖子发布失败。",
+    "deleted": "帖子已删除。",
+    "liked": "帖子已点赞。",
+    "unliked": "已取消点赞。",
+    "bookmarked": "已添加到书签。",
+    "bookmark_removed": "已从书签中移除。"
+  },
+
+  "reply": {
+    "posted": "回复已发布。",
+    "deleted": "回复已删除。"
+  },
+
+  "comment": {
+    "added": "评论已添加。",
+    "deleted": "评论已删除。"
+  },
+
+  "profile": {
+    "updated": "个人资料更新成功。",
+    "image_updated": "头像更新成功。",
+    "cover_updated": "封面图片更新成功。"
+  },
+
+  "password": {
+    "changed": "密码更新成功。",
+    "reset_sent": "密码重置邮件已发送。",
+    "reset_success": "密码重置成功。"
+  },
+
+  "audio": {
+    "uploading": "正在上传音频...",
+    "uploaded": "音频上传成功。",
+    "removed": "音频已删除。",
+    "failed": "音频上传失败。",
+    "limit": "每条帖子最多只能上传一个音频。",
+    "duration": "音频时长超过限制。",
+    "size": "音频大小超过 100MB。",
+    "unsupported": "不支持的音频格式。"
+  },
+
+  "image": {
+    "uploading": "正在上传图片...",
+    "uploaded": "图片上传成功。",
+    "failed": "图片上传失败。",
+    "limit": "最多允许上传四张图片。",
+    "size": "图片大小超过限制。",
+    "unsupported": "不支持的图片格式。"
+  },
+
+  "follow": {
+    "following": "您已关注 {{name}}。",
+    "unfollowed": "您已取消关注 {{name}}。"
+  },
+
+  "security": {
+    "permission": "您没有执行此操作的权限。",
+    "logout_others": "已退出其他所有设备。",
+    "password_required": "请先验证您的密码。"
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "auth": {
+    "login_success": "Bon retour, {{name}} !",
+    "login_failed": "E-mail ou mot de passe invalide.",
+    "login_loading": "Connexion en cours...",
+    "logout_success": "Déconnexion réussie.",
+    "signup_success": "Compte créé avec succès.",
+    "signup_failed": "Échec de la création du compte.",
+    "email_exists": "Cette adresse e-mail existe déjà.",
+    "session_expired": "Votre session a expiré. Veuillez vous reconnecter."
+  },
+
+  "email": {
+    "verification_sent": "E-mail de vérification envoyé.",
+    "verification_success": "E-mail vérifié avec succès.",
+    "verification_expired": "Le lien de vérification a expiré."
+  },
+
+  "otp": {
+    "sent": "OTP envoyé avec succès.",
+    "verified": "OTP vérifié.",
+    "invalid": "OTP invalide.",
+    "expired": "L'OTP a expiré.",
+    "too_many_attempts": "Trop de tentatives OTP."
+  },
+
+  "tweet": {
+    "posting": "Publication en cours...",
+    "posted": "Publication réussie.",
+    "failed": "Échec de la publication.",
+    "deleted": "Publication supprimée.",
+    "liked": "Publication aimée.",
+    "unliked": "J'aime retiré.",
+    "bookmarked": "Ajouté aux favoris.",
+    "bookmark_removed": "Retiré des favoris."
+  },
+
+  "reply": {
+    "posted": "Réponse publiée.",
+    "deleted": "Réponse supprimée."
+  },
+
+  "comment": {
+    "added": "Commentaire ajouté.",
+    "deleted": "Commentaire supprimé."
+  },
+
+  "profile": {
+    "updated": "Profil mis à jour avec succès.",
+    "image_updated": "Photo de profil mise à jour.",
+    "cover_updated": "Photo de couverture mise à jour."
+  },
+
+  "password": {
+    "changed": "Mot de passe mis à jour avec succès.",
+    "reset_sent": "E-mail de réinitialisation envoyé.",
+    "reset_success": "Mot de passe réinitialisé avec succès."
+  },
+
+  "audio": {
+    "uploading": "Téléversement de l'audio...",
+    "uploaded": "Audio téléversé avec succès.",
+    "removed": "Audio supprimé.",
+    "failed": "Échec du téléversement de l'audio.",
+    "limit": "Un seul audio est autorisé par publication.",
+    "duration": "La durée maximale de l'audio est dépassée.",
+    "size": "La taille de l'audio dépasse 100 Mo.",
+    "unsupported": "Format audio non pris en charge."
+  },
+
+  "image": {
+    "uploading": "Téléversement de l'image...",
+    "uploaded": "Image téléversée avec succès.",
+    "failed": "Échec du téléversement de l'image.",
+    "limit": "Maximum quatre images autorisées.",
+    "size": "La taille maximale de l'image est dépassée.",
+    "unsupported": "Format d'image non pris en charge."
+  },
+
+  "follow": {
+    "following": "Vous suivez maintenant {{name}}.",
+    "unfollowed": "Vous ne suivez plus {{name}}."
+  },
+
+  "security": {
+    "permission": "Vous n'êtes pas autorisé à effectuer cette action.",
+    "logout_others": "Déconnecté de tous les autres appareils.",
+    "password_required": "Veuillez d'abord vérifier votre mot de passe."
+  }
+}

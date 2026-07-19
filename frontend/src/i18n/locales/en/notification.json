@@ -1,0 +1,61 @@
+{
+  "browser": {
+    "permission_title": "Browser Notifications",
+    "permission_description": "Enable browser notifications to stay updated.",
+    "permission_granted": "Notifications enabled.",
+    "permission_denied": "Notifications are blocked.",
+    "permission_default": "Please allow browser notifications."
+  },
+
+  "tweet": {
+    "title": "New Tweet",
+    "body": "{{name}} posted a new tweet."
+  },
+
+  "reply": {
+    "title": "New Reply",
+    "body": "{{name}} replied to your tweet."
+  },
+
+  "mention": {
+    "title": "New Mention",
+    "body": "{{name}} mentioned you in a tweet."
+  },
+
+  "like": {
+    "title": "New Like",
+    "body": "{{name}} liked your tweet."
+  },
+
+  "repost": {
+    "title": "New Repost",
+    "body": "{{name}} reposted your tweet."
+  },
+
+  "follow": {
+    "title": "New Follower",
+    "body": "{{name}} started following you."
+  },
+
+  "message": {
+    "title": "New Message",
+    "body": "{{name}} sent you a message."
+  },
+
+  "comment": {
+    "title": "New Comment",
+    "body": "{{name}} commented on your tweet."
+  },
+
+  "security": {
+    "login": "New login detected.",
+    "password_changed": "Your password has been changed.",
+    "email_verified": "Your email has been verified."
+  },
+
+  "system": {
+    "maintenance": "Scheduled maintenance is in progress.",
+    "offline": "You're currently offline.",
+    "online": "You're back online."
+  }
+}

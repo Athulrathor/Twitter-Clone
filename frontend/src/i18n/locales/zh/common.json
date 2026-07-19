@@ -1,8 +1,26 @@
 {
-  "home": "首页",
-  "profile": "个人资料",
-  "notifications": "通知",
-  "post": "发布",
+  "save": "保存",
+  "cancel": "取消",
+  "close": "关闭",
+  "continue": "继续",
+  "back": "返回",
+  "delete": "删除",
+  "edit": "编辑",
+  "update": "更新",
+  "loading": "加载中...",
+  "search": "搜索",
+  "language": "语言",
   "logout": "退出登录",
-  "search": "搜索"
+  "yes": "是",
+  "no": "否",
+
+  "success": "成功。",
+  "failed": "发生错误。",
+  "saved": "更改已成功保存。",
+  "deleted": "删除成功。",
+  "updated": "更新成功。",
+  "copied": "已复制到剪贴板。",
+  "network_error": "网络错误，请检查您的网络连接。",
+  "server_error": "服务器内部错误。",
+  "try_again": "请重试。"
 }

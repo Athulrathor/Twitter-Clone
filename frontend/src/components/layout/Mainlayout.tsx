@@ -1,14 +1,15 @@
 "use client";
 import { useAuth } from "@/context/AuthContext";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import LoadingSpinner from "../loading-spinner";
 import Sidebar from "./Sidebar";
 import RightSidebar from "./Rightsidebar";
 import ProfilePage from "../ProfilePage";
-import NotificationsPage from "@/app/notification/page";
+import NotificationsPage from "@/app/notifications/page";
 import "@/i18n";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/context/LanguageContext";
+import { Languages } from "lucide-react";
 
 
 const Mainlayout = ({ children }: { children: React.ReactNode }) => {
@@ -17,15 +18,16 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
   const [currentPage, setCurrentPage] = useState("home");
 
   const handleCurrentPage = (p: string) => {
-    try {
-      const pages = t(p);
-      setCurrentPage(pages);
-    } catch (error) {
-      console.warn(error);
-    }
+      setCurrentPage(p);
   }
 
-  const { changeLanguage } = useLanguage();
+  const { language,changeLanguage } = useLanguage();
+
+  useEffect(() => {
+  if (user?.language) {
+    changeLanguage(user.language);
+  }
+}, [user?.language, changeLanguage]);
 
   if (isInitializing ) {
     return (
@@ -55,7 +57,7 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
         </aside>
         {/* Main Feed */}
         <main className="flex-1 border-x border-gray-800 pb-20 md:pb-0 overflow-hidden">
-          {currentPage === "Profile" ? (
+          {currentPage === "profile" ? (
             <ProfilePage />
           ) : currentPage === "notification" ? (
             <NotificationsPage />
@@ -73,7 +75,7 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
       <div className="md:hidden sticky bottom-0 border-t border-gray-800 bg-black z-50">
         <Sidebar
           mobile
-          currentPage={t(currentPage)}
+          currentPage={currentPage}
           onNavigate={handleCurrentPage}
         />
       </div>

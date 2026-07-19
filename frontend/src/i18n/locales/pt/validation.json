@@ -1,0 +1,44 @@
+{
+  "required": "Este campo é obrigatório.",
+
+  "invalid_email": "Digite um endereço de e-mail válido.",
+  "invalid_username": "Nome de usuário inválido.",
+  "invalid_url": "Digite uma URL válida.",
+  "invalid_phone": "Digite um número de telefone válido.",
+
+  "name_required": "O nome é obrigatório.",
+  "username_required": "O nome de usuário é obrigatório.",
+  "email_required": "O e-mail é obrigatório.",
+  "password_required": "A senha é obrigatória.",
+  "confirm_password_required": "Confirme sua senha.",
+  "bio_required": "A biografia é obrigatória.",
+
+  "password_min": "A senha deve ter pelo menos 8 caracteres.",
+  "password_uppercase": "A senha deve conter uma letra maiúscula.",
+  "password_lowercase": "A senha deve conter uma letra minúscula.",
+  "password_number": "A senha deve conter um número.",
+  "password_special": "A senha deve conter um caractere especial.",
+  "password_match": "As senhas não coincidem.",
+  "password_different": "A nova senha deve ser diferente.",
+
+  "otp_required": "O OTP é obrigatório.",
+  "otp_invalid": "OTP inválido.",
+  "otp_expired": "O OTP expirou.",
+
+  "tweet_required": "A publicação não pode estar vazia.",
+  "tweet_limit": "A publicação excede o limite de caracteres.",
+
+  "audio_limit": "O áudio excede a duração máxima.",
+  "audio_size": "O áudio excede o tamanho máximo permitido.",
+  "audio_format": "Formato de áudio não suportado.",
+
+  "image_limit": "Máximo de quatro imagens permitido.",
+  "image_size": "A imagem excede o tamanho máximo permitido.",
+  "image_format": "Formato de imagem não suportado.",
+
+  "website_invalid": "Digite um site válido.",
+  "location_required": "A localização é obrigatória.",
+
+  "minimum_length": "Mínimo de {{count}} caracteres.",
+  "maximum_length": "Máximo de {{count}} caracteres."
+}

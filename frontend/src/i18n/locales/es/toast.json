@@ -1,0 +1,90 @@
+{
+  "auth": {
+    "login_success": "¡Bienvenido de nuevo, {{name}}!",
+    "login_failed": "Correo electrónico o contraseña no válidos.",
+    "login_loading": "Iniciando sesión...",
+    "logout_success": "Sesión cerrada correctamente.",
+    "signup_success": "Cuenta creada correctamente.",
+    "signup_failed": "No se pudo crear la cuenta.",
+    "email_exists": "El correo electrónico ya existe.",
+    "session_expired": "La sesión ha expirado. Inicia sesión nuevamente."
+  },
+
+  "email": {
+    "verification_sent": "Correo de verificación enviado.",
+    "verification_success": "Correo electrónico verificado correctamente.",
+    "verification_expired": "El enlace de verificación ha expirado."
+  },
+
+  "otp": {
+    "sent": "OTP enviado correctamente.",
+    "verified": "OTP verificado.",
+    "invalid": "OTP no válido.",
+    "expired": "El OTP ha expirado.",
+    "too_many_attempts": "Demasiados intentos de OTP."
+  },
+
+  "tweet": {
+    "posting": "Publicando...",
+    "posted": "Publicación realizada correctamente.",
+    "failed": "No se pudo publicar.",
+    "deleted": "Publicación eliminada.",
+    "liked": "Publicación marcada con Me gusta.",
+    "unliked": "Me gusta eliminado.",
+    "bookmarked": "Añadido a marcadores.",
+    "bookmark_removed": "Eliminado de marcadores."
+  },
+
+  "reply": {
+    "posted": "Respuesta publicada.",
+    "deleted": "Respuesta eliminada."
+  },
+
+  "comment": {
+    "added": "Comentario agregado.",
+    "deleted": "Comentario eliminado."
+  },
+
+  "profile": {
+    "updated": "Perfil actualizado correctamente.",
+    "image_updated": "Foto de perfil actualizada.",
+    "cover_updated": "Foto de portada actualizada."
+  },
+
+  "password": {
+    "changed": "Contraseña actualizada correctamente.",
+    "reset_sent": "Correo de restablecimiento enviado.",
+    "reset_success": "Contraseña restablecida correctamente."
+  },
+
+  "audio": {
+    "uploading": "Subiendo audio...",
+    "uploaded": "Audio subido correctamente.",
+    "removed": "Audio eliminado.",
+    "failed": "Error al subir el audio.",
+    "limit": "Solo se permite un audio por publicación.",
+    "duration": "El audio supera la duración máxima.",
+    "size": "El audio supera los 100 MB.",
+    "unsupported": "Formato de audio no compatible."
+  },
+
+  "image": {
+    "uploading": "Subiendo imagen...",
+    "uploaded": "Imagen subida correctamente.",
+    "failed": "Error al subir la imagen.",
+    "limit": "Se permiten un máximo de cuatro imágenes.",
+    "size": "La imagen supera el tamaño máximo.",
+    "unsupported": "Formato de imagen no compatible."
+  },
+
+  "follow": {
+    "following": "Ahora sigues a {{name}}.",
+    "unfollowed": "Has dejado de seguir a {{name}}."
+  },
+
+  "security": {
+    "permission": "No tienes permiso para realizar esta acción.",
+    "logout_others": "Se cerró la sesión en todos los demás dispositivos.",
+    "password_required": "Verifica primero tu contraseña."
+  }
+}

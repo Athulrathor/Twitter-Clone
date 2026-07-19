@@ -1,0 +1,45 @@
+{
+  "required": "This field is required.",
+
+  "invalid_email": "Please enter a valid email address.",
+  "invalid_username": "Username is invalid.",
+  "invalid_url": "Please enter a valid URL.",
+  "invalid_phone": "Please enter a valid phone number.",
+
+  "name_required": "Name is required.",
+  "username_required": "Username is required.",
+  "email_required": "Email is required.",
+  "email_or_phone_required": "Please enter your email or phone number.",
+  "password_required": "Password is required.",
+  "confirm_password_required": "Please confirm your password.",
+  "bio_required": "Bio is required.",
+
+  "password_min": "Password must be at least 8 characters.",
+  "password_uppercase": "Password must contain one uppercase letter.",
+  "password_lowercase": "Password must contain one lowercase letter.",
+  "password_number": "Password must contain one number.",
+  "password_special": "Password must contain one special character.",
+  "password_match": "Passwords do not match.",
+  "password_different": "New password must be different.",
+
+  "otp_required": "OTP is required.",
+  "otp_invalid": "Invalid OTP.",
+  "otp_expired": "OTP has expired.",
+
+  "tweet_required": "Tweet cannot be empty.",
+  "tweet_limit": "Tweet exceeds the character limit.",
+
+  "audio_limit": "Audio exceeds the maximum duration.",
+  "audio_size": "Audio exceeds the maximum file size.",
+  "audio_format": "Unsupported audio format.",
+
+  "image_limit": "Maximum four images allowed.",
+  "image_size": "Image exceeds the maximum file size.",
+  "image_format": "Unsupported image format.",
+
+  "website_invalid": "Please enter a valid website.",
+  "location_required": "Location is required.",
+
+  "minimum_length": "Minimum {{count}} characters.",
+  "maximum_length": "Maximum {{count}} characters."
+}
