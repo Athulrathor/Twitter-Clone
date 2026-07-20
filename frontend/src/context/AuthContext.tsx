@@ -569,8 +569,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           break;
 
         default:
-          notify.error(data?.message || "Something went wrong.");
+          notify.error(data?.message || `Something went wrong. ${err}`);
       }
+      
       return null;
     } finally {
       setAuthLoading(false);

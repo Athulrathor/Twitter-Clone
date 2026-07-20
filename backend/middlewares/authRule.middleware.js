@@ -22,6 +22,8 @@ if (device.deviceType === "mobile") {
     blockedReason =
       "Mobile login is allowed only between 10:00 AM and 1:00 PM IST.";
 
+      console.log("login_blocked");
+
     return res.status(403).json({
       success: false,
       code: "LOGIN_BLOCKED",

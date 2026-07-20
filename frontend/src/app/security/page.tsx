@@ -39,6 +39,7 @@ import LoadingSpinner from "@/components/loading-spinner";
 import { SessionContents } from "@/context/AuthContext";
 import AuthenticationCard from "@/components/authentication-card";
 import { notify } from "@/lib/toast";
+import { useTranslation } from "react-i18next";
 
 function DeviceIcon({
   type,
@@ -335,6 +336,7 @@ export default function SessionsPage() {
   const [recoverOpen, setRecoverOpen] = useState(false);
 
   const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!user?._id) return;
@@ -596,7 +598,7 @@ export default function SessionsPage() {
                       className="h-6 px-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10"
                     >
                       <LogOut size={12} className="mr-1" />
-                      {logoutOthersLoading ? {t("security:logging_out")} : {t("security:logout_others")}}
+                      {logoutOthersLoading ? t("security:logging_out") : t("security:logout_others")}
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent className="bg-[#111827] border-white/10 text-white">
