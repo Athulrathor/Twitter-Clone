@@ -21,13 +21,13 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
       setCurrentPage(p);
   }
 
-  const { language,changeLanguage } = useLanguage();
+  const { changeLanguage } = useLanguage();
 
   useEffect(() => {
-  if (user?.language) {
-    changeLanguage(user.language);
-  }
-}, [user?.language, changeLanguage]);
+    if (user?.language) {
+      void changeLanguage(user.language);
+    }
+  }, [user?.language]);
 
   if (isInitializing ) {
     return (

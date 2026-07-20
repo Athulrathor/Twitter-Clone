@@ -33,6 +33,7 @@ interface User {
   scheduledDeleteAt?: Date;
   restoreAt?: Date;
   notificationEnabled?: boolean;
+  language?: "en" | "es" | "hi" | "pt" | "zh" | "fr";
 }
 
 interface SessionStats {
