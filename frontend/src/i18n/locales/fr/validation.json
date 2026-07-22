@@ -1,18 +1,15 @@
 {
   "required": "Ce champ est obligatoire.",
-
   "invalid_email": "Veuillez saisir une adresse e-mail valide.",
   "invalid_username": "Nom d'utilisateur invalide.",
   "invalid_url": "Veuillez saisir une URL valide.",
   "invalid_phone": "Veuillez saisir un numéro de téléphone valide.",
-
   "name_required": "Le nom est obligatoire.",
   "username_required": "Le nom d'utilisateur est obligatoire.",
   "email_required": "L'adresse e-mail est obligatoire.",
   "password_required": "Le mot de passe est obligatoire.",
   "confirm_password_required": "Veuillez confirmer votre mot de passe.",
   "bio_required": "La biographie est obligatoire.",
-
   "password_min": "Le mot de passe doit contenir au moins 8 caractères.",
   "password_uppercase": "Le mot de passe doit contenir une lettre majuscule.",
   "password_lowercase": "Le mot de passe doit contenir une lettre minuscule.",
@@ -20,25 +17,20 @@
   "password_special": "Le mot de passe doit contenir un caractère spécial.",
   "password_match": "Les mots de passe ne correspondent pas.",
   "password_different": "Le nouveau mot de passe doit être différent.",
-
   "otp_required": "L'OTP est obligatoire.",
   "otp_invalid": "OTP invalide.",
   "otp_expired": "L'OTP a expiré.",
-
   "tweet_required": "La publication ne peut pas être vide.",
   "tweet_limit": "La publication dépasse la limite de caractères.",
-
   "audio_limit": "La durée maximale de l'audio est dépassée.",
   "audio_size": "La taille maximale de l'audio est dépassée.",
   "audio_format": "Format audio non pris en charge.",
-
   "image_limit": "Maximum quatre images autorisées.",
   "image_size": "La taille maximale de l'image est dépassée.",
   "image_format": "Format d'image non pris en charge.",
-
   "website_invalid": "Veuillez saisir un site Web valide.",
   "location_required": "La localisation est obligatoire.",
-
   "minimum_length": "Minimum {{count}} caractères.",
-  "maximum_length": "Maximum {{count}} caractères."
+  "maximum_length": "Maximum {{count}} caractères.",
+  "email_or_phone_required": "Veuillez saisir votre e-mail ou numéro de téléphone."
 }

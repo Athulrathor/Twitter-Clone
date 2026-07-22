@@ -1,18 +1,15 @@
 {
   "required": "Este campo es obligatorio.",
-
   "invalid_email": "Introduce un correo electrónico válido.",
   "invalid_username": "Nombre de usuario no válido.",
   "invalid_url": "Introduce una URL válida.",
   "invalid_phone": "Introduce un número de teléfono válido.",
-
   "name_required": "El nombre es obligatorio.",
   "username_required": "El nombre de usuario es obligatorio.",
   "email_required": "El correo electrónico es obligatorio.",
   "password_required": "La contraseña es obligatoria.",
   "confirm_password_required": "Confirma tu contraseña.",
   "bio_required": "La biografía es obligatoria.",
-
   "password_min": "La contraseña debe tener al menos 8 caracteres.",
   "password_uppercase": "La contraseña debe contener una letra mayúscula.",
   "password_lowercase": "La contraseña debe contener una letra minúscula.",
@@ -20,25 +17,20 @@
   "password_special": "La contraseña debe contener un carácter especial.",
   "password_match": "Las contraseñas no coinciden.",
   "password_different": "La nueva contraseña debe ser diferente.",
-
   "otp_required": "El OTP es obligatorio.",
   "otp_invalid": "OTP no válido.",
   "otp_expired": "El OTP ha expirado.",
-
   "tweet_required": "La publicación no puede estar vacía.",
   "tweet_limit": "La publicación supera el límite de caracteres.",
-
   "audio_limit": "El audio supera la duración máxima.",
   "audio_size": "El audio supera el tamaño máximo permitido.",
   "audio_format": "Formato de audio no compatible.",
-
   "image_limit": "Se permiten un máximo de cuatro imágenes.",
   "image_size": "La imagen supera el tamaño máximo permitido.",
   "image_format": "Formato de imagen no compatible.",
-
   "website_invalid": "Introduce un sitio web válido.",
   "location_required": "La ubicación es obligatoria.",
-
   "minimum_length": "Mínimo {{count}} caracteres.",
-  "maximum_length": "Máximo {{count}} caracteres."
+  "maximum_length": "Máximo {{count}} caracteres.",
+  "email_or_phone_required": "Introduce tu correo electrónico o número de teléfono."
 }

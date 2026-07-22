@@ -7,14 +7,11 @@ import RightSidebar from "./Rightsidebar";
 import ProfilePage from "../ProfilePage";
 import NotificationsPage from "@/app/notifications/page";
 import "@/i18n";
-import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/context/LanguageContext";
-import { Languages } from "lucide-react";
 
 
 const Mainlayout = ({ children }: { children: React.ReactNode }) => {
   const { user, isInitializing  } = useAuth();
-  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState("home");
 
   const handleCurrentPage = (p: string) => {
@@ -27,7 +24,7 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
     if (user?.language) {
       void changeLanguage(user.language);
     }
-  }, [user?.language]);
+  }, [user?.language, changeLanguage]);
 
   if (isInitializing ) {
     return (
@@ -51,7 +48,7 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
       {/* Sidebar */}
         <aside className="hidden md:flex md:w-20 lg:w-64 border-r border-gray-800 shrink-0 sticky top-0 h-screen">
           <Sidebar
-            currentPage={t(currentPage)}
+            currentPage={currentPage}
             onNavigate={handleCurrentPage}
           />
         </aside>

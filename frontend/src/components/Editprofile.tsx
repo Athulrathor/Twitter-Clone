@@ -27,7 +27,7 @@ const Editprofile = ({ isopen, onclose }: any) => {
     notificationEnabled: user?.notificationEnabled || false,
   });
   const [error, setError] = useState<any>({});
-  const { t } = useTranslation();
+  const { t } = useTranslation(["common", "profile", "security"]);
   if (!isopen || !user) return null;
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -146,7 +146,7 @@ const Editprofile = ({ isopen, onclose }: any) => {
               >
                 <X className="h-5 w-5" />
               </Button>
-              <CardTitle className="text-xl font-bold">{t("edit_profile")}</CardTitle>
+              <CardTitle className="text-xl font-bold">{t("edit_profile", { ns: "profile" })}</CardTitle>
             </div>
             <Button
               type="submit"
@@ -224,7 +224,7 @@ const Editprofile = ({ isopen, onclose }: any) => {
               {/* Display Name */}
               <div className="space-y-2">
                 <Label htmlFor="displayName" className="text-white">
-                  {t("name")}
+                  {t("name", { ns: "profile" })}
                 </Label>
                 <Input
                   id="displayName"
@@ -234,7 +234,7 @@ const Editprofile = ({ isopen, onclose }: any) => {
                     handleInputChange("displayName", e.target.value)
                   }
                   className="bg-transparent border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
-                  placeholder={t("your_display_name")}
+                  placeholder={t("your_display_name", { ns: "profile" })}
                   maxLength={50}
                   disabled={isLoading}
                 />
@@ -251,14 +251,14 @@ const Editprofile = ({ isopen, onclose }: any) => {
               {/* Bio */}
               <div className="space-y-2">
                 <Label htmlFor="bio" className="text-white">
-                  {t("bio")}
+                  {t("bio", { ns: "profile" })}
                 </Label>
                 <Textarea
                   id="bio"
                   value={formData.bio}
                   onChange={(e) => handleInputChange("bio", e.target.value)}
                   className="bg-transparent border-gray-600 text-white placeholder-gray-400 focus:border-blue-500 resize-none min-h-[100px]"
-                  placeholder={t("tell_the_world_about_yourself")}
+                  placeholder={t("tell_the_world_about_yourself", { ns: "profile" })}
                   maxLength={160}
                   disabled={isLoading}
                 />
@@ -273,7 +273,7 @@ const Editprofile = ({ isopen, onclose }: any) => {
               {/* Location */}
               <div className="space-y-2">
                 <Label htmlFor="location" className="text-white">
-                  {t("location")}
+                  {t("location", { ns: "profile" })}
                 </Label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -285,7 +285,7 @@ const Editprofile = ({ isopen, onclose }: any) => {
                       handleInputChange("location", e.target.value)
                     }
                     className="pl-10 bg-transparent border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
-                    placeholder={`${t("where_are_you_located")}?`}
+                    placeholder={`${t("where_are_you_located", { ns: "profile" })}?`}
                     maxLength={30}
                     disabled={isLoading}
                   />
@@ -303,7 +303,7 @@ const Editprofile = ({ isopen, onclose }: any) => {
               {/* Website */}
               <div className="space-y-2">
                 <Label htmlFor="website" className="text-white">
-                  {t("website")}
+                  {t("website", { ns: "profile" })}
                 </Label>
                 <div className="relative">
                   <LinkIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -315,7 +315,7 @@ const Editprofile = ({ isopen, onclose }: any) => {
                       handleInputChange("website", e.target.value)
                     }
                     className="pl-10 bg-transparent border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
-                    placeholder={t("your_website_url")}
+                    placeholder={t("your_website_url", { ns: "profile" })}
                     maxLength={100}
                     disabled={isLoading}
                   />
@@ -332,10 +332,10 @@ const Editprofile = ({ isopen, onclose }: any) => {
                   <div className="flex items-center justify-between rounded-lg border p-4">
                     <div className="space-y-1">
                       <h3 className="text-sm font-medium">
-                        {t("browser_notifications")}
+                        {t("browser_notifications", { ns: "security" })}
                       </h3>
                       <p className="text-xs text-muted-foreground">
-                        {t("browser_notifications_description")}{" "}
+                        {t("browser_notifications_description", { ns: "security" })}{" "}
                         <strong>{t("cricket")}</strong> {t("or")} <strong>{t("science")}</strong>.
                       </p>
                     </div>

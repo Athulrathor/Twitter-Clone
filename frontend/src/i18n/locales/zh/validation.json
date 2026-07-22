@@ -1,18 +1,15 @@
 {
   "required": "此字段为必填项。",
-
   "invalid_email": "请输入有效的电子邮箱地址。",
   "invalid_username": "用户名无效。",
   "invalid_url": "请输入有效的网址。",
   "invalid_phone": "请输入有效的电话号码。",
-
   "name_required": "姓名为必填项。",
   "username_required": "用户名为必填项。",
   "email_required": "电子邮箱为必填项。",
   "password_required": "密码为必填项。",
   "confirm_password_required": "请确认您的密码。",
   "bio_required": "个人简介为必填项。",
-
   "password_min": "密码至少需要 8 个字符。",
   "password_uppercase": "密码必须包含一个大写字母。",
   "password_lowercase": "密码必须包含一个小写字母。",
@@ -20,25 +17,20 @@
   "password_special": "密码必须包含一个特殊字符。",
   "password_match": "两次输入的密码不一致。",
   "password_different": "新密码必须与当前密码不同。",
-
   "otp_required": "请输入 OTP。",
   "otp_invalid": "OTP 无效。",
   "otp_expired": "OTP 已过期。",
-
   "tweet_required": "帖子内容不能为空。",
   "tweet_limit": "帖子超出了字符限制。",
-
   "audio_limit": "音频时长超过限制。",
   "audio_size": "音频文件大小超过限制。",
   "audio_format": "不支持的音频格式。",
-
   "image_limit": "最多允许上传四张图片。",
   "image_size": "图片文件大小超过限制。",
   "image_format": "不支持的图片格式。",
-
   "website_invalid": "请输入有效的网站地址。",
   "location_required": "所在地为必填项。",
-
   "minimum_length": "至少需要 {{count}} 个字符。",
-  "maximum_length": "最多允许 {{count}} 个字符。"
+  "maximum_length": "最多允许 {{count}} 个字符。",
+  "email_or_phone_required": "请输入您的电子邮箱或手机号码。"
 }

@@ -9,13 +9,11 @@
     "email_exists": "El correo electrónico ya existe.",
     "session_expired": "La sesión ha expirado. Inicia sesión nuevamente."
   },
-
   "email": {
     "verification_sent": "Correo de verificación enviado.",
     "verification_success": "Correo electrónico verificado correctamente.",
     "verification_expired": "El enlace de verificación ha expirado."
   },
-
   "otp": {
     "sent": "OTP enviado correctamente.",
     "verified": "OTP verificado.",
@@ -23,7 +21,6 @@
     "expired": "El OTP ha expirado.",
     "too_many_attempts": "Demasiados intentos de OTP."
   },
-
   "tweet": {
     "posting": "Publicando...",
     "posted": "Publicación realizada correctamente.",
@@ -34,29 +31,25 @@
     "bookmarked": "Añadido a marcadores.",
     "bookmark_removed": "Eliminado de marcadores."
   },
-
   "reply": {
     "posted": "Respuesta publicada.",
     "deleted": "Respuesta eliminada."
   },
-
   "comment": {
     "added": "Comentario agregado.",
     "deleted": "Comentario eliminado."
   },
-
   "profile": {
     "updated": "Perfil actualizado correctamente.",
     "image_updated": "Foto de perfil actualizada.",
     "cover_updated": "Foto de portada actualizada."
   },
-
   "password": {
     "changed": "Contraseña actualizada correctamente.",
     "reset_sent": "Correo de restablecimiento enviado.",
-    "reset_success": "Contraseña restablecida correctamente."
+    "reset_success": "Contraseña restablecida correctamente.",
+    "reset_failed": "No se pudo restablecer la contraseña."
   },
-
   "audio": {
     "uploading": "Subiendo audio...",
     "uploaded": "Audio subido correctamente.",
@@ -67,7 +60,6 @@
     "size": "El audio supera los 100 MB.",
     "unsupported": "Formato de audio no compatible."
   },
-
   "image": {
     "uploading": "Subiendo imagen...",
     "uploaded": "Imagen subida correctamente.",
@@ -76,12 +68,10 @@
     "size": "La imagen supera el tamaño máximo.",
     "unsupported": "Formato de imagen no compatible."
   },
-
   "follow": {
     "following": "Ahora sigues a {{name}}.",
     "unfollowed": "Has dejado de seguir a {{name}}."
   },
-
   "security": {
     "permission": "No tienes permiso para realizar esta acción.",
     "logout_others": "Se cerró la sesión en todos los demás dispositivos.",

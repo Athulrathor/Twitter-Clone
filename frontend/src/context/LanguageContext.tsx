@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useState,
+  useCallback,
   ReactNode,
 } from "react";
 import i18n from "@/i18n";
@@ -26,34 +27,54 @@ const LanguageContext = createContext<
   LanguageContextType | undefined
 >(undefined);
 
+const SUPPORTED_LANGUAGES: Language[] = [
+  "en",
+  "es",
+  "hi",
+  "pt",
+  "zh",
+  "fr",
+];
+
+function isSupportedLanguage(
+  value: string | null,
+): value is Language {
+  return (
+    value !== null &&
+    SUPPORTED_LANGUAGES.includes(value as Language)
+  );
+}
+
 export function LanguageProvider({
   children,
 }: {
   children: ReactNode;
 }) {
   const [language, setLanguage] =
-    useState<Language>("hi");
+    useState<Language>("en");
 
   useEffect(() => {
     const savedLanguage = localStorage.getItem(
-      "language"
-    ) as Language | null;
+      "language",
+    );
 
-    if (savedLanguage) {
+    if (isSupportedLanguage(savedLanguage)) {
       setLanguage(savedLanguage);
-      i18n.changeLanguage(savedLanguage);
+      void i18n.changeLanguage(savedLanguage);
     }
   }, []);
 
-  const changeLanguage = async (newLanguage: Language) => {
-  setLanguage(newLanguage);
+  const changeLanguage = useCallback(async (newLanguage: Language) => {
+    if (!isSupportedLanguage(newLanguage)) return;
 
-  if (typeof window !== "undefined") {
-    localStorage.setItem("language", newLanguage);
-  }
+    setLanguage(newLanguage);
 
-  await i18n.changeLanguage(newLanguage);
-};
+    if (typeof window !== "undefined") {
+      localStorage.setItem("language", newLanguage);
+    }
+
+    await i18n.changeLanguage(newLanguage);
+  }, []);
 
   return (
     <LanguageContext.Provider
@@ -72,7 +93,7 @@ export function useLanguage() {
 
   if (!context) {
     throw new Error(
-      "useLanguage must be used inside LanguageProvider."
+      "useLanguage must be used inside LanguageProvider.",
     );
   }
 

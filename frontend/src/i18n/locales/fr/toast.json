@@ -9,13 +9,11 @@
     "email_exists": "Cette adresse e-mail existe déjà.",
     "session_expired": "Votre session a expiré. Veuillez vous reconnecter."
   },
-
   "email": {
     "verification_sent": "E-mail de vérification envoyé.",
     "verification_success": "E-mail vérifié avec succès.",
     "verification_expired": "Le lien de vérification a expiré."
   },
-
   "otp": {
     "sent": "OTP envoyé avec succès.",
     "verified": "OTP vérifié.",
@@ -23,7 +21,6 @@
     "expired": "L'OTP a expiré.",
     "too_many_attempts": "Trop de tentatives OTP."
   },
-
   "tweet": {
     "posting": "Publication en cours...",
     "posted": "Publication réussie.",
@@ -34,29 +31,25 @@
     "bookmarked": "Ajouté aux favoris.",
     "bookmark_removed": "Retiré des favoris."
   },
-
   "reply": {
     "posted": "Réponse publiée.",
     "deleted": "Réponse supprimée."
   },
-
   "comment": {
     "added": "Commentaire ajouté.",
     "deleted": "Commentaire supprimé."
   },
-
   "profile": {
     "updated": "Profil mis à jour avec succès.",
     "image_updated": "Photo de profil mise à jour.",
     "cover_updated": "Photo de couverture mise à jour."
   },
-
   "password": {
     "changed": "Mot de passe mis à jour avec succès.",
     "reset_sent": "E-mail de réinitialisation envoyé.",
-    "reset_success": "Mot de passe réinitialisé avec succès."
+    "reset_success": "Mot de passe réinitialisé avec succès.",
+    "reset_failed": "Échec de la réinitialisation du mot de passe."
   },
-
   "audio": {
     "uploading": "Téléversement de l'audio...",
     "uploaded": "Audio téléversé avec succès.",
@@ -67,7 +60,6 @@
     "size": "La taille de l'audio dépasse 100 Mo.",
     "unsupported": "Format audio non pris en charge."
   },
-
   "image": {
     "uploading": "Téléversement de l'image...",
     "uploaded": "Image téléversée avec succès.",
@@ -76,12 +68,10 @@
     "size": "La taille maximale de l'image est dépassée.",
     "unsupported": "Format d'image non pris en charge."
   },
-
   "follow": {
     "following": "Vous suivez maintenant {{name}}.",
     "unfollowed": "Vous ne suivez plus {{name}}."
   },
-
   "security": {
     "permission": "Vous n'êtes pas autorisé à effectuer cette action.",
     "logout_others": "Déconnecté de tous les autres appareils.",

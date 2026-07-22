@@ -8,6 +8,11 @@ const supportedLanguages = [
 ];
 
 export const validateLanguage = (req, res, next) => {
+  // GET reads stored language — no body required
+  if (req.method === "GET") {
+    return next();
+  }
+
   const { language } = req.body;
 
   if (!language) {

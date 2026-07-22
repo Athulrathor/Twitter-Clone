@@ -49,11 +49,11 @@ export default function ResetPasswordPage() {
     setMessage("");
 
     if (!password) {
-      return setError(t("validation.password_required"));
+      return setError(t("validation:password_required"));
     }
 
     if (password !== confirmPassword) {
-      return setError(t("validation.password_match"));
+      return setError(t("validation:password_match"));
     }
 
     try {
@@ -77,17 +77,17 @@ export default function ResetPasswordPage() {
 
       if (!response.ok) {
         throw new Error(data.message);
-        notify.success(t("toast.password.reset_success"));
       }
 
-      setMessage(t("auth.password_reset_redirect"));
+      notify.success(t("toast:password.reset_success"));
+      setMessage(t("auth:password_reset_redirect"));
 
       setTimeout(() => {
         router.push("/login");
       }, 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("common.failed"));
-      notify.error(t("toast.password.reset_failed"));
+      setError(err instanceof Error ? err.message : t("failed"));
+      notify.error(t("toast:password.reset_failed"));
     } finally {
       setLoading(false);
     }
@@ -100,11 +100,11 @@ export default function ResetPasswordPage() {
           <div className="text-5xl font-bold text-white">𝕏</div>
 
           <CardTitle className="text-2xl text-white">
-            {t("auth.reset_password")}
+            {t("auth:reset_password")}
           </CardTitle>
 
           <CardDescription className="text-gray-400">
-            {t("auth.reset_password_description")}
+            {t("auth:reset_password_description")}
           </CardDescription>
         </CardHeader>
 
@@ -112,7 +112,7 @@ export default function ResetPasswordPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               type="password"
-              placeholder={t("auth.new_password")}
+              placeholder={t("auth:new_password")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="bg-black border-gray-700 text-white placeholder:text-gray-500 focus:border-blue-500"
@@ -120,7 +120,7 @@ export default function ResetPasswordPage() {
 
             <Input
               type="password"
-              placeholder={t("auth.confirm_password")}
+              placeholder={t("auth:confirm_password")}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="bg-black border-gray-700 text-white placeholder:text-gray-500 focus:border-blue-500"
@@ -132,7 +132,7 @@ export default function ResetPasswordPage() {
               className="w-full border-gray-700 text-white hover:bg-gray-900 rounded-full"
               onClick={generatePassword}
             >
-              {t("auth.generate_password")}
+              {t("auth:generate_password")}
             </Button>
 
             <Button
@@ -140,7 +140,7 @@ export default function ResetPasswordPage() {
               disabled={loading}
               className="w-full bg-white text-black hover:bg-gray-200 rounded-full font-semibold"
             >
-              {loading ? t("auth.resetting") : t("auth.reset_password")}
+              {loading ? t("auth:resetting") : t("auth:reset_password")}
             </Button>
 
             {message && (

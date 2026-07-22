@@ -6,56 +6,48 @@
     "permission_denied": "Les notifications sont bloquées.",
     "permission_default": "Veuillez autoriser les notifications du navigateur."
   },
-
   "tweet": {
     "title": "Nouveau post",
     "body": "{{name}} a publié un nouveau post."
   },
-
   "reply": {
     "title": "Nouvelle réponse",
     "body": "{{name}} a répondu à votre post."
   },
-
   "mention": {
     "title": "Nouvelle mention",
     "body": "{{name}} vous a mentionné dans un post."
   },
-
   "like": {
     "title": "Nouveau J'aime",
     "body": "{{name}} a aimé votre post."
   },
-
   "repost": {
     "title": "Nouveau repost",
     "body": "{{name}} a repartagé votre post."
   },
-
   "follow": {
     "title": "Nouvel abonné",
     "body": "{{name}} a commencé à vous suivre."
   },
-
   "message": {
     "title": "Nouveau message",
     "body": "{{name}} vous a envoyé un message."
   },
-
   "comment": {
     "title": "Nouveau commentaire",
     "body": "{{name}} a commenté votre post."
   },
-
   "security": {
     "login": "Nouvelle connexion détectée.",
     "password_changed": "Votre mot de passe a été modifié.",
     "email_verified": "Votre adresse e-mail a été vérifiée."
   },
-
   "system": {
     "maintenance": "Une maintenance planifiée est en cours.",
     "offline": "Vous êtes actuellement hors ligne.",
     "online": "Vous êtes de nouveau en ligne."
-  }
+  },
+  "mark_all_read": "Tout marquer comme lu",
+  "no_notifications": "Aucune notification pour le moment."
 }

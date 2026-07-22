@@ -1,40 +1,31 @@
 {
   "security": "सुरक्षा",
-
   "change_password": "पासवर्ड बदलें",
   "update_password": "पासवर्ड अपडेट करें",
-
   "current_password": "वर्तमान पासवर्ड",
   "new_password": "नया पासवर्ड",
   "confirm_password": "पासवर्ड की पुष्टि करें",
-
   "password_strength": "पासवर्ड की मजबूती",
   "password_requirements": "पासवर्ड आवश्यकताएँ",
-
   "very_weak": "बहुत कमजोर",
   "weak": "कमजोर",
   "fair": "सामान्य",
   "strong": "मजबूत",
   "very_strong": "बहुत मजबूत",
-
   "at_least_8_characters": "कम से कम 8 अक्षर",
   "one_uppercase_letter": "एक बड़ा अक्षर (A-Z)",
   "one_lowercase_letter": "एक छोटा अक्षर (a-z)",
   "one_number": "एक संख्या (0-9)",
   "one_special_character": "एक विशेष चिन्ह (!@#$...)",
-
   "current_password_required": "वर्तमान पासवर्ड आवश्यक है।",
   "new_password_required": "नया पासवर्ड आवश्यक है।",
   "confirm_password_required": "कृपया पासवर्ड की पुष्टि करें।",
   "passwords_do_not_match": "पासवर्ड मेल नहीं खाते।",
   "new_password_different": "नया पासवर्ड अलग होना चाहिए।",
   "minimum_8_characters": "कम से कम 8 अक्षर।",
-
   "sign_out_other_devices": "अन्य सभी डिवाइस से लॉग आउट करें",
-
   "browser_notifications": "ब्राउज़र सूचनाएँ",
   "browser_notifications_description": "महत्वपूर्ण गतिविधियों के लिए ब्राउज़र सूचनाएँ प्राप्त करें।",
-
   "email_verification": "ईमेल सत्यापन",
   "verify_email": "ईमेल सत्यापित करें",
   "verification_code": "सत्यापन कोड",
@@ -42,15 +33,27 @@
   "enter_verification_code": "नीचे सत्यापन कोड दर्ज करें।",
   "email_verified": "ईमेल सफलतापूर्वक सत्यापित हुआ।",
   "verification_required": "जारी रखने के लिए कृपया अपना ईमेल सत्यापित करें।",
-
   "two_factor_authentication": "दो-स्तरीय प्रमाणीकरण",
-
   "sessions": "सत्र",
   "active_sessions": "सक्रिय सत्र",
-
   "logout_other_devices": "अन्य डिवाइस से लॉग आउट करें",
-
   "verify": "सत्यापित करें",
-
-  "loading": "लोड हो रहा है..."
+  "loading": "लोड हो रहा है...",
+  "title": "सुरक्षा",
+  "devices": "डिवाइस",
+  "active": "सक्रिय",
+  "otp_logins": "OTP लॉगिन",
+  "blocked": "ब्लॉक किए गए",
+  "session_description": "देखें कि आप कहाँ लॉग इन हैं और अपरिचित सत्रों से साइन आउट करें।",
+  "current_device": "वर्तमान डिवाइस",
+  "no_active_session": "कोई सक्रिय सत्र नहीं मिला।",
+  "other_sessions": "अन्य सत्र",
+  "logging_out": "लॉग आउट हो रहा है...",
+  "logout_others": "अन्य से लॉग आउट करें",
+  "logout_other_sessions": "अन्य सत्रों से लॉग आउट करें?",
+  "logout_other_sessions_description": "इससे {{count}} अन्य सक्रिय सत्र से साइन आउट हो जाएगा।",
+  "session_history": "सत्र इतिहास",
+  "logout_everywhere": "हर जगह से लॉग आउट करें",
+  "logout_everywhere_description": "इस सहित सभी डिवाइस से साइन आउट करें।",
+  "logout_everywhere_confirm": "क्या आप वाकई सभी डिवाइस से लॉग आउट करना चाहते हैं?"
 }

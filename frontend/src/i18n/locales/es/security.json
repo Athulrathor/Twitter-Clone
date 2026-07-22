@@ -1,40 +1,31 @@
 {
   "security": "Seguridad",
-
   "change_password": "Cambiar contraseña",
   "update_password": "Actualizar contraseña",
-
   "current_password": "Contraseña actual",
   "new_password": "Nueva contraseña",
   "confirm_password": "Confirmar contraseña",
-
   "password_strength": "Seguridad de la contraseña",
   "password_requirements": "Requisitos de la contraseña",
-
   "very_weak": "Muy débil",
   "weak": "Débil",
   "fair": "Aceptable",
   "strong": "Fuerte",
   "very_strong": "Muy fuerte",
-
   "at_least_8_characters": "Al menos 8 caracteres",
   "one_uppercase_letter": "Una letra mayúscula (A-Z)",
   "one_lowercase_letter": "Una letra minúscula (a-z)",
   "one_number": "Un número (0-9)",
   "one_special_character": "Un carácter especial (!@#$...)",
-
   "current_password_required": "La contraseña actual es obligatoria.",
   "new_password_required": "La nueva contraseña es obligatoria.",
   "confirm_password_required": "Confirma tu contraseña.",
   "passwords_do_not_match": "Las contraseñas no coinciden.",
   "new_password_different": "La nueva contraseña debe ser diferente.",
   "minimum_8_characters": "Mínimo 8 caracteres.",
-
   "sign_out_other_devices": "Cerrar sesión en todos los demás dispositivos",
-
   "browser_notifications": "Notificaciones del navegador",
   "browser_notifications_description": "Recibe notificaciones del navegador para actividades importantes.",
-
   "email_verification": "Verificación de correo electrónico",
   "verify_email": "Verificar correo electrónico",
   "verification_code": "Código de verificación",
@@ -42,15 +33,27 @@
   "enter_verification_code": "Introduce el código de verificación a continuación.",
   "email_verified": "Correo electrónico verificado correctamente.",
   "verification_required": "Verifica tu correo electrónico para continuar.",
-
   "two_factor_authentication": "Autenticación de dos factores",
-
   "sessions": "Sesiones",
   "active_sessions": "Sesiones activas",
-
   "logout_other_devices": "Cerrar sesión en otros dispositivos",
-
   "verify": "Verificar",
-
-  "loading": "Cargando..."
+  "loading": "Cargando...",
+  "title": "Seguridad",
+  "devices": "Dispositivos",
+  "active": "Activos",
+  "otp_logins": "Inicios con OTP",
+  "blocked": "Bloqueados",
+  "session_description": "Administra dónde has iniciado sesión y cierra las sesiones que no reconozcas.",
+  "current_device": "Dispositivo actual",
+  "no_active_session": "No se encontró ninguna sesión activa.",
+  "other_sessions": "Otras sesiones",
+  "logging_out": "Cerrando sesión...",
+  "logout_others": "Cerrar otras sesiones",
+  "logout_other_sessions": "¿Cerrar las otras sesiones?",
+  "logout_other_sessions_description": "Esto cerrará {{count}} otra(s) sesión(es) activa(s).",
+  "session_history": "Historial de sesiones",
+  "logout_everywhere": "Cerrar sesión en todas partes",
+  "logout_everywhere_description": "Cierra sesión en todos los dispositivos, incluido este.",
+  "logout_everywhere_confirm": "¿Seguro que quieres cerrar sesión en todos los dispositivos?"
 }

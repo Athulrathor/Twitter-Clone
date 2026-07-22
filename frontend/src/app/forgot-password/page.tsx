@@ -28,7 +28,7 @@ export default function ForgotPasswordPage() {
     setError("");
 
     if (!emailOrPhone.trim()) {
-      return setError(t("validation.email_or_phone_required"));
+      return setError(t("validation:email_or_phone_required"));
     }
 
     try {
@@ -52,13 +52,13 @@ export default function ForgotPasswordPage() {
         throw new Error(data.message);
       }
 
-      notify.success(t("toast.password.reset_sent"));
+      notify.success(t("toast:password.reset_sent"));
 
-      setMessage(t("toast.password.reset_sent"));
+      setMessage(t("toast:password.reset_sent"));
       setEmailOrPhone("");
     } catch (err: any) {
-      setError(err instanceof Error ? err.message : t("common.failed"));
-      notify.error(err instanceof Error ? err.message : t("common.failed"));
+      setError(err instanceof Error ? err.message : t("failed"));
+      notify.error(err instanceof Error ? err.message : t("failed"));
     } finally {
       setLoading(false);
     }
@@ -71,11 +71,11 @@ export default function ForgotPasswordPage() {
           <div className="text-5xl font-bold text-white">𝕏</div>
 
           <CardTitle className="text-2xl text-white">
-            {t("auth.forgot_password")}
+            {t("auth:forgot_password")}
           </CardTitle>
 
           <CardDescription className="text-gray-400">
-            {t("auth.forgot_password_description")}
+            {t("auth:forgot_password_description")}
           </CardDescription>
         </CardHeader>
 
@@ -83,7 +83,7 @@ export default function ForgotPasswordPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               type="text"
-              placeholder={t("auth.email_or_phone")}
+              placeholder={t("auth:email_or_phone")}
               value={emailOrPhone}
               onChange={(e) => setEmailOrPhone(e.target.value)}
               className="bg-black border-gray-700 text-white placeholder:text-gray-500 focus:border-blue-500"
@@ -94,7 +94,7 @@ export default function ForgotPasswordPage() {
               disabled={loading}
               className="w-full bg-white text-black hover:bg-gray-200 rounded-full font-semibold"
             >
-              {loading ? t("auth.sending") : t("auth.send_reset_link")}
+              {loading ? t("auth:sending") : t("auth:send_reset_link")}
             </Button>
 
             {message && (

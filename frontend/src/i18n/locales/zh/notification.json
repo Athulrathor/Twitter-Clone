@@ -6,56 +6,48 @@
     "permission_denied": "通知已被阻止。",
     "permission_default": "请允许浏览器通知。"
   },
-
   "tweet": {
     "title": "新帖子",
     "body": "{{name}} 发布了一条新帖子。"
   },
-
   "reply": {
     "title": "新回复",
     "body": "{{name}} 回复了您的帖子。"
   },
-
   "mention": {
     "title": "新的提及",
     "body": "{{name}} 在帖子中提到了您。"
   },
-
   "like": {
     "title": "新的点赞",
     "body": "{{name}} 点赞了您的帖子。"
   },
-
   "repost": {
     "title": "新的转发",
     "body": "{{name}} 转发了您的帖子。"
   },
-
   "follow": {
     "title": "新关注者",
     "body": "{{name}} 开始关注您。"
   },
-
   "message": {
     "title": "新消息",
     "body": "{{name}} 向您发送了一条消息。"
   },
-
   "comment": {
     "title": "新评论",
     "body": "{{name}} 评论了您的帖子。"
   },
-
   "security": {
     "login": "检测到新的登录。",
     "password_changed": "您的密码已更改。",
     "email_verified": "您的邮箱已成功验证。"
   },
-
   "system": {
     "maintenance": "系统正在进行计划维护。",
     "offline": "您当前处于离线状态。",
     "online": "您已重新连接网络。"
-  }
+  },
+  "mark_all_read": "全部标为已读",
+  "no_notifications": "暂无通知。"
 }

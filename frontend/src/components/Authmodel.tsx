@@ -300,7 +300,7 @@ export default function AuthModal({
         transition-colors
       "
                   >
-                    {t("forgot_password", {ns: "auth"}) + "?"}
+                    {t("forgot_password", { ns: "auth" })}
                   </Link>
                 </div>
               )}
@@ -319,9 +319,9 @@ export default function AuthModal({
                   </span>
                 </div>
               ) : mode === "login" ? (
-                t("login", {ns: "auth"})
+                t("login", { ns: "auth" })
               ) : (
-                t("signup", {ns: "auth"})
+                t("signup", { ns: "auth" })
               )}
             </Button>
           </form>
@@ -344,7 +344,9 @@ export default function AuthModal({
                 onClick={switchMode}
                 disabled={authLoading}
               >
-                {mode === "login" ? t("Signup") : t("login")}
+                {mode === "login"
+                  ? t("signup", { ns: "auth" })
+                  : t("login", { ns: "auth" })}
               </Button>
             </p>
           </div>

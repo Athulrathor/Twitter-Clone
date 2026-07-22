@@ -1,5 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Textarea } from "./ui/textarea";
@@ -75,27 +75,27 @@ const TweetComposer = ({
       console.log(error);
       notify.error(
       error.response?.data?.message ||
-      "Tweet post failed."
+      t("tweet_post_failed")
     );
     } finally {
       setIsLoading(false);
     }
   };
-  const handleAudioSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  // const handleAudioSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0];
 
-    if (!file) return;
-    setAudioLoading(true);
-    try {
-      const res = await uploadAudio(file);
+  //   if (!file) return;
+  //   setAudioLoading(true);
+  //   try {
+  //     const res = await uploadAudio(file);
 
-      setAudio(res.data.audio);
-    } catch (err) {
-      console.error("5. Upload error", err);
-    } finally {
-      setAudioLoading(false);
-    }
-  };
+  //     setAudio(res.data.audio);
+  //   } catch (err) {
+  //     console.error("5. Upload error", err);
+  //   } finally {
+  //     setAudioLoading(false);
+  //   }
+  // };
   const characterCount = content.length;
   const isOverLimit = characterCount > maxLength;
   const isNearLimit = characterCount > maxLength * 0.8;
@@ -155,11 +155,9 @@ const TweetComposer = ({
 
             <div className="flex-1">
               <form onSubmit={handleSubmit} className="pb-3">
-                {/* Textarea */}
-
                 <Textarea
                   value={content}
-                  placeholder={`${t("what's_happening")}?`}
+                  placeholder={t("whats_happening")}
                   onChange={(e) => setContent(e.target.value)}
                   className="
       bg-transparent
@@ -291,7 +289,7 @@ const TweetComposer = ({
       hover:bg-blue-600
   "
                     >
-                      {isLoading ? "Posting..." : "Post"}
+                      {isLoading ? t("posting") : t("post")}
                     </Button>
                   </div>
                   <Separator orientation="vertical" className="h-6" />

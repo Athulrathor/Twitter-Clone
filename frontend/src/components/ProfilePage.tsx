@@ -46,7 +46,7 @@ export default function ProfilePage() {
   const [tweets, setTweets] = useState<Tweet[]>([]);
   const [loading, setloading] = useState<boolean>(false);
 
-  const { t } = useTranslation();
+  const { t } = useTranslation(["common", "profile"]);
   const fetchTweets = async () => {
     try {
       setloading(true);
@@ -85,7 +85,7 @@ export default function ProfilePage() {
           </Button>
           <div>
             <h1 className="text-xl font-bold text-white">{user.displayName}</h1>
-            <p className="text-sm text-gray-400">{userTweets.length} {t("posts")}</p>
+            <p className="text-sm text-gray-400">{userTweets.length} {t("posts", { ns: "profile" })}</p>
           </div>
         </div>
       </div>
@@ -128,7 +128,7 @@ export default function ProfilePage() {
             className="border-gray-600 text-white bg-gray-950 font-semibold rounded-full px-6"
             onClick={() => setShowEditModal(true)}
           >
-            {t("edit_profile")}
+            {t("edit_profile", { ns: "profile" })}
           </Button>
         </div>
       </div>
@@ -187,13 +187,13 @@ export default function ProfilePage() {
             value="posts"
             className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:rounded-none text-gray-400 hover:bg-gray-900/50 py-4 font-semibold"
           >
-            {t("posts")}
+            {t("posts", { ns: "profile" })}
           </TabsTrigger>
           <TabsTrigger
             value="replies"
             className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:rounded-none text-gray-400 hover:bg-gray-900/50 py-4 font-semibold"
           >
-            {t("replies")}
+            {t("replies", { ns: "profile" })}
           </TabsTrigger>
           <TabsTrigger
             value="highlights"
@@ -211,7 +211,7 @@ export default function ProfilePage() {
             value="media"
             className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:rounded-none text-gray-400 hover:bg-gray-900/50 py-4 font-semibold"
           >
-            {t("media")}
+            {t("media", { ns: "profile" })}
           </TabsTrigger>
         </TabsList>
 

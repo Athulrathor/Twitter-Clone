@@ -9,13 +9,11 @@
     "email_exists": "O e-mail já existe.",
     "session_expired": "Sua sessão expirou. Faça login novamente."
   },
-
   "email": {
     "verification_sent": "E-mail de verificação enviado.",
     "verification_success": "E-mail verificado com sucesso.",
     "verification_expired": "O link de verificação expirou."
   },
-
   "otp": {
     "sent": "OTP enviado com sucesso.",
     "verified": "OTP verificado.",
@@ -23,7 +21,6 @@
     "expired": "O OTP expirou.",
     "too_many_attempts": "Muitas tentativas de OTP."
   },
-
   "tweet": {
     "posting": "Publicando...",
     "posted": "Publicação feita com sucesso.",
@@ -34,29 +31,25 @@
     "bookmarked": "Adicionado aos favoritos.",
     "bookmark_removed": "Removido dos favoritos."
   },
-
   "reply": {
     "posted": "Resposta publicada.",
     "deleted": "Resposta excluída."
   },
-
   "comment": {
     "added": "Comentário adicionado.",
     "deleted": "Comentário excluído."
   },
-
   "profile": {
     "updated": "Perfil atualizado com sucesso.",
     "image_updated": "Foto de perfil atualizada.",
     "cover_updated": "Foto de capa atualizada."
   },
-
   "password": {
     "changed": "Senha atualizada com sucesso.",
     "reset_sent": "E-mail de redefinição enviado.",
-    "reset_success": "Senha redefinida com sucesso."
+    "reset_success": "Senha redefinida com sucesso.",
+    "reset_failed": "Falha ao redefinir a senha."
   },
-
   "audio": {
     "uploading": "Enviando áudio...",
     "uploaded": "Áudio enviado com sucesso.",
@@ -67,7 +60,6 @@
     "size": "O áudio excede 100 MB.",
     "unsupported": "Formato de áudio não suportado."
   },
-
   "image": {
     "uploading": "Enviando imagem...",
     "uploaded": "Imagem enviada com sucesso.",
@@ -76,12 +68,10 @@
     "size": "A imagem excede o tamanho máximo.",
     "unsupported": "Formato de imagem não suportado."
   },
-
   "follow": {
     "following": "Agora você está seguindo {{name}}.",
     "unfollowed": "Você deixou de seguir {{name}}."
   },
-
   "security": {
     "permission": "Você não tem permissão para realizar esta ação.",
     "logout_others": "Sessão encerrada em todos os outros dispositivos.",

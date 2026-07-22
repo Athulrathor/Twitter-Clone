@@ -26,6 +26,7 @@ import TwitterLogo from "../Twitterlogo";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../LanguageSwitcher";
 
 interface SidebarProps {
   currentPage?: string;
@@ -143,6 +144,8 @@ return mobile ? (
           {t("subscription")}
         </DropdownMenuItem>
 
+        <LanguageSwitcher />
+
         <DropdownMenuItem
           onClick={() => logout(sessionId as string)}
           className="text-red-400 hover:bg-red-500/10 focus:bg-red-500/10 cursor-pointer"
@@ -221,6 +224,7 @@ return mobile ? (
                 <Bookmark className="mr-2 h-4 w-4" />
                 {t("subscription")}
               </DropdownMenuItem>
+              <LanguageSwitcher />
               <DropdownMenuItem
                 onClick={() => logout(sessionId as string)}
               >

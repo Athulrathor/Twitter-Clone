@@ -9,13 +9,11 @@
     "email_exists": "该电子邮箱已存在。",
     "session_expired": "登录已过期，请重新登录。"
   },
-
   "email": {
     "verification_sent": "验证邮件已发送。",
     "verification_success": "邮箱验证成功。",
     "verification_expired": "验证链接已过期。"
   },
-
   "otp": {
     "sent": "OTP 已成功发送。",
     "verified": "OTP 验证成功。",
@@ -23,7 +21,6 @@
     "expired": "OTP 已过期。",
     "too_many_attempts": "OTP 尝试次数过多。"
   },
-
   "tweet": {
     "posting": "正在发布帖子...",
     "posted": "帖子发布成功。",
@@ -34,29 +31,25 @@
     "bookmarked": "已添加到书签。",
     "bookmark_removed": "已从书签中移除。"
   },
-
   "reply": {
     "posted": "回复已发布。",
     "deleted": "回复已删除。"
   },
-
   "comment": {
     "added": "评论已添加。",
     "deleted": "评论已删除。"
   },
-
   "profile": {
     "updated": "个人资料更新成功。",
     "image_updated": "头像更新成功。",
     "cover_updated": "封面图片更新成功。"
   },
-
   "password": {
     "changed": "密码更新成功。",
     "reset_sent": "密码重置邮件已发送。",
-    "reset_success": "密码重置成功。"
+    "reset_success": "密码重置成功。",
+    "reset_failed": "重置密码失败。"
   },
-
   "audio": {
     "uploading": "正在上传音频...",
     "uploaded": "音频上传成功。",
@@ -67,7 +60,6 @@
     "size": "音频大小超过 100MB。",
     "unsupported": "不支持的音频格式。"
   },
-
   "image": {
     "uploading": "正在上传图片...",
     "uploaded": "图片上传成功。",
@@ -76,12 +68,10 @@
     "size": "图片大小超过限制。",
     "unsupported": "不支持的图片格式。"
   },
-
   "follow": {
     "following": "您已关注 {{name}}。",
     "unfollowed": "您已取消关注 {{name}}。"
   },
-
   "security": {
     "permission": "您没有执行此操作的权限。",
     "logout_others": "已退出其他所有设备。",

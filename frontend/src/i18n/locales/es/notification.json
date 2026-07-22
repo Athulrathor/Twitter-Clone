@@ -6,56 +6,48 @@
     "permission_denied": "Las notificaciones están bloqueadas.",
     "permission_default": "Permite las notificaciones del navegador."
   },
-
   "tweet": {
     "title": "Nueva publicación",
     "body": "{{name}} publicó una nueva publicación."
   },
-
   "reply": {
     "title": "Nueva respuesta",
     "body": "{{name}} respondió a tu publicación."
   },
-
   "mention": {
     "title": "Nueva mención",
     "body": "{{name}} te mencionó en una publicación."
   },
-
   "like": {
     "title": "Nuevo Me gusta",
     "body": "{{name}} indicó que le gusta tu publicación."
   },
-
   "repost": {
     "title": "Nueva republicación",
     "body": "{{name}} republicó tu publicación."
   },
-
   "follow": {
     "title": "Nuevo seguidor",
     "body": "{{name}} comenzó a seguirte."
   },
-
   "message": {
     "title": "Nuevo mensaje",
     "body": "{{name}} te envió un mensaje."
   },
-
   "comment": {
     "title": "Nuevo comentario",
     "body": "{{name}} comentó tu publicación."
   },
-
   "security": {
     "login": "Se detectó un nuevo inicio de sesión.",
     "password_changed": "Tu contraseña ha sido cambiada.",
     "email_verified": "Tu correo electrónico ha sido verificado."
   },
-
   "system": {
     "maintenance": "Se está realizando un mantenimiento programado.",
     "offline": "Actualmente estás sin conexión.",
     "online": "Has vuelto a estar en línea."
-  }
+  },
+  "mark_all_read": "Marcar todo como leído",
+  "no_notifications": "Aún no hay notificaciones."
 }

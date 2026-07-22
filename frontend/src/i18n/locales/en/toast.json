@@ -9,13 +9,11 @@
     "email_exists": "Email already exists.",
     "session_expired": "Session expired. Please login again."
   },
-
   "email": {
     "verification_sent": "Verification email sent.",
     "verification_success": "Email verified successfully.",
     "verification_expired": "Verification link has expired."
   },
-
   "otp": {
     "sent": "OTP sent successfully.",
     "verified": "OTP verified.",
@@ -23,7 +21,6 @@
     "expired": "OTP has expired.",
     "too_many_attempts": "Too many OTP attempts."
   },
-
   "tweet": {
     "posting": "Posting tweet...",
     "posted": "Tweet posted successfully.",
@@ -34,29 +31,25 @@
     "bookmarked": "Added to bookmarks.",
     "bookmark_removed": "Removed from bookmarks."
   },
-
   "reply": {
     "posted": "Reply posted.",
     "deleted": "Reply deleted."
   },
-
   "comment": {
     "added": "Comment added.",
     "deleted": "Comment deleted."
   },
-
   "profile": {
     "updated": "Profile updated successfully.",
     "image_updated": "Profile picture updated.",
     "cover_updated": "Cover photo updated."
   },
-
   "password": {
     "changed": "Password updated successfully.",
     "reset_sent": "Password reset email sent.",
-    "reset_success": "Password reset successfully."
+    "reset_success": "Password reset successfully.",
+    "reset_failed": "Failed to reset password."
   },
-
   "audio": {
     "uploading": "Uploading audio...",
     "uploaded": "Audio uploaded successfully.",
@@ -67,7 +60,6 @@
     "size": "Audio exceeds 100MB.",
     "unsupported": "Unsupported audio format."
   },
-
   "image": {
     "uploading": "Uploading image...",
     "uploaded": "Image uploaded successfully.",
@@ -76,12 +68,10 @@
     "size": "Image exceeds maximum size.",
     "unsupported": "Unsupported image format."
   },
-
   "follow": {
     "following": "You are now following {{name}}.",
     "unfollowed": "You unfollowed {{name}}."
   },
-
   "security": {
     "permission": "You don't have permission to perform this action.",
     "logout_others": "Logged out from all other devices.",
