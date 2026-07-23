@@ -43,14 +43,13 @@ import { Server } from "socket.io";
 import { initializeSocket } from "./libs/socket.js";
 import Notification from "./models/notification.js";
 import { validateLanguage } from "./middlewares/validateLanguage.js";
+import { sendSmsOtp,VerifySmsOtp } from "./libs/sms.js";
 
 dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
-export const io = new Server(httpServer, {
-  /* options */
-});
+export const io = new Server(httpServer);
 
 initializeSocket();
 
@@ -915,6 +914,8 @@ app.post("/login/otp", otpRateLimiter, async (req, res) => {
       phoneNumber,
     } = req.body;
 
+    const language = await User.findOne({email: email}).language;
+
     if (!firebaseUid || !email || !purpose) {
       return res.status(400).json({
         success: false,
@@ -922,11 +923,19 @@ app.post("/login/otp", otpRateLimiter, async (req, res) => {
       });
     }
 
+    if (!email && !phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Email or Password is required!",
+      }); 
+    }
+
     const allowedPurposes = [
       "VERIFY_EMAIL",
       "RESET_PASSWORD",
       "CHANGE_LANGUAGE",
       "AUDIO_UPLOAD",
+      "CHANGE_LANGUAGE"
     ];
 
     if (!allowedPurposes.includes(purpose)) {
@@ -954,10 +963,14 @@ app.post("/login/otp", otpRateLimiter, async (req, res) => {
         break;
 
       case "CHANGE_LANGUAGE":
-        if (language === "fr") {
+        if (language !== "fr") {
           await sendOtpEmail(email, username, otp.otp, otp.expiresAt, purpose);
         } else {
-          await sendSmsOtp(phoneNumber, otp.otp);
+          const updateOtp = await otp.findOne({firebaseUid: firebaseUid});
+          const response = await sendSmsOtp(phoneNumber, otp.otp);
+          updateOtp.phoneSecret = response.details;
+
+          updateOtp.save();
         }
         break;
     }
@@ -980,7 +993,6 @@ app.post("/login/otp", otpRateLimiter, async (req, res) => {
 });
 app.post("/login/verify", async (req, res) => {
   const { firebaseUid, otp, purpose = "VERIFY_EMAIL", phoneNumber } = req.body;
-
   try {
     if (!firebaseUid || !otp || !purpose) {
       return res.status(400).json({
@@ -1011,10 +1023,6 @@ app.post("/login/verify", async (req, res) => {
     });
 
     switch (purpose) {
-      // =============================
-      // LOGIN EMAIL VERIFICATION
-      // =============================
-
       case "VERIFY_EMAIL": {
         const sessionBlocked = await Session.findOne({
           firebaseUid,
@@ -1077,10 +1085,6 @@ app.post("/login/verify", async (req, res) => {
         });
       }
 
-      // =============================
-      // AUDIO UPLOAD
-      // =============================
-
       case "AUDIO_UPLOAD": {
         const session = await Session.findOneAndUpdate(
           {
@@ -1114,10 +1118,6 @@ app.post("/login/verify", async (req, res) => {
         });
       }
 
-      // =============================
-      // RESET PASSWORD
-      // =============================
-
       case "RESET_PASSWORD":
         return res.status(200).json({
           success: true,
@@ -1125,10 +1125,6 @@ app.post("/login/verify", async (req, res) => {
           purpose,
           message: "OTP verified. Continue password reset.",
         });
-
-      // =============================
-      // CHANGE LANGUAGE
-      // =============================
 
       case "CHANGE_LANGUAGE": {
         await User.findOneAndUpdate(
@@ -1146,17 +1142,12 @@ app.post("/login/verify", async (req, res) => {
         });
       }
 
-      // =============================
-      // DEFAULT
-      // =============================
-
       default:
         return res.status(400).json({
           success: false,
           message: "Unsupported OTP purpose.",
         });
     }
-
   } catch (error) {
     console.error(error);
 
@@ -1714,39 +1705,52 @@ app.get(
   },
 );
 // current language
-app.get("/user/language",verifyFirebaseToken, validateLanguage, async (req, res) => {
-  try {
-    const user = await User.findOne({
-      email: req.user.email,
-    }).select("language");
+app.get(
+  "/user/language",
+  verifyFirebaseToken,
+  validateLanguage,
+  async (req, res) => {
+    try {
+      const user = await User.findOne({
+        email: req.user.email,
+      }).select("language");
 
-    return res.json({
-      success: true,
-      language: user.language,
-    });
-  } catch (err) {
-    console.error(err)
-    return res.status(500).json({
-      success: false,
-      message: "Unable to fetch language.",
-    });
-  }
-});
+      return res.json({
+        success: true,
+        language: user.language,
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({
+        success: false,
+        message: "Unable to fetch language.",
+      });
+    }
+  },
+);
 // update language
-app.patch("/user/language",verifyFirebaseToken, validateLanguage, async (req, res) => {
-  try {
-    await User.findOneAndUpdate({
-      email: req.user.email,
-    },{$set: {language: req.body.language}});
+app.patch(
+  "/user/language",
+  verifyFirebaseToken,
+  validateLanguage,
+  async (req, res) => {
+    try {
+      await User.findOneAndUpdate(
+        {
+          email: req.user.email,
+        },
+        { $set: { language: req.body.language } },
+      );
 
-    return res.json({
-      success: true,
-    });
-  } catch (err) {
-    console.error(err)
-    return res.status(500).json({
-      success: false,
-      message: "Unable to patch language.",
-    });
-  }
-});
+      return res.json({
+        success: true,
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({
+        success: false,
+        message: "Unable to patch language.",
+      });
+    }
+  },
+);

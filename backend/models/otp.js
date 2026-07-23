@@ -31,10 +31,16 @@ const otpSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
+
+  phoneSecret: {
+    type: String,
+    default: null,
+    
+  },
   
   purpose: {
     type: String,
-    enum: [ "VERIFY_EMAIL", "AUDIO_UPLOAD"],
+    enum: [ "VERIFY_EMAIL", "AUDIO_UPLOAD","CHANGE_LANGUAGE"],
     required: true,
   },
 },{timestamps: true});

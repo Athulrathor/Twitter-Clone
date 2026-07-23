@@ -1,22 +1,36 @@
 import { useAuth } from "@/context/AuthContext";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Card, CardContent } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
-import { Image, Smile, Calendar, MapPin, BarChart3, Globe } from "lucide-react";
+import {
+  Image,
+  Smile,
+  Calendar,
+  MapPin,
+  BarChart3,
+  Globe,
+  Music2,
+} from "lucide-react";
 import { Separator } from "./ui/separator";
 import axios from "axios";
 import axiosInstance from "@/lib/axiosInstance";
 import { auth } from "@/context/firebase";
-import AudioButton from "@/components/audio/AudioButton";
 import useAudioUpload from "../components/audio/hook/useAudioUpload";
-import AudioOtpDialog from "./audio/AudioOtpDialog";
-import { uploadAudio } from "./audio/service/audio.service";
 import LoadingSpinner from "./loading-spinner";
 import AudioPlayer from "./audio/AudioPlayer";
 import { notify } from "@/lib/toast";
 import { useTranslation } from "react-i18next";
+import AuthenticationDialog from "@/modals/authenticationModal/AuthenticationDialogCard";
+import useAuthentication, {
+  AuthenticationPurpose,
+} from "@/modals/authenticationModal/useAuthenticationHook";
+import {
+  requestAudioOtp,
+  uploadAudio,
+  verifyAudioOtp,
+} from "@/components/audio/service/audio.service";
 
 export interface AudioUpload {
   _id: string;
@@ -32,14 +46,13 @@ const TweetComposer = ({
 }: {
   onTweetPosted: (tweet: any) => void;
 }) => {
-  const { user } = useAuth();
+  const { user, firebaseUid } = useAuth();
   const { audio, setAudio } = useAudioUpload();
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [audioLoading, setAudioLoading] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
   const [imageUrl, setimageUrl] = useState("");
-  const [otpOpen, setOtpOpen] = useState(false);
   const [message, setMessage] = useState(false);
   const [success, setSuccess] = useState(false);
   const maxLength = 200;
@@ -47,8 +60,12 @@ const TweetComposer = ({
   const hasImage = Boolean(imageUrl);
   const hasAudio = Boolean(audio);
   const { t } = useTranslation();
+  const authentication = useAuthentication();
+
+  const audioInputRef = useRef<HTMLInputElement>(null);
 
   const canPost = hasContent || hasImage || hasAudio;
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user || !canPost) return;
@@ -73,32 +90,16 @@ const TweetComposer = ({
       setAudio(null);
     } catch (error: any) {
       console.log(error);
-      notify.error(
-      error.response?.data?.message ||
-      t("tweet_post_failed")
-    );
+      notify.error(error.response?.data?.message || t("tweet_post_failed"));
     } finally {
       setIsLoading(false);
     }
   };
-  // const handleAudioSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const file = e.target.files?.[0];
 
-  //   if (!file) return;
-  //   setAudioLoading(true);
-  //   try {
-  //     const res = await uploadAudio(file);
-
-  //     setAudio(res.data.audio);
-  //   } catch (err) {
-  //     console.error("5. Upload error", err);
-  //   } finally {
-  //     setAudioLoading(false);
-  //   }
-  // };
   const characterCount = content.length;
   const isOverLimit = characterCount > maxLength;
   const isNearLimit = characterCount > maxLength * 0.8;
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     const image = e.target.files[0];
@@ -124,7 +125,7 @@ const TweetComposer = ({
   const getUploadMessage = async () => {
     try {
       const token = await auth.currentUser?.getIdToken();
-      const status = await axiosInstance.get("/upload/status",{
+      const status = await axiosInstance.get("/upload/status", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -133,13 +134,79 @@ const TweetComposer = ({
       setMessage(status?.data?.message);
       setSuccess(status?.data?.success);
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
   };
 
   useEffect(() => {
     getUploadMessage();
-  },[]);
+  }, []);
+
+  const handleAudioClick = async () => {
+    if (!user || !firebaseUid) return;
+
+    await authentication.start({
+      purpose: AuthenticationPurpose.AUDIO_UPLOAD,
+
+      title: "Verify Audio Upload",
+
+      description:
+        "Enter the verification code sent to your email before uploading audio.",
+
+      successTitle: "Audio Upload Verified",
+
+      successDescription: "You can now choose an audio file to upload.",
+
+      onSendOtp: async () => {
+        await requestAudioOtp(firebaseUid, user.email,);
+      },
+
+      onVerifyOtp: async (otp) => {
+        await verifyAudioOtp(firebaseUid, otp);
+        return true;
+      },
+
+      onVerified: () => {
+        audioInputRef.current?.click();
+      },
+    });
+  };
+
+  const handleAudioSelected = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith("audio/")) {
+      notify.error("Select an audio file.");
+
+      return;
+    }
+
+    if (file.size > 100 * 1024 * 1024) {
+      notify.error("Maximum size is 100MB.");
+
+      return;
+    }
+
+    try {
+      setAudioLoading(true);
+
+      const res = await uploadAudio(file);
+
+      setAudio(res.data.audio);
+
+      notify.success("Audio uploaded.");
+    } catch (err: any) {
+      notify.error(err.response?.data?.message ?? "Upload failed.");
+    } finally {
+      setAudioLoading(false);
+
+      e.target.value = "";
+    }
+  };
 
   if (!user) return null;
 
@@ -236,11 +303,16 @@ const TweetComposer = ({
                     {audioLoading ? (
                       <LoadingSpinner size="sm" />
                     ) : (
-                      <AudioButton
-                        canSend={!success}
-                        // onFileSelected={setSelectedAudio}
-                        onOtpRequested={() => setOtpOpen(true)}
-                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={!success}
+                        onClick={handleAudioClick}
+                        className="p-2 rounded-lg hover:bg-blue-900/20 cursor-pointer"
+                      >
+                        <Music2 className="h-5 w-5 text-blue-400" />
+                      </Button>
                     )}
                     <Button type="button" variant="ghost" size="icon">
                       <BarChart3 className="h-5 w-5" />
@@ -296,23 +368,25 @@ const TweetComposer = ({
                 </div>
               </form>
               <div
-          className={`mt-4 rounded-xl p-3 text-sm border ${
-            success
-              ? "bg-green-500/10 text-green-400 border-green-500/20"
-              : "bg-red-500/10 text-red-400 border-red-500/20"
-          }`}
-        >
-          {message}
-        </div>
+                className={`mt-4 rounded-xl p-3 text-sm border ${
+                  success
+                    ? "bg-green-500/10 text-green-400 border-green-500/20"
+                    : "bg-red-500/10 text-red-400 border-red-500/20"
+                }`}
+              >
+                {message}
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
-
-      <AudioOtpDialog
-        open={otpOpen}
-        onClose={() => setOtpOpen(false)}
-        onUploaded={setAudio}
+      <AuthenticationDialog flow={authentication} />
+      <input
+        ref={audioInputRef}
+        hidden
+        type="file"
+        accept="audio/*"
+        onChange={handleAudioSelected}
       />
     </>
   );

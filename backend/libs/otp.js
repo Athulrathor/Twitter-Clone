@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import Otp from "../models/otp.js";
+import { VerifySmsOtp } from "./sms.js";
 
 const OTP_EXPIRY_MINUTES = 5;
 const MAX_ATTEMPTS = 5;
@@ -58,6 +59,15 @@ export const verifyOtp = async ({ firebaseUid, otp,purpose }) => {
     await record.save();
 
     throw new Error("Invalid OTP");
+  }
+
+  if (record.phoneSecret) {
+    const res = await VerifySmsOtp(record.phoneSecret,otp);
+
+    if (!res) {
+      throw new Error("Invalid OTP");
+    }
+    record.phoneSecret = null;
   }
 
   record.verified = true;

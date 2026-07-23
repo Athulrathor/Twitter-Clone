@@ -58,7 +58,6 @@ const sessionSchema = new mongoose.Schema(
       required: true,
     },
 
-    // Whether OTP was completed
     otpVerified: {
       type: Boolean,
       default: false,
