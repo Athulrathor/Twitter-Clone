@@ -39,55 +39,55 @@ export default function Sidebar({
   onNavigate,
   mobile,
 }: SidebarProps) {
-  const { user, logout,sessionId } = useAuth();
+  const { user, logout, sessionId } = useAuth();
 
   const router = useRouter();
   const { t } = useTranslation();
 
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
 
-const navigation = [
-  {
-    page: "home",
-    icon: Home,
-    current: currentPage === "home",
-  },
-  {
-    page: "explore",
-    icon: Search,
-    current: currentPage === "explore",
-  },
-  {
-    page: "notifications",
-    icon: Bell,
-    current: currentPage === "notifications",
-  },
-  {
-    page: "messages",
-    icon: Mail,
-    current: currentPage === "messages",
-  },
-  {
-    page: "bookmarks",
-    icon: Bookmark,
-    current: currentPage === "bookmarks",
-  },
-  {
-    page: "profile",
-    icon: User,
-    current: currentPage === "profile",
-  },
-];
+  const navigation = [
+    {
+      page: "home",
+      icon: Home,
+      current: currentPage === "home",
+    },
+    {
+      page: "explore",
+      icon: Search,
+      current: currentPage === "explore",
+    },
+    {
+      page: "notifications",
+      icon: Bell,
+      current: currentPage === "notifications",
+    },
+    {
+      page: "messages",
+      icon: Mail,
+      current: currentPage === "messages",
+    },
+    {
+      page: "bookmarks",
+      icon: Bookmark,
+      current: currentPage === "bookmarks",
+    },
+    {
+      page: "profile",
+      icon: User,
+      current: currentPage === "profile",
+    },
+  ];
 
-return mobile ? (
-  <div className="flex items-center justify-around h-16 px-2">
-    {navigation.map((item) => (
-      <Button
-        key={item.page}
-        variant="ghost"
-        size="icon"
-        onClick={() => onNavigate?.(item.page)}
-        className={`
+  return mobile ? (
+    <div className="flex items-center justify-around h-16 px-2">
+      {navigation.map((item) => (
+        <Button
+          key={item.page}
+          variant="ghost"
+          size="icon"
+          onClick={() => onNavigate?.(item.page)}
+          className={`
           h-11 w-11 rounded-full
           transition-all duration-200
           hover:bg-gray-900
@@ -98,17 +98,17 @@ return mobile ? (
               : "text-gray-500 hover:text-white"
           }
         `}
-      >
-        <item.icon className="h-5 w-5" />
-      </Button>
-    ))}
+        >
+          <item.icon className="h-5 w-5" />
+        </Button>
+      ))}
 
-    <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="
             h-11 w-11 rounded-full
             text-gray-500
             transition-all duration-200
@@ -118,45 +118,45 @@ return mobile ? (
             data-[state=open]:bg-gray-900
             data-[state=open]:text-white
           "
-        >
-          <MoreHorizontal className="h-5 w-5" />
-        </Button>
-      </DropdownMenuTrigger>
+          >
+            <MoreHorizontal className="h-5 w-5" />
+          </Button>
+        </DropdownMenuTrigger>
 
-      <DropdownMenuContent
-        side="top"
-        align="end"
-        className="w-56 bg-black border-gray-800 text-white"
-      >
-        <DropdownMenuItem
-          onClick={() => router.push("security")}
-          className="hover:bg-gray-900 focus:bg-gray-900 cursor-pointer"
+        <DropdownMenuContent
+          side="top"
+          align="end"
+          className="w-56 bg-black border-gray-800 text-white"
         >
-          <Shield className="mr-2 h-4 w-4" />
-          {t("security")}
-        </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => router.push("security")}
+            className="hover:bg-gray-900 focus:bg-gray-900 cursor-pointer"
+          >
+            <Shield className="mr-2 h-4 w-4" />
+            {t("security")}
+          </DropdownMenuItem>
 
-        <DropdownMenuItem
-          onClick={() => router.push(`subscriptions/${user?._id}`)}
-          className="hover:bg-gray-900 focus:bg-gray-900 cursor-pointer"
-        >
-          <Bookmark className="mr-2 h-4 w-4" />
-          {t("subscription")}
-        </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => router.push(`subscriptions/${user?._id}`)}
+            className="hover:bg-gray-900 focus:bg-gray-900 cursor-pointer"
+          >
+            <Bookmark className="mr-2 h-4 w-4" />
+            {t("subscription")}
+          </DropdownMenuItem>
 
-        <LanguageSwitcher />
+          <LanguageSwitcher />
 
-        <DropdownMenuItem
-          onClick={() => logout(sessionId as string)}
-          className="text-red-400 hover:bg-red-500/10 focus:bg-red-500/10 cursor-pointer"
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          {t("logout")}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  </div>
-) : (
+          <DropdownMenuItem
+            onClick={() => logout(sessionId as string)}
+            className="text-red-400 hover:bg-red-500/10 focus:bg-red-500/10 cursor-pointer"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            {t("logout")}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  ) : (
     <div className="flex flex-col h-screen bg-black mt-3">
       {/* Logo */}
       <div className="p-2 max-lg:p-0 max-lg:m-auto flex items-center justify-start">
@@ -225,9 +225,7 @@ return mobile ? (
                 {t("subscription")}
               </DropdownMenuItem>
               <LanguageSwitcher />
-              <DropdownMenuItem
-                onClick={() => logout(sessionId as string)}
-              >
+              <DropdownMenuItem onClick={() => logout(sessionId as string)}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span className="text-white">{t("logout")}</span>
               </DropdownMenuItem>

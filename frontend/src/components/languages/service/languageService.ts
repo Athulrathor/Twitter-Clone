@@ -8,6 +8,8 @@ async function getToken() {
 interface RequestOtpPayload {
   firebaseUid: string;
   email: string;
+  language: string;
+  phoneNumber?: string; 
 }
 
 interface VerifyOtpPayload {
@@ -18,6 +20,8 @@ interface VerifyOtpPayload {
 export async function requestLanguageOtp({
   firebaseUid,
   email,
+  language,
+  phoneNumber,
 }: RequestOtpPayload) {
   const token = await getToken();
 
@@ -26,7 +30,9 @@ export async function requestLanguageOtp({
     {
       firebaseUid,
       email,
+      language,
       purpose: "CHANGE_LANGUAGE",
+      phoneNumber,
     },
     {
       headers: {

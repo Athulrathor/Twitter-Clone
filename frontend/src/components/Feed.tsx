@@ -11,11 +11,13 @@ import { useAuth } from "@/context/AuthContext";
 import { auth } from "@/context/firebase";
 import { notify } from "@/lib/toast";
 import { useTranslation } from "react-i18next";
+import useAuthentication from "@/modals/authenticationModal/useAuthenticationHook";
 
 const Feed = () => {
   const [tweets, setTweets] = useState<any>([]);
   const [loading, setloading] = useState(false);
-  const { user } = useAuth();
+  const { user, firebaseUid } = useAuth();
+  const phoneAuth = useAuthentication();
   const { t } = useTranslation();
   const fetchTweets = async () => {
     try {
@@ -33,6 +35,7 @@ const Feed = () => {
       setloading(false);
     }
   };
+
   useEffect(() => {
     fetchTweets();
   }, []);
@@ -73,17 +76,21 @@ const Feed = () => {
       <div className="w-full">
         <Card className="bg-gray-900 border-gray-800 m-4 xl:hidden">
           <CardContent className="p-2 flex justify-evenly max-sm:flex-wrap">
-            <div><h3 className="text-white text-xl font-bold mb-2">
-              {t("subscribe_premium")}
-            </h3>
-            <p className="text-gray-400 text-sm mb-4 max-md:hidden">
-              {t("subscribe_description")}
-            </p></div>
-            <div className="flex items-center"><Link  href={`/subscriptions/${user?._id}`}>
-              <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-full">
-                {t("subscribe_now")}
-              </Button>
-            </Link></div>
+            <div>
+              <h3 className="text-white text-xl font-bold mb-2">
+                {t("subscribe_premium")}
+              </h3>
+              <p className="text-gray-400 text-sm mb-4 max-md:hidden">
+                {t("subscribe_description")}
+              </p>
+            </div>
+            <div className="flex items-center">
+              <Link href={`/subscriptions/${user?._id}`}>
+                <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-full">
+                  {t("subscribe_now")}
+                </Button>
+              </Link>
+            </div>
           </CardContent>
         </Card>
         <TweetComposer onTweetPosted={handlenewtweet} />

@@ -3,6 +3,7 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import AuthenticationHeader from "./AuthenticationHeader";
+import AuthenticationPhone from "./AuthenticationPhone";
 import AuthenticationVerify from "./AuthenticationVerify";
 import AuthenticationLoading from "./AuthenticationLoading";
 import AuthenticationSuccess from "./AuthenticationSuccess";
@@ -27,42 +28,26 @@ export default function AuthenticationDialog({ flow }: Props) {
           description={flow.request?.description}
         />
 
-        {flow.state === "sending" && <AuthenticationLoading />}
+        {flow.state === "phone" && (
+          <AuthenticationPhone flow={flow} />
+        )}
 
-        {flow.state === "otp" && <AuthenticationVerify flow={flow} />}
+        {flow.state === "sending" && (
+          <AuthenticationLoading />
+        )}
 
-        {flow.state === "verifying" && <AuthenticationLoading />}
+        {flow.state === "otp" && (
+          <AuthenticationVerify flow={flow} />
+        )}
 
-        {flow.state === "success" && <AuthenticationSuccess flow={flow} />}
+        {flow.state === "verifying" && (
+          <AuthenticationLoading />
+        )}
+
+        {flow.state === "success" && (
+          <AuthenticationSuccess flow={flow} />
+        )}
       </DialogContent>
     </Dialog>
   );
 }
-
-//   auth.start({
-//     action: "language",
-//     title: "Change Language",
-//     description: "Verify before changing language.",
-//     confirmText: "Continue",
-//     onVerified: () => {
-//       setLanguageDialog(true);
-//     },
-//   });
-
-// auth.start({
-//   action: "verify-email",
-//   title: "Verify Email",
-//   description: "Verify your email address.",
-//   onVerified: async () => {
-//     await sendVerificationCode();
-//   },
-// });
-
-// auth.start({
-//   action: "audio-upload",
-//   title: "Upload Audio",
-//   description: "Verify before uploading audio.",
-//   onVerified: () => {
-//     fileInputRef.current?.click();
-//   },
-// });

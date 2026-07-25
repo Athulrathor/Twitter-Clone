@@ -50,9 +50,10 @@ interface LanguageSelectionDialogProps {
   currentLanguage: LanguageCode;
   loading?: boolean;
   onClose: () => void;
+
   onApply: (
     language: LanguageCode,
-  ) => Promise<void>;
+  ) => void | Promise<void>;
 }
 
 export default function LanguageSelectionDialog({
@@ -88,9 +89,7 @@ export default function LanguageSelectionDialog({
       }}
     >
       <DialogContent className="sm:max-w-md">
-
         <DialogHeader>
-
           <DialogTitle className="flex items-center gap-2">
             <Languages className="h-5 w-5" />
             Choose Language
@@ -99,18 +98,14 @@ export default function LanguageSelectionDialog({
           <DialogDescription>
             Select your preferred language for the application.
           </DialogDescription>
-
         </DialogHeader>
 
         <div className="space-y-2 py-2">
-
           {LANGUAGE_OPTIONS.map((language) => (
             <button
               key={language.code}
               type="button"
-              onClick={() =>
-                setSelected(language.code)
-              }
+              onClick={() => setSelected(language.code)}
               className={cn(
                 "flex w-full items-center justify-between rounded-lg border px-4 py-3 transition-colors",
                 selected === language.code
@@ -118,7 +113,6 @@ export default function LanguageSelectionDialog({
                   : "hover:bg-muted"
               )}
             >
-
               <span className="font-medium">
                 {language.label}
               </span>
@@ -126,14 +120,11 @@ export default function LanguageSelectionDialog({
               {selected === language.code && (
                 <Check className="h-5 w-5 text-primary" />
               )}
-
             </button>
           ))}
-
         </div>
 
         <DialogFooter>
-
           <Button
             variant="outline"
             onClick={onClose}
@@ -149,11 +140,9 @@ export default function LanguageSelectionDialog({
             }
             onClick={handleApply}
           >
-            {loading ? "Applying..." : "Apply"}
+            {loading ? "Please wait..." : "Continue"}
           </Button>
-
         </DialogFooter>
-
       </DialogContent>
     </Dialog>
   );

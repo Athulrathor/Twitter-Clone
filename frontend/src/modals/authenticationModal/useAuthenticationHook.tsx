@@ -3,19 +3,21 @@
 import { useCallback, useState } from "react";
 
 export enum AuthenticationPurpose {
-  AUDIO_UPLOAD = "AUDIO_UPLOAD",
   VERIFY_EMAIL = "VERIFY_EMAIL",
+  AUDIO_UPLOAD = "AUDIO_UPLOAD",
   CHANGE_LANGUAGE = "CHANGE_LANGUAGE",
+  PHONE_VERIFICATION = "PHONE_VERIFICATION",
 }
 
 export type AuthenticationState =
   | "idle"
+  | "phone"
   | "sending"
   | "otp"
   | "verifying"
   | "success";
 
-export interface AuthenticationRequest {
+export interface AuthenticationRequest<T = unknown> {
   purpose: AuthenticationPurpose;
   title: string;
   description: string;
@@ -23,9 +25,20 @@ export interface AuthenticationRequest {
   successDescription?: string;
   confirmText?: string;
   cancelText?: string;
-  onSendOtp: () => Promise<void>;
-  onVerifyOtp: (otp: string) => Promise<boolean>;
-  onVerified?: () => Promise<void> | void;
+
+  /**
+   * Any extra data needed for this authentication.
+   * Examples:
+   * - phone number
+   * - selected language
+   * - email
+   */
+
+  phoneNumber?: string;
+  payload?: T;
+  onSendOtp: (payload?: T) => Promise<void>;
+  onVerifyOtp: (otp: string, payload?: T) => Promise<boolean>;
+  onVerified?: (payload?: T) => Promise<void> | void;
   onCancel?: () => void;
 }
 
@@ -34,6 +47,9 @@ interface UseAuthenticationReturn {
   state: AuthenticationState;
   request: AuthenticationRequest | null;
   otp: string;
+  phoneNumber: string;
+  setPhoneNumber: React.Dispatch<React.SetStateAction<string>>;
+  sendPhoneOtp: () => Promise<void>;
   setOtp: React.Dispatch<React.SetStateAction<string>>;
   error: string;
   start: (request: AuthenticationRequest) => Promise<void>;
@@ -47,13 +63,12 @@ const SUCCESS_DELAY = 800;
 
 export default function useAuthentication(): UseAuthenticationReturn {
   const [open, setOpen] = useState(false);
-  const [state, setState] =
-    useState<AuthenticationState>("idle");
+  const [state, setState] = useState<AuthenticationState>("idle");
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
 
-  const [request, setRequest] =
-    useState<AuthenticationRequest | null>(null);
+  const [request, setRequest] = useState<AuthenticationRequest | null>(null);
 
   const reset = useCallback(() => {
     setOpen(false);
@@ -61,6 +76,7 @@ export default function useAuthentication(): UseAuthenticationReturn {
     setOtp("");
     setError("");
     setRequest(null);
+    setPhoneNumber("");
   }, []);
 
   const close = useCallback(() => {
@@ -74,65 +90,99 @@ export default function useAuthentication(): UseAuthenticationReturn {
 
   const start = useCallback(
     async (request: AuthenticationRequest) => {
+      setRequest(request);
+      setOpen(true);
+      setOtp("");
+      setError("");
+
+      if (request.purpose === AuthenticationPurpose.PHONE_VERIFICATION) {
+        setPhoneNumber(request.phoneNumber ?? "");
+        setState("phone");
+        return;
+      }
+
       try {
-        setRequest(request);
-        setOpen(true);
-        setError("");
-        setOtp("");
         setState("sending");
-        await request.onSendOtp();
+        await request.onSendOtp(request.payload);
         setState("otp");
       } catch (err: any) {
         console.error(err);
         setError(
-          err?.response?.data?.message ??
-            "Unable to send verification code."
+          err?.response?.data?.message ?? "Unable to send verification code.",
         );
         reset();
       }
     },
-    [reset]
+    [reset],
   );
+
+  const sendPhoneOtp = useCallback(async () => {
+    if (!request) return;
+
+    try {
+      setError("");
+      setState("sending");
+
+      request.phoneNumber = phoneNumber;
+
+      await request.onSendOtp({
+        ...(request.payload as object),
+        phoneNumber,
+      });
+
+      setState("otp");
+    } catch (err: any) {
+      console.error(err);
+
+      setError(
+        err?.response?.data?.message ?? "Unable to send verification code.",
+      );
+
+      setState("phone");
+    }
+  }, [phoneNumber, request]);
 
   const verify = useCallback(async () => {
     if (!request) return;
     try {
       setError("");
       setState("verifying");
-      const verified =
-        await request.onVerifyOtp(otp);
+      const verified = await request.onVerifyOtp(otp);
       if (!verified) {
         setState("otp");
         setError("Invalid verification code.");
         return;
       }
       setState("success");
-      await new Promise((resolve) =>
-        setTimeout(resolve, SUCCESS_DELAY)
-      );
+      await new Promise((resolve) => setTimeout(resolve, SUCCESS_DELAY));
       await request.onVerified?.();
       reset();
     } catch (err: any) {
       console.error(err);
-      setError(
-        err?.response?.data?.message ??
-          "Verification failed."
-      );
+      setError(err?.response?.data?.message ?? "Verification failed.");
       setState("otp");
     }
   }, [otp, request, reset]);
 
   return {
-    open,
+  open,
   state,
   request,
+
   otp,
   setOtp,
+
+  phoneNumber,
+  setPhoneNumber,
+
   error,
+
   start,
+  sendPhoneOtp,
   verify,
+
   cancel,
   close,
   reset,
-  };
+};
 }

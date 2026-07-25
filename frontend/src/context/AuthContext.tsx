@@ -22,6 +22,8 @@ interface User {
   _id: string;
   username: string;
   displayName: string;
+  phoneNumber: string;
+  phoneVerified: string;
   avatar: string;
   bio?: string;
   joinedDate: string;

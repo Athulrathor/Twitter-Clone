@@ -22,7 +22,7 @@ export const createOtp = async ({ firebaseUid, email,purpose }) => {
 
   const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
 
-  await Otp.create({
+  const res = await Otp.create({
     firebaseUid,
     email,
     otpHashed: otpHash,
@@ -30,7 +30,7 @@ export const createOtp = async ({ firebaseUid, email,purpose }) => {
     purpose,
   });
 
-  return {otp,expiresAt};
+  return {_id: res._id, otp, expiresAt};
 };
 
 export const verifyOtp = async ({ firebaseUid, otp,purpose }) => {

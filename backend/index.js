@@ -9,6 +9,7 @@ import Payment from "./models/payment.js";
 import Subscription from "./models/subcriptions.js";
 import Session from "./models/session.js";
 import Audio from "./models/audioTweet.js";
+import Otp from "./models/otp.js";
 import crypto from "crypto";
 import Rzp from "./libs/paymentRazorpay.js";
 import { generateInvoice } from "./libs/generateInvoice.js";
@@ -912,9 +913,10 @@ app.post("/login/otp", otpRateLimiter, async (req, res) => {
       email,
       purpose = "VERIFY_EMAIL",
       phoneNumber,
+      language,
     } = req.body;
 
-    const language = await User.findOne({email: email}).language;
+    // const language = await User.findOne({email: email}).language;
 
     if (!firebaseUid || !email || !purpose) {
       return res.status(400).json({
@@ -953,8 +955,6 @@ app.post("/login/otp", otpRateLimiter, async (req, res) => {
 
     const username = email.split("@")[0];
 
-    // await sendOtpEmail(email, username, otp.otp, otp.expiresAt, otp?.purpose);
-
     switch (purpose) {
       case "VERIFY_EMAIL":
       case "AUDIO_UPLOAD":
@@ -963,14 +963,29 @@ app.post("/login/otp", otpRateLimiter, async (req, res) => {
         break;
 
       case "CHANGE_LANGUAGE":
+        if (!language) return res.status(400).json({message: "Credential missing!",success: false});
         if (language !== "fr") {
           await sendOtpEmail(email, username, otp.otp, otp.expiresAt, purpose);
         } else {
-          const updateOtp = await otp.findOne({firebaseUid: firebaseUid});
-          const response = await sendSmsOtp(phoneNumber, otp.otp);
-          updateOtp.phoneSecret = response.details;
+          if (!phoneNumber) {
+            return res.status(400).json({
+              success: false,
+              message: "phoneNumber is required for SMS verification.",
+            });
+          }
 
-          updateOtp.save();
+          const updateOtp = await Otp.findById(otp._id);
+          if (!updateOtp) {
+            return res.status(500).json({
+              success: false,
+              message: "Failed to update OTP record for SMS verification.",
+            });
+          }
+
+          const response = await sendSmsOtp(phoneNumber, otp.otp);
+          updateOtp.phoneSecret = response?.Details || response?.details || null;
+
+          await updateOtp.save();
         }
         break;
     }
@@ -1565,35 +1580,6 @@ app.post(
     }
   },
 );
-// delete audio cloudinary
-// app.delete("/delete/:audioId", verifyFirebaseToken, async (req, res) => {
-//   try {
-//     const { audioId } = req.params;
-
-//     if (!audioId) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Audio id is required.",
-//       });
-//     }
-
-//     const audio = await Audio.findById(audioId);
-
-//     await deletePath(audio.storagePath);
-
-//     return res.status(200).json({
-//       success: true,
-//       message: "Audio deleted successfully.",
-//     });
-//   } catch (error) {
-//     console.error(error);
-
-//     return res.status(500).json({
-//       success: false,
-//       message: "Failed to delete audio.",
-//     });
-//   }
-// });
 
 // get plan
 app.get("/plans", verifyFirebaseToken, async (req, res) => {
@@ -1754,3 +1740,23 @@ app.patch(
     }
   },
 );
+
+// update phone Number
+app.post("/phone", verifyFirebaseToken, async () => {
+  try {
+    const { code,number } = req.body;
+    const user = await User.findOne({email: email});
+
+    if(!user) return res.status(404).json({message: "Not found!",success: false});
+
+    user.phoneNumber = code + "-" + Number;
+    user.save();
+  } catch (error) {
+    console.error(error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Phone update failed.",
+      });
+  }
+});
