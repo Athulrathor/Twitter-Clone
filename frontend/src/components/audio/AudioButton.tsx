@@ -49,6 +49,8 @@ export default function AudioButton({
         onClick={() =>
           authVerify.start({
             purpose: AuthenticationPurpose.AUDIO_UPLOAD,
+            title: "Verify your identity",
+            description: "We’ll send a one-time code to your email to confirm it’s you before uploading audio.",
             onSendOtp: async () => {
               if (!firebaseUid || !user || !user.email) return;
               await requestAudioOtp(firebaseUid, user.email!);

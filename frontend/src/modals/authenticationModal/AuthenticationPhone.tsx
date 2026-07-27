@@ -5,15 +5,13 @@ import { Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import useAuthentication from "./useAuthenticationHook";
+import useAuthentication, { AuthenticationPurpose } from "./useAuthenticationHook";
 
 interface Props {
   flow: ReturnType<typeof useAuthentication>;
 }
 
-export default function AuthenticationPhone({
-  flow,
-}: Props) {
+export default function AuthenticationPhone({ flow }: Props) {
   return (
     <div className="space-y-5">
       <div className="flex flex-col items-center gap-2">
@@ -30,16 +28,10 @@ export default function AuthenticationPhone({
         type="tel"
         placeholder="+91 9876543210"
         value={flow.phoneNumber}
-        onChange={(e) =>
-          flow.setPhoneNumber(e.target.value)
-        }
+        onChange={(e) => flow.setPhoneNumber(e.target.value)}
       />
 
-      {!!flow.error && (
-        <p className="text-sm text-red-500">
-          {flow.error}
-        </p>
-      )}
+      {!!flow.error && <p className="text-sm text-red-500">{flow.error}</p>}
 
       <Button
         className="w-full"
@@ -49,13 +41,16 @@ export default function AuthenticationPhone({
         Send OTP
       </Button>
 
-      <Button
-        variant="outline"
-        className="w-full"
-        onClick={flow.cancel}
-      >
-        Cancel
-      </Button>
+      {flow.request?.purpose !== AuthenticationPurpose.PHONE_VERIFICATION && (
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={flow.cancel}
+          disabled={flow.state === "phone"}
+        >
+          Cancel
+        </Button>
+      )}
     </div>
   );
 }

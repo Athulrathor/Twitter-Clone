@@ -6,6 +6,7 @@ import { ReactNode } from "react";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "sonner";
+import PhoneVerificationGuard from "./PhoneVerificationQuard";
 
 export function ClientAppProviders({
   children,
@@ -15,6 +16,7 @@ export function ClientAppProviders({
   return (
     <LanguageProvider>
       <AuthProvider>
+        <PhoneVerificationGuard />
         {children}
         <Toaster richColors position="top-right" closeButton />
       </AuthProvider>

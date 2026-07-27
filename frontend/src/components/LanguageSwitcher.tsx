@@ -32,7 +32,7 @@ export default function LanguageSwitcher() {
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [selectedLanguage, setSelectedLanguage] =
-    useState<LanguageCode | null>(null);
+  useState<LanguageCode | null>(null);
 
   const handleLanguageSelected = (code: LanguageCode) => {
     if (!user || !firebaseUid) return;
@@ -56,6 +56,7 @@ export default function LanguageSwitcher() {
           firebaseUid,
           email: user.email,
           language: code,
+          purpose: AuthenticationPurpose.CHANGE_LANGUAGE
         });
       },
 
@@ -63,6 +64,7 @@ export default function LanguageSwitcher() {
         const res = await verifyLanguageOtp({
           firebaseUid,
           otp,
+          purpose: AuthenticationPurpose.CHANGE_LANGUAGE
         });
 
         return res.data.success;

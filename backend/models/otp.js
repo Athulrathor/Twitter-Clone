@@ -12,6 +12,10 @@ const otpSchema = new mongoose.Schema({
     required: true,
   },
 
+  phoneNumber: {
+    type: String,
+  },
+
   otpHashed: {
     type: String,
     required: true,
@@ -40,7 +44,7 @@ const otpSchema = new mongoose.Schema({
   
   purpose: {
     type: String,
-    enum: [ "VERIFY_EMAIL", "AUDIO_UPLOAD","CHANGE_LANGUAGE"],
+    enum: [ "VERIFY_EMAIL", "AUDIO_UPLOAD","CHANGE_LANGUAGE","PHONE_VERIFICATION"],
     required: true,
   },
 },{timestamps: true});

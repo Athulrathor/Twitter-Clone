@@ -44,7 +44,7 @@ import { Server } from "socket.io";
 import { initializeSocket } from "./libs/socket.js";
 import Notification from "./models/notification.js";
 import { validateLanguage } from "./middlewares/validateLanguage.js";
-import { sendSmsOtp,VerifySmsOtp } from "./libs/sms.js";
+import { sendSmsOtp } from "./libs/sms.js";
 
 dotenv.config();
 
@@ -912,11 +912,8 @@ app.post("/login/otp", otpRateLimiter, async (req, res) => {
       firebaseUid,
       email,
       purpose = "VERIFY_EMAIL",
-      phoneNumber,
       language,
     } = req.body;
-
-    // const language = await User.findOne({email: email}).language;
 
     if (!firebaseUid || !email || !purpose) {
       return res.status(400).json({
@@ -928,8 +925,8 @@ app.post("/login/otp", otpRateLimiter, async (req, res) => {
     if (!email && !phoneNumber) {
       return res.status(400).json({
         success: false,
-        message: "Email or Password is required!",
-      }); 
+        message: "Email or PhoneNumber is required!",
+      });
     }
 
     const allowedPurposes = [
@@ -937,7 +934,8 @@ app.post("/login/otp", otpRateLimiter, async (req, res) => {
       "RESET_PASSWORD",
       "CHANGE_LANGUAGE",
       "AUDIO_UPLOAD",
-      "CHANGE_LANGUAGE"
+      "CHANGE_LANGUAGE",
+      "PHONE_VERIFICATION",
     ];
 
     if (!allowedPurposes.includes(purpose)) {
@@ -946,6 +944,8 @@ app.post("/login/otp", otpRateLimiter, async (req, res) => {
         message: "Invalid OTP purpose.",
       });
     }
+
+    const user = await User.findOne({email: email})
 
     const otp = await createOtp({
       firebaseUid,
@@ -959,34 +959,35 @@ app.post("/login/otp", otpRateLimiter, async (req, res) => {
       case "VERIFY_EMAIL":
       case "AUDIO_UPLOAD":
       case "CHANGE_EMAIL":
-        await sendOtpEmail(email, username, otp.otp, otp.expiresAt, purpose);
+          await sendOtpEmail(email, username, otp.otp, otp.expiresAt, purpose);
         break;
 
       case "CHANGE_LANGUAGE":
-        if (!language) return res.status(400).json({message: "Credential missing!",success: false});
+        if (!language)
+          return res
+            .status(400)
+            .json({ message: "Credential missing!", success: false });
         if (language !== "fr") {
           await sendOtpEmail(email, username, otp.otp, otp.expiresAt, purpose);
         } else {
-          if (!phoneNumber) {
+          if (!user.phoneNumber) {
             return res.status(400).json({
               success: false,
               message: "phoneNumber is required for SMS verification.",
             });
           }
-
-          const updateOtp = await Otp.findById(otp._id);
-          if (!updateOtp) {
-            return res.status(500).json({
-              success: false,
-              message: "Failed to update OTP record for SMS verification.",
-            });
-          }
-
-          const response = await sendSmsOtp(phoneNumber, otp.otp);
-          updateOtp.phoneSecret = response?.Details || response?.details || null;
-
-          await updateOtp.save();
+          await sendSmsOtp(user?.phoneNumber, otp.otp);
         }
+        break;
+
+      case "PHONE_VERIFICATION":
+        if (!phoneNumber) {
+          return res.status(400).json({
+            success: false,
+            message: "phoneNumber is required for SMS verification.",
+          });
+        }
+        await sendSmsOtp(phoneNumber, otp.otp);
         break;
     }
 
@@ -1022,6 +1023,7 @@ app.post("/login/verify", async (req, res) => {
       "CHANGE_EMAIL",
       "AUDIO_UPLOAD",
       "CHANGE_LANGUAGE",
+      "PHONE_VERIFICATION",
     ];
 
     if (!allowedPurposes.includes(purpose)) {
@@ -1133,13 +1135,14 @@ app.post("/login/verify", async (req, res) => {
         });
       }
 
-      case "RESET_PASSWORD":
+      case "RESET_PASSWORD": {
         return res.status(200).json({
           success: true,
           verify,
           purpose,
           message: "OTP verified. Continue password reset.",
         });
+      }
 
       case "CHANGE_LANGUAGE": {
         await User.findOneAndUpdate(
@@ -1154,6 +1157,22 @@ app.post("/login/verify", async (req, res) => {
           purpose,
           language: req.body.language,
           message: "Language updated successfully.",
+        });
+      }
+
+      case "PHONE_VERIFICATION": {
+        await User.findOneAndUpdate(
+          { firebaseUid },
+          {
+            phoneNumber,
+          },
+        );
+
+        return res.status(200).json({
+          success: true,
+          verify,
+          purpose,
+          message: "Phone number verified successfully.",
         });
       }
 
@@ -1742,21 +1761,22 @@ app.patch(
 );
 
 // update phone Number
-app.post("/phone", verifyFirebaseToken, async () => {
+app.patch("/user/phone", verifyFirebaseToken, async (req,res) => {
   try {
-    const { code,number } = req.body;
-    const user = await User.findOne({email: email});
+    const { phoneNumber } = req.body;
+    const user = await User.findOne({ email: req.user.email });
 
-    if(!user) return res.status(404).json({message: "Not found!",success: false});
+    if (!user)
+      return res.status(404).json({ message: "Not found!", success: false });
 
-    user.phoneNumber = code + "-" + Number;
+    user.phoneNumber = phoneNumber;
     user.save();
   } catch (error) {
     console.error(error);
 
-      return res.status(500).json({
-        success: false,
-        message: "Phone update failed.",
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Phone update failed.",
+    });
   }
 });
