@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { notify } from "@/lib/toast";
 import { socket } from "@/lib/socket";
 import { requestNotificationPermission } from "@/lib/notification";
+import LoadingSpinner from "@/components/loading-spinner";
 
 interface User {
   _id: string;
@@ -277,6 +278,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       socket.off("keyword-notification", showNotification);
     };
   }, [user?.notificationEnabled]);
+
+    if (isInitializing) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-black">
+        <LoadingSpinner className="h-8 w-8 animate-spin text-white" />
+      </div>
+    );
+  }
 
   const login = async (
     email: string,

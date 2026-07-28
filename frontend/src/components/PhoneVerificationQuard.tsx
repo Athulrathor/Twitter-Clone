@@ -19,13 +19,14 @@ async function getToken() {
 }
 
 export default function PhoneVerificationGuard() {
-  const { user, firebaseUid, setUser } = useAuth();
+  const { user, firebaseUid, setUser,isInitializing } = useAuth();
 
   const auth = useAuthentication();
 
   const hasTriggered = useRef(false);
 
   useEffect(() => {
+    if (isInitializing) return;
     if (!user || !firebaseUid) return;
 
     if (hasTriggered.current) return;

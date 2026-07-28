@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { X, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 
@@ -15,6 +15,10 @@ import TwitterLogo from "./Twitterlogo";
 import Link from "next/link";
 import { notify } from "@/lib/toast";
 import { useTranslation } from "react-i18next";
+import ActionDialog from "./MobileRestrictionDialog";
+import axiosInstance from "@/lib/axiosInstance";
+import RestoreAccountDialog from "./RestoreDialogBox";
+import { useRouter } from "next/navigation";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -27,7 +31,7 @@ export default function AuthModal({
   onClose,
   initialMode = "login",
 }: AuthModalProps) {
-  const { login, signup, authLoading } = useAuth();
+  const { login, signup, authLoading, isInitializing } = useAuth();
   const [mode, setMode] = useState<"login" | "signup">(initialMode);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -38,10 +42,55 @@ export default function AuthModal({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { t } = useTranslation();
+  const [status, setStatus] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
-  // const router = useRouter();
+  const [restrictedOpen, setRestrictedOpen] = useState<boolean>(false);
 
+  const router = useRouter();
+
+  useEffect(() => {
+    async function loadStatus() {
+      const res = await axiosInstance.get("/auth/account-status");
+      setStatus(res.data.data);
+    }
+
+    loadStatus();
+  }, []);
+
+  if (isInitializing) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black">
+        <LoadingSpinner />
+      </div>
+    );
+  }
   if (!isOpen) return null;
+
+  const restoreAccount = async () => {
+    try {
+      setLoading(true);
+
+      await axiosInstance.patch("/auth/restore-account");
+
+      setStatus((prev: any) => ({
+        ...prev,
+        isDeleted: false,
+        deletedAt: null,
+        scheduledDeleteAt: null,
+      }));
+
+      notify.success("Account restored successfully.");
+
+      router.refresh();
+    } catch (error: any) {
+      notify.error(
+        error.response?.data?.message ?? "Failed to restore account.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -79,6 +128,7 @@ export default function AuthModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!validateForm() || authLoading) {
       notify.warning("Please correct the highlighted fields.");
       return;
@@ -90,8 +140,8 @@ export default function AuthModal({
         if (result?.requiresOtp) {
           notify.success("OTP sent successfully.");
         }
-          notify.success(`Welcome back ${result?.displayName}`);
-          setTimeout(() => onClose());
+        notify.success(`Welcome back ${result?.displayName}`);
+        // setTimeout(() => onClose());
       } else {
         await signup(
           formData.email,
@@ -106,18 +156,21 @@ export default function AuthModal({
       setFormData({ email: "", password: "", username: "", displayName: "" });
       setErrors({});
     } catch (error: any) {
-      const data = error.response?.data;
+      const data = error?.response?.data;
 
       switch (data?.code) {
         case "ACCOUNT_DELETED":
+          setRestrictedOpen(true);
           notify.error("Your account is scheduled for deletion.");
           break;
 
         case "MOBILE_LOGIN_TIME":
+          setRestrictedOpen(true);
           notify.error("Mobile login is allowed only between 10 AM and 1 PM.");
           break;
 
         case "LOGIN_BLOCKED":
+          setRestrictedOpen(true);
           notify.error(data.message);
           break;
 
@@ -234,7 +287,7 @@ export default function AuthModal({
 
             <div className="space-y-2">
               <Label htmlFor="email" className="text-white">
-                {t("email", {ns: "auth"})}
+                {t("email", { ns: "auth" })}
               </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -255,7 +308,7 @@ export default function AuthModal({
 
             <div className="space-y-2">
               <Label htmlFor="password" className="text-white">
-                {t("password", {ns: "auth"})}
+                {t("password", { ns: "auth" })}
               </Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -359,6 +412,24 @@ export default function AuthModal({
           )}
         </CardContent>
       </Card>
+      <ActionDialog
+        open={restrictedOpen}
+        variant="warning"
+        preventClose
+        title="Mobile Login Disabled"
+        description="Mobile login is available only between 10:00 AM and 1:00 PM."
+        primaryAction={{
+          label: "I Understand",
+          onClick: () => setRestrictedOpen(false),
+        }}
+      />
+      <RestoreAccountDialog
+        open={Boolean(status?.isDeleted)}
+        deletedAt={status?.deletedAt}
+        scheduledDeleteAt={status?.scheduledDeleteAt}
+        loading={loading}
+        onRestore={restoreAccount}
+      />
     </div>
   );
 }
