@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  AlertTriangle,
-  RefreshCcw,
-} from "lucide-react";
+import { AlertTriangle, RefreshCcw } from "lucide-react";
 
 import {
   Dialog,
@@ -32,10 +29,11 @@ export default function RestoreAccountDialog({
   onRestore,
 }: RestoreAccountDialogProps) {
   return (
-    <Dialog open={open}>
+    <Dialog open={open} modal>
       <DialogContent
         showCloseButton={false}
         onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
         className="sm:max-w-md"
       >
@@ -49,33 +47,24 @@ export default function RestoreAccountDialog({
           </DialogTitle>
 
           <DialogDescription className="space-y-2 text-center">
-            <p>
-              Your account has been marked for deletion.
-            </p>
+            <p>Your account has been marked for deletion.</p>
 
             {deletedAt && (
               <p>
                 Deleted on{" "}
-                <strong>
-                  {new Date(deletedAt).toLocaleString()}
-                </strong>
+                <strong>{new Date(deletedAt).toLocaleString()}</strong>
               </p>
             )}
 
             {scheduledDeleteAt && (
               <p>
                 Permanent deletion on{" "}
-                <strong>
-                  {new Date(
-                    scheduledDeleteAt
-                  ).toLocaleString()}
-                </strong>
+                <strong>{new Date(scheduledDeleteAt).toLocaleString()}</strong>
               </p>
             )}
 
             <p className="text-muted-foreground">
-              Restore your account now to continue using
-              the application.
+              Restore your account now to continue using the application.
             </p>
           </DialogDescription>
         </DialogHeader>
@@ -88,9 +77,7 @@ export default function RestoreAccountDialog({
             onClick={onRestore}
           >
             <RefreshCcw className="mr-2 h-4 w-4" />
-            {loading
-              ? "Restoring..."
-              : "Restore Account"}
+            {loading ? "Restoring..." : "Restore Account"}
           </Button>
         </DialogFooter>
       </DialogContent>

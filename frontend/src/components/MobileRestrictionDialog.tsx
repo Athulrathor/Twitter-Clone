@@ -35,21 +35,13 @@ interface ActionButton {
 
 interface ActionDialogProps {
   open: boolean;
-
   variant?: ActionDialogVariant;
-
   title: string;
-
   description?: string;
-
   icon?: React.ReactNode;
-
   primaryAction: ActionButton;
-
   secondaryAction?: ActionButton;
-
   preventClose?: boolean;
-
   showCloseButton?: boolean;
 }
 
@@ -106,11 +98,11 @@ export default function ActionDialog({
     <Dialog
       open={open}
       modal
-      onOpenChange={(value) => {
-        if (!preventClose && !value) {
-          secondaryAction?.onClick();
-        }
-      }}
+      // onOpenChange={(value) => {
+      //   if (!preventClose && !value) {
+      //     secondaryAction?.onClick();
+      //   }
+      // }}
     >
       <DialogContent
         showCloseButton={showCloseButton}

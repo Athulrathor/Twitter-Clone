@@ -227,7 +227,7 @@ export default function SubscriptionPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-black text-white pb-20 md:pb-0">
+    <div className="min-h-screen w-full bg-black text-white max-w-2xl mx-auto px-4 py-6 pb-24 md:pb-8">
       {/* Header (Feed style) */}
       <div className="flex ml-4 pt-4">
         {/* Back Button */}
@@ -298,7 +298,7 @@ export default function SubscriptionPage() {
       </div>
 
       {/* Plans */}
-      <div className="px-2 mt-6">
+      <div className="px-2 mt-6 flex-wrap">
         <PlanCard
           paymentAvailable={paymentAvailable}
           createOrder={createOrder}

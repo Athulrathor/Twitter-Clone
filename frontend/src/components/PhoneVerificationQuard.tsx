@@ -19,7 +19,7 @@ async function getToken() {
 }
 
 export default function PhoneVerificationGuard() {
-  const { user, firebaseUid, setUser,isInitializing } = useAuth();
+  const { user, firebaseUid, setUser, isInitializing } = useAuth();
 
   const auth = useAuthentication();
 
@@ -27,13 +27,18 @@ export default function PhoneVerificationGuard() {
 
   useEffect(() => {
     if (isInitializing) return;
-    if (!user || !firebaseUid) return;
 
-    if (hasTriggered.current) return;
+  if (!user || !firebaseUid) return;
 
-    if (user.phoneNumber) return;
+  if (hasTriggered.current) return;
 
-    hasTriggered.current = true;
+  // Don't show if account deleted
+  if (user.isDeleted) return;
+
+  // Don't show if phone already exists
+  if (user.phoneNumber) return;
+
+  hasTriggered.current = true;
 
     auth.start({
       purpose: AuthenticationPurpose.PHONE_VERIFICATION,
@@ -89,7 +94,7 @@ export default function PhoneVerificationGuard() {
         });
       },
     });
-  }, [user, firebaseUid, auth, setUser]);
+  }, [user, firebaseUid, isInitializing]);
 
   return <AuthenticationDialog flow={auth} />;
 }

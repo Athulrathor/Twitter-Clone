@@ -31,7 +31,7 @@ interface User {
   email: string;
   website: string;
   location: string;
-  deletedAt?: Date;
+  deleteAt?: Date;
   isDeleted?: boolean;
   scheduledDeleteAt?: Date;
   restoreAt?: Date;
@@ -164,12 +164,14 @@ interface AuthContextType {
     success: boolean;
     message: string;
     deleteAt: Date;
+    user: User;
   } | null>;
   fetchRecoverAccount: () => Promise<{
     success: boolean;
     message: string;
+    user: User;
   } | null>;
-  fetchDeleteStatus: () => Promise<{ success: boolean; data: User } | null>;
+  fetchDeleteStatus: () => Promise<{ success: boolean; data: User,message: string } | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

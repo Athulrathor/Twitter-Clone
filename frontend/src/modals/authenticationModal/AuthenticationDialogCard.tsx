@@ -20,20 +20,22 @@ export default function AuthenticationDialog({ flow }: Props) {
   return (
     <Dialog
       open={flow.open}
-      onOpenChange={(open) => {
-        if (!open) {
-          if (
-            flow.request?.purpose === AuthenticationPurpose.PHONE_VERIFICATION
-          ) {
-            return;
-          }
+      modal
+      // onOpenChange={(open) => {
+      //   if (!open) {
+      //     if (
+      //       flow.request?.purpose === AuthenticationPurpose.PHONE_VERIFICATION
+      //     ) {
+      //       return;
+      //     }
 
-          flow.cancel();
-        }
-      }}
+      //     flow.cancel();
+      //   }
+      // }}
     >
       <DialogContent
         className="sm:max-w-md"
+        showCloseButton={false}
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}

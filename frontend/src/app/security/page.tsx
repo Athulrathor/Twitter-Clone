@@ -316,7 +316,7 @@ export default function SessionsPage() {
     logoutAll,
     logoutOthers,
     currentSession,
-    // sessionId,
+    setUser,
     stats,
     fetchDeleteAccount,
     fetchRecoverAccount,
@@ -331,7 +331,7 @@ export default function SessionsPage() {
   const [deleteAccountLoading, setDeleteAccountLoading] = useState(false);
   const [recoverAccountLoading, setRecoverAccountLoading] = useState(false);
   const [deleteStatusLoading, setDeleteStatusLoading] = useState(false);
-  const [deleteStatus,setDeleteStatus] = useState(false);
+  const [deleteStatus, setDeleteStatus] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
   const [recoverOpen, setRecoverOpen] = useState(false);
 
@@ -412,8 +412,19 @@ export default function SessionsPage() {
 
       const response = await fetchDeleteAccount();
 
-      if (!response?.success)
-        return notify.success(response?.message as string);
+      if (response?.success) {
+        setUser((prev) =>
+          prev
+            ? {
+                ...prev,
+                isDeleted: true,
+                deleteAt: new Date(),
+                scheduledDeleteAt: response?.user?.deleteAt,
+              }
+            : prev,
+        );
+        notify.success(response?.message as string);
+      }
     } catch (err) {
       console.log(err);
     } finally {
@@ -427,8 +438,18 @@ export default function SessionsPage() {
 
       const response = await fetchRecoverAccount();
 
-      if (!response?.success)
-        return notify.success(response?.message as string);
+      if (!response?.success) notify.success(response?.message as string);
+      setUser((prev) =>
+          prev
+            ? {
+                ...prev,
+                isDeleted: true,
+                deleteAt: new Date(),
+                scheduledDeleteAt: response?.user?.deleteAt,
+                restoreAt: response?.user?.restoreAt,
+              }
+            : prev,
+        );
     } catch (err) {
       console.log(err);
     } finally {
@@ -442,8 +463,7 @@ export default function SessionsPage() {
 
       const response = await fetchDeleteStatus();
 
-      if (!response?.success)
-        return alert("Failed to delete account status");
+      if (!response?.success) notify.success(response?.message as string);
 
       setDeleteStatus(response?.data?.isDeleted ?? false);
     } catch (err) {
@@ -451,38 +471,38 @@ export default function SessionsPage() {
     } finally {
       setDeleteStatusLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-      handleDeleteAccountStatus();
-  },[])
+    handleDeleteAccountStatus();
+  }, []);
 
   const STATS = [
-  {
-    label: t("security:devices"),
-    value: stats?.deviceCount,
-    icon: Monitor,
-    color: "text-blue-400",
-  },
-  {
-    label: t("security:active"),
-    value: stats?.activeCount,
-    icon: Wifi,
-    color: "text-purple-400",
-  },
-  {
-    label: t("security:otp_logins"),
-    value: stats?.otpCount,
-    icon: KeyRound,
-    color: "text-emerald-400",
-  },
-  {
-    label: t("security:blocked"),
-    value: stats?.blockedCount,
-    icon: Ban,
-    color: "text-red-400",
-  },
-];
+    {
+      label: t("security:devices"),
+      value: stats?.deviceCount,
+      icon: Monitor,
+      color: "text-blue-400",
+    },
+    {
+      label: t("security:active"),
+      value: stats?.activeCount,
+      icon: Wifi,
+      color: "text-purple-400",
+    },
+    {
+      label: t("security:otp_logins"),
+      value: stats?.otpCount,
+      icon: KeyRound,
+      color: "text-emerald-400",
+    },
+    {
+      label: t("security:blocked"),
+      value: stats?.blockedCount,
+      icon: Ban,
+      color: "text-red-400",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -504,7 +524,10 @@ export default function SessionsPage() {
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-2">
                 <Shield size={18} className="text-blue-400" />
-                <h1 className="text-lg font-semibold text-white"> {t("security:title")}</h1>
+                <h1 className="text-lg font-semibold text-white">
+                  {" "}
+                  {t("security:title")}
+                </h1>
               </div>
 
               <Button
@@ -598,7 +621,9 @@ export default function SessionsPage() {
                       className="h-6 px-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10"
                     >
                       <LogOut size={12} className="mr-1" />
-                      {logoutOthersLoading ? t("security:logging_out") : t("security:logout_others")}
+                      {logoutOthersLoading
+                        ? t("security:logging_out")
+                        : t("security:logout_others")}
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent className="bg-[#111827] border-white/10 text-white">
@@ -613,8 +638,8 @@ export default function SessionsPage() {
                           {otherActiveSessions.length !== 1 ? "s" : ""}
                         </span>{" "}
                         {t("security:logout_other_sessions_description", {
-  count: otherActiveSessions.length,
-})}
+                          count: otherActiveSessions.length,
+                        })}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -683,7 +708,9 @@ export default function SessionsPage() {
             <div className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-200">{t("security:logout_everywhere")}</p>
+                  <p className="text-sm text-gray-200">
+                    {t("security:logout_everywhere")}
+                  </p>
                   <p className="text-xs text-gray-500 mt-0.5">
                     {t("security:logout_everywhere_description")}
                   </p>
@@ -702,7 +729,9 @@ export default function SessionsPage() {
                   </AlertDialogTrigger>
                   <AlertDialogContent className="bg-[#111827] border-white/10 text-white">
                     <AlertDialogHeader>
-                      <AlertDialogTitle>{t("security:logout_everywhere")}</AlertDialogTitle>
+                      <AlertDialogTitle>
+                        {t("security:logout_everywhere")}
+                      </AlertDialogTitle>
                       <AlertDialogDescription className="text-gray-400">
                         {t("security:logout_everywhere_confirm")}
                       </AlertDialogDescription>
@@ -722,7 +751,7 @@ export default function SessionsPage() {
                 </AlertDialog>
               </div>
               {/* delete account dialog */}
-              
+
               <div>
                 <AlertDialog open={recoverOpen} onOpenChange={setRecoverOpen}>
                   <AlertDialogContent>
@@ -829,19 +858,19 @@ export default function SessionsPage() {
 
                         <p className="text-xs text-gray-500 mt-0.5">
                           Permanently deleted on{" "}
-                          {user?.deletedAt
-                            ? new Date(user.deletedAt).toLocaleDateString()
+                          {user?.deleteAt
+                            ? new Date(user.deleteAt).toLocaleDateString()
                             : "N/A"}
                         </p>
                       </div>
 
-                      <Button
+                      {/* <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setStatusOpen(true)}
                       >
                         View Status
-                      </Button>
+                      </Button> */}
                     </div>
 
                     {/* Recover */}

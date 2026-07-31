@@ -1444,7 +1444,7 @@ app.get("/auth/delete-account", verifyFirebaseToken, async (req, res) => {
 
     deleteAfter.setDate(deleteAfter.getDate() + 30);
 
-    await User.findByIdAndUpdate(req.user.id, {
+    const user = await User.findOneAndUpdate({ email: req.user.email}, {
       isDeleted: true,
       deletedAt: new Date(),
       scheduledDeleteAt: deleteAfter,
@@ -1458,6 +1458,7 @@ app.get("/auth/delete-account", verifyFirebaseToken, async (req, res) => {
       success: true,
       message: "Account scheduled for deletion.",
       deleteAt: deleteAfter,
+      user,
     });
   } catch (error) {
     console.error(error);
@@ -1471,7 +1472,7 @@ app.get("/auth/delete-account", verifyFirebaseToken, async (req, res) => {
 // restore account
 app.get("/auth/restore-account", verifyFirebaseToken, async (req, res) => {
   try {
-    await User.findByIdAndUpdate(req.user.id, {
+    const user = await User.findOneAndUpdate({email: req.user.email}, {
       isDeleted: false,
       deletedAt: null,
       scheduledDeleteAt: null,
@@ -1480,6 +1481,7 @@ app.get("/auth/restore-account", verifyFirebaseToken, async (req, res) => {
 
     return res.json({
       success: true,
+      user,
       message: "Account restored successfully.",
     });
   } catch (error) {
@@ -1495,7 +1497,7 @@ app.get("/auth/restore-account", verifyFirebaseToken, async (req, res) => {
 app.get("/auth/account-status", verifyFirebaseToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select(
-      "deleted scheduledDeleteAt",
+      "isDeleted deletedAt scheduledDeleteAt",
     );
 
     return res.json({
@@ -1530,7 +1532,7 @@ app.post(
 
       const { duration, size, mimeType } = req.audioMetadata;
 
-      const user = await User.findOne({ firebaseUid: req.user.uid });
+      const user = await User.findOne({ email: req.user.email });
 
       const result = await uploadAudioToStorage(req.file, user._id);
 

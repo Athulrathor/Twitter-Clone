@@ -61,7 +61,7 @@ const PlanCard = ({
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-3 mt-6">
         {plans.map((plan) => {
           const isActive =
             currentPlan?.toUpperCase() === plan.name;

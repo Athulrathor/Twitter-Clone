@@ -15,21 +15,22 @@ import TwitterLogo from "./Twitterlogo";
 import Link from "next/link";
 import { notify } from "@/lib/toast";
 import { useTranslation } from "react-i18next";
-import ActionDialog from "./MobileRestrictionDialog";
 import axiosInstance from "@/lib/axiosInstance";
-import RestoreAccountDialog from "./RestoreDialogBox";
-import { useRouter } from "next/navigation";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialMode?: "login" | "signup";
+  setStatus: any,
+  setRestrictedOpen: (value: boolean) => void;
 }
 
 export default function AuthModal({
   isOpen,
   onClose,
   initialMode = "login",
+  setStatus,
+  setRestrictedOpen
 }: AuthModalProps) {
   const { login, signup, authLoading, isInitializing } = useAuth();
   const [mode, setMode] = useState<"login" | "signup">(initialMode);
@@ -42,13 +43,6 @@ export default function AuthModal({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { t } = useTranslation();
-  const [status, setStatus] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-
-  const [restrictedOpen, setRestrictedOpen] = useState<boolean>(false);
-
-  const router = useRouter();
-
   useEffect(() => {
     async function loadStatus() {
       const res = await axiosInstance.get("/auth/account-status");
@@ -66,31 +60,6 @@ export default function AuthModal({
     );
   }
   if (!isOpen) return null;
-
-  const restoreAccount = async () => {
-    try {
-      setLoading(true);
-
-      await axiosInstance.patch("/auth/restore-account");
-
-      setStatus((prev: any) => ({
-        ...prev,
-        isDeleted: false,
-        deletedAt: null,
-        scheduledDeleteAt: null,
-      }));
-
-      notify.success("Account restored successfully.");
-
-      router.refresh();
-    } catch (error: any) {
-      notify.error(
-        error.response?.data?.message ?? "Failed to restore account.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -412,24 +381,6 @@ export default function AuthModal({
           )}
         </CardContent>
       </Card>
-      <ActionDialog
-        open={restrictedOpen}
-        variant="warning"
-        preventClose
-        title="Mobile Login Disabled"
-        description="Mobile login is available only between 10:00 AM and 1:00 PM."
-        primaryAction={{
-          label: "I Understand",
-          onClick: () => setRestrictedOpen(false),
-        }}
-      />
-      <RestoreAccountDialog
-        open={Boolean(status?.isDeleted)}
-        deletedAt={status?.deletedAt}
-        scheduledDeleteAt={status?.scheduledDeleteAt}
-        loading={loading}
-        onRestore={restoreAccount}
-      />
     </div>
   );
 }

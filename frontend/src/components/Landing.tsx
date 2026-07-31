@@ -6,18 +6,61 @@ import AuthModal from "./Authmodel";
 import TwitterLogo from "./Twitterlogo";
 import { useAuth } from "@/context/AuthContext";
 import Feed from "./Feed";
+import RestoreAccountDialog from "./RestoreDialogBox";
+import ActionDialog from "./MobileRestrictionDialog";
+import { notify } from "@/lib/toast";
+import axiosInstance from "@/lib/axiosInstance";
+import { useRouter } from "next/navigation";
 
 export default function LandingPage() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("signup");
-  const { user ,googlesignin} = useAuth();
+  const { user, googlesignin, isInitializing } = useAuth();
+  const [restrictedOpen, setRestrictedOpen] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<any>(null);
+
+  const router = useRouter();
+
+  const restoreAccount = async () => {
+    try {
+      setLoading(true);
+
+      await axiosInstance.patch("/auth/restore-account");
+
+      setStatus((prev: any) => ({
+        ...prev,
+        isDeleted: false,
+        deletedAt: null,
+        scheduledDeleteAt: null,
+      }));
+
+      notify.success("Account restored successfully.");
+
+      router.refresh();
+    } catch (error: any) {
+      notify.error(
+        error.response?.data?.message ?? "Failed to restore account.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const openAuthModal = (mode: "login" | "signup") => {
     setAuthMode(mode);
     setShowAuthModal(true);
   };
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <TwitterLogo className="h-14 w-14 animate-pulse text-white" />
+      </div>
+    );
+  }
+
   if (user) {
-    return <Feed/>;
+    return <Feed />;
   }
   return (
     <div className="min-h-screen bg-black text-white flex">
@@ -69,7 +112,7 @@ export default function LandingPage() {
             <Button
               variant="outline"
               className="w-full py-3 rounded-full border-gray-600  bg-black text-white font-semibold text-base h-12"
-             onClick={() => googlesignin()}
+              onClick={() => googlesignin()}
             >
               <svg
                 className="w-5 h-5 mr-2"
@@ -124,11 +167,37 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        initialMode={authMode}
-      />
+      {showAuthModal && (
+        <AuthModal
+          isOpen
+          onClose={() => setShowAuthModal(false)}
+          initialMode={authMode}
+          setRestrictedOpen={setRestrictedOpen}
+          setStatus={setStatus}
+        />
+      )}
+
+      {status?.isDeleted ? (
+        <RestoreAccountDialog
+          open
+          deletedAt={status.deletedAt}
+          scheduledDeleteAt={status.scheduledDeleteAt}
+          loading={loading}
+          onRestore={restoreAccount}
+        />
+      ) : (
+        <ActionDialog
+          open={restrictedOpen}
+          variant="warning"
+          preventClose
+          title="Mobile Login Disabled"
+          description="Mobile login is available only between 10:00 AM and 1:00 PM."
+          primaryAction={{
+            label: "I Understand",
+            onClick: () => setRestrictedOpen(false),
+          }}
+        />
+      )}
     </div>
   );
 }

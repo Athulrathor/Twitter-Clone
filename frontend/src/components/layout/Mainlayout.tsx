@@ -56,7 +56,7 @@ const Mainlayout = ({ children }: { children: React.ReactNode }) => {
         <main className="flex-1 border-x border-gray-800 pb-20 md:pb-0 overflow-hidden">
           {currentPage === "profile" ? (
             <ProfilePage />
-          ) : currentPage === "notification" ? (
+          ) : currentPage === "notifications" ? (
             <NotificationsPage />
           ) : (
             children
