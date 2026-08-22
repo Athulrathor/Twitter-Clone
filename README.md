@@ -1,19 +1,76 @@
-<<<<<<< HEAD
 # Twitter Clone
 
-A full-stack social media application inspired by Twitter, built with **Next.js** for the frontend and **Express + MongoDB** for the backend.
+A full-stack social media application inspired by Twitter, built with **Next.js, React, TypeScript, Tailwind CSS, Express.js, and MongoDB**.
+
+The project is structured as a separate frontend and backend application, with the frontend communicating with an Express REST API backed by MongoDB.
+
+---
 
 ## Features
 
-- User authentication flow (Google sign-in and email-based sign-up/login flow)
-- Home feed with tweets
-- Create, like, and retweet posts
-- Profile viewing and editing
-- Responsive UI for desktop and mobile
+### Authentication & User Management
+
+- User registration and login
+- Google authentication
+- Email-based authentication
+- Secure user sessions
+- User profile creation and editing
+
+### Content Creation
+
+- Create text-based posts
+- Upload images
+- Upload audio content
+- Share multimedia posts
+- Edit and manage user content
+
+### Social Interactions
+
+- Like posts
+- Retweet posts
+- Follow / unfollow users
+- View user profiles
+- Home feed
+- Social engagement with posts
+
+### Notifications
+
+- Real-time/user activity notifications
+- Notifications for social interactions
+- Notification management
+
+### Multilingual Support
+
+- Multi-language user interface
+- Language selection
+- Localized application content
+
+### Responsive UI
+
+- Responsive design for desktop
+- Tablet-friendly layouts
+- Mobile-friendly interface
+- Adaptive navigation and components
+
+### Real-Time Features
+
+- Real-time application updates
+- Real-time communication where applicable
+
+### User Experience
+
+- Responsive feed
+- Profile management
+- Media previews
+- Smooth navigation
+- Mobile-first interaction patterns
+
+---
 
 ## Tech Stack
 
 ### Frontend
+
 - Next.js 15
 - React 19
 - TypeScript
@@ -22,93 +79,26 @@ A full-stack social media application inspired by Twitter, built with **Next.js*
 - Firebase Authentication
 
 ### Backend
+
 - Node.js
 - Express.js
-- MongoDB with Mongoose
+- MongoDB
+- Mongoose
 - dotenv
+
+---
 
 ## Project Structure
 
-- `frontend/` — Next.js application
-- `backend/` — Express API server
-- `backend/models/` — MongoDB schemas
-
-## Prerequisites
-
-Make sure you have the following installed:
-
-- Node.js (v18 or higher)
-- npm or yarn
-- MongoDB running locally or a MongoDB Atlas connection string
-
-## Environment Variables
-
-### Backend
-Create a `.env` file inside the `backend` folder:
-
-```env
-PORT=5000
-MONOGDB_URL=mongodb://127.0.0.1:27017/twitter-clone
-```
-
-### Frontend
-Create a `.env.local` file inside the `frontend` folder:
-
-```env
-BACKEND_URL=http://localhost:5000
-```
-
-## Getting Started
-
-### 1) Install dependencies
-
-```bash
-cd backend
-npm install
-
-cd ../frontend
-npm install
-```
-
-### 2) Start the backend server
-
-```bash
-cd backend
-npm start
-```
-
-The backend will run on:
-
-- http://localhost:5000
-
-### 3) Start the frontend
-
-```bash
-cd frontend
-npm run dev
-```
-
-The frontend will run on:
-
-- http://localhost:3000
-
-## API Notes
-
-The frontend connects to the backend using `BACKEND_URL` defined in the frontend environment configuration.
-
-## Production Build
-
-To create a production build for the frontend:
-
-```bash
-cd frontend
-npm run build
-```
-
-## Notes
-
-- The Firebase configuration is currently included in the frontend code for authentication setup.
-- If you are using MongoDB Atlas, replace the `MONOGDB_URL` value with your database connection string.
-=======
-# Twitter-Clone
->>>>>>> f82b642dda1e7d028ddb55e44eac49a239280564
+```text
+Twitter-Clone/
+│
+├── frontend/
+│   └── Next.js application
+│
+├── backend/
+│   ├── models/
+│   │   └── MongoDB schemas
+│   └── Express API server
+│
+└── README.md
