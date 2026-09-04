@@ -33,5 +33,19 @@
   "avatar_updated": "头像更新成功。",
   "avatar_removed": "头像已删除。",
   "cover_updated": "封面图片更新成功。",
-  "cover_removed": "封面图片已删除。"
+  "cover_removed": "封面图片已删除。",
+
+  "empty": {
+    "posts_title": "您还没有发布任何内容",
+    "posts_description": "当您发布内容后，它会显示在这里。",
+
+    "replies_title": "您还没有回复过",
+    "replies_description": "当您回复帖子后，回复会显示在这里。",
+
+    "media_title": "灯光、镜头……附件！",
+    "media_description": "当您发布照片或视频后，它们会显示在这里。",
+
+    "articles_title": "您还没有撰写任何文章",
+    "articles_description": "当您撰写文章后，它们会显示在这里。"
+  }
 }

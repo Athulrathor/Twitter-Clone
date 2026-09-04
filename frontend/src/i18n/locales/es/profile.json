@@ -33,5 +33,22 @@
   "avatar_updated": "La foto de perfil se actualizó.",
   "avatar_removed": "La foto de perfil se eliminó.",
   "cover_updated": "La foto de portada se actualizó.",
-  "cover_removed": "La foto de portada se eliminó."
+  "cover_removed": "La foto de portada se eliminó.",
+
+  "empty": {
+    "posts_title": "Aún no has publicado nada",
+    "posts_description": "Cuando publiques, aparecerá aquí.",
+
+    "replies_title": "Aún no has respondido",
+    "replies_description":
+      "Cuando respondas a una publicación, aparecerá aquí.",
+
+    "media_title": "¡Luces, cámara… archivos adjuntos!",
+    "media_description":
+      "Cuando publiques fotos o vídeos, aparecerán aquí.",
+
+    "articles_title": "Aún no has escrito ningún artículo",
+    "articles_description":
+      "Cuando escribas artículos, aparecerán aquí."
+  }
 }

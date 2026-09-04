@@ -13,6 +13,7 @@ import { useState } from "react";
 import ChangePasswordDialog from "@/modals/changePasswords/ChangePasswordDialog";
 import { useAuth } from "@/context/AuthContext";
 import VerifyEmailDialog from "@/modals/VerifyEmailDialog.tsx/VerifyEmailDialog";
+import AuthenticationPhone from "@/modals/authenticationModal/AuthenticationPhone"
 
 const badgeStyles: Record<string, string> = {
   success:
@@ -26,7 +27,8 @@ const badgeStyles: Record<string, string> = {
 export default function AuthenticationCard() {
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [emailOpen, setEmailOpen] = useState(false);
-  const { currentSession } = useAuth();
+  const [phoneOpen, setPhoneOpen] = useState(false);
+  const { currentSession, user } = useAuth();
 
   const handleRowClick = (id: string) => {
     switch (id) {
@@ -35,7 +37,11 @@ export default function AuthenticationCard() {
         break;
 
       case "email":
-        setEmailOpen(false);
+        setEmailOpen(true);
+        break;
+
+      case "phone":
+        setPhoneOpen(true);
         break;
 
       default:
@@ -50,21 +56,35 @@ export default function AuthenticationCard() {
       sub:
         currentSession?.loginMethod.toLowerCase() === "email"
           ? "Update your password"
-          : currentSession?.loginMethod.toLowerCase() === `Password managed & verified by ${currentSession?.loginMethod.toLowerCase()}`,
+          : currentSession?.loginMethod.toLowerCase() ===
+            `Password managed & verified by ${currentSession?.loginMethod.toLowerCase()}`,
       badge: {
         text:
           currentSession?.loginMethod.toLowerCase() === "email"
             ? "Change"
             : "Google verified",
-        variant: `${currentSession?.loginMethod.toLowerCase() === "google" ? "success" : "info"}` as const,
+        variant:
+          `${currentSession?.loginMethod.toLowerCase() === "google" ? "success" : "info"}` as const,
       },
       clickable: currentSession?.loginMethod.toLowerCase() === "email",
     },
     {
       id: "email",
       label: "Email",
-      badge: { text: `${currentSession?.otpVerified ? "Verified" : "Not Verified"}`, variant: currentSession?.otpVerified ? "success" : "warning" as const },
+      badge: {
+        text: `${currentSession?.otpVerified ? "Verified" : "Not Verified"}`,
+        variant: currentSession?.otpVerified ? "success" : ("warning" as const),
+      },
       clickable: !currentSession?.otpVerified,
+    },
+    {
+      id: "phone",
+      label: "Phone",
+      badge: {
+        text: `${user?.phoneVerified ? "Verified" : "Not Verified"}`,
+        variant: user?.phoneVerified ? "success" : ("warning" as const),
+      },
+      clickable: !user?.phoneVerified,
     },
     {
       id: "chrome",
@@ -143,20 +163,16 @@ export default function AuthenticationCard() {
         ))}
       </CardContent>
 
-        <ChangePasswordDialog
-          open={passwordOpen}
-          hasPassword={
-            currentSession?.loginMethod?.toLowerCase() === "email" ? false : true
-          }
-          providerName={currentSession?.loginMethod?.toLowerCase()}
-          onOpenChange={setPasswordOpen}
-        />
+      <ChangePasswordDialog
+        open={passwordOpen}
+        hasPassword={currentSession?.loginMethod?.toLowerCase() !== "email"}
+        providerName={currentSession?.loginMethod}
+        onOpenChange={setPasswordOpen}
+      />
 
-        <VerifyEmailDialog
-          open={emailOpen}
-          // providerName={currentSession?.loginMethod?.toLowerCase()}
-          onOpenChange={setEmailOpen}
-        />
+      <VerifyEmailDialog open={emailOpen} onOpenChange={setEmailOpen} />
+
+      {/* <AuthenticationPhone open={phoneOpen} onOpenChange={setPhoneOpen} /> */}
     </Card>
   );
 }

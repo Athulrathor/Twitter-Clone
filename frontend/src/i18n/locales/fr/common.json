@@ -45,5 +45,60 @@
   "articles": "Articles",
   "or": "ou",
   "cricket": "Cricket",
-  "science": "Science"
+  "science": "Science",
+  "audio_upload_available": "Vous pouvez télécharger de l’audio !",
+"audio_upload_time_restriction":
+  "Les téléchargements audio sont disponibles uniquement de 14 h 00 à 19 h 00 IST.",
+  "rights_side": {
+  "search": "Rechercher",
+
+  "premium": {
+    "title": "S’abonner à Premium",
+    "description": "Abonnez-vous pour débloquer de nouvelles fonctionnalités et, si vous êtes éligible, recevoir une part des revenus.",
+    "subscribe_now": "S’abonner maintenant"
+  },
+
+  "suggestions": {
+    "title": "Vous pourriez aimer",
+    "follow": "Suivre",
+    "show_more": "Afficher plus"
+  },
+
+  "footer": {
+    "terms_of_service": "Conditions d’utilisation",
+    "privacy_policy": "Politique de confidentialité",
+    "cookie_policy": "Politique relative aux cookies",
+    "accessibility": "Accessibilité",
+    "ads_info": "Informations sur les publicités",
+    "copyright": "© 2024 X Corp."
+  }
+},
+"subscriptionPage": {
+  "title": "Abonnement",
+  "description": "Gérez votre forfait et votre utilisation",
+
+  "plans": {
+    "title": "Forfaits",
+    "description": "Choisissez votre abonnement",
+    "free": "Free",
+    "gold": "Gold",
+    "bronze": "Bronze",
+    "silver": "Silver"
+  },
+
+  "current_plan": "Forfait actuel",
+  "upgrade": "Mettre à niveau",
+  "used": "Utilisé",
+  "remaining": "Restant",
+  "expired": "Expiré",
+  "active": "Actif",
+  "month": "mois",
+  "tweets": "Publications",
+  "unlimited": "Illimité",
+
+  "payment": {
+    "available": "Les paiements sont disponibles entre 10 h 00 et 11 h 00 IST.",
+    "unavailable": "Les paiements ne sont actuellement pas disponibles. Veuillez réessayer entre 10 h 00 et 11 h 00 IST."
+  }
+}
 }

@@ -122,7 +122,7 @@ export default function VerifyOtpPage() {
         setUser(res.data.user);
         await fetchSession();
         await requestNotificationPermission();
-        notify.success("Otp verified successfully!");
+        notify.success(`Otp verified successfully! Welcome back ${res.data.displayName}`);
         setTimeout(() => router.push("/"), 800);
       }
     } catch (err: any) {

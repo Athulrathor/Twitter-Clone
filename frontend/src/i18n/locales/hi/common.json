@@ -45,5 +45,61 @@
   "articles": "लेख",
   "or": "या",
   "cricket": "क्रिकेट",
-  "science": "विज्ञान"
+  "science": "विज्ञान",
+  "audio_upload_available": "आप ऑडियो अपलोड कर सकते हैं!",
+"audio_upload_time_restriction":
+  "ऑडियो अपलोड केवल दोपहर 2:00 बजे से शाम 7:00 बजे तक IST उपलब्ध हैं।",
+
+  "rights_side": {
+  "search": "खोजें",
+
+  "premium": {
+    "title": "प्रीमियम की सदस्यता लें",
+    "description": "नई सुविधाओं को अनलॉक करने के लिए सदस्यता लें और पात्र होने पर राजस्व का हिस्सा प्राप्त करें।",
+    "subscribe_now": "अभी सदस्यता लें"
+  },
+
+  "suggestions": {
+    "title": "आपको शायद पसंद आए",
+    "follow": "फ़ॉलो करें",
+    "show_more": "और दिखाएं"
+  },
+
+  "footer": {
+    "terms_of_service": "सेवा की शर्तें",
+    "privacy_policy": "गोपनीयता नीति",
+    "cookie_policy": "कुकी नीति",
+    "accessibility": "पहुंच-योग्यता",
+    "ads_info": "विज्ञापन जानकारी",
+    "copyright": "© 2024 X Corp."
+  }
+},
+"subscriptionPage": {
+  "title": "सदस्यता",
+  "description": "अपनी योजना और उपयोग प्रबंधित करें",
+
+  "plans": {
+    "title": "योजनाएँ",
+    "description": "अपनी सदस्यता चुनें",
+    "free": "Free",
+    "gold": "Gold",
+    "bronze": "Bronze",
+    "silver": "Silver"
+  },
+
+  "current_plan": "वर्तमान योजना",
+  "upgrade": "अपग्रेड करें",
+  "used": "उपयोग किया गया",
+  "remaining": "शेष",
+  "expired": "समाप्त",
+  "active": "सक्रिय",
+  "month": "महीना",
+  "tweets": "पोस्ट",
+  "unlimited": "असीमित",
+
+  "payment": {
+    "available": "भुगतान सुबह 10:00 बजे से 11:00 बजे तक IST उपलब्ध हैं।",
+    "unavailable": "भुगतान अभी उपलब्ध नहीं हैं। कृपया सुबह 10:00 बजे से 11:00 बजे तक IST के बीच फिर से प्रयास करें।"
+  }
+}
 }

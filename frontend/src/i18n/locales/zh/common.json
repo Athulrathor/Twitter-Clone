@@ -45,5 +45,60 @@
   "articles": "文章",
   "or": "或",
   "cricket": "板球",
-  "science": "科学"
+  "science": "科学",
+  "audio_upload_available": "您可以上传音频！",
+"audio_upload_time_restriction":
+  "音频上传仅在印度标准时间下午2:00至晚上7:00期间开放。",
+  "rights_side": {
+  "search": "搜索",
+
+  "premium": {
+    "title": "订阅 Premium",
+    "description": "订阅以解锁新功能，符合条件时还可获得收入分成。",
+    "subscribe_now": "立即订阅"
+  },
+
+  "suggestions": {
+    "title": "你可能喜欢",
+    "follow": "关注",
+    "show_more": "显示更多"
+  },
+
+  "footer": {
+    "terms_of_service": "服务条款",
+    "privacy_policy": "隐私政策",
+    "cookie_policy": "Cookie 政策",
+    "accessibility": "无障碍功能",
+    "ads_info": "广告信息",
+    "copyright": "© 2024 X Corp."
+  }
+},
+"subscriptionPage": {
+  "title": "订阅",
+  "description": "管理您的套餐和使用情况",
+
+  "plans": {
+    "title": "套餐",
+    "description": "选择您的订阅",
+    "free": "Free",
+    "gold": "Gold",
+    "bronze": "Bronze",
+    "silver": "Silver"
+  },
+
+  "current_plan": "当前套餐",
+  "upgrade": "升级",
+  "used": "已使用",
+  "remaining": "剩余",
+  "expired": "已过期",
+  "active": "有效",
+  "month": "月",
+  "tweets": "帖子",
+  "unlimited": "无限",
+
+  "payment": {
+    "available": "支付服务在印度标准时间上午10:00至11:00之间开放。",
+    "unavailable": "支付服务目前不可用。请在印度标准时间上午10:00至11:00之间再次尝试。"
+  }
+}
 }

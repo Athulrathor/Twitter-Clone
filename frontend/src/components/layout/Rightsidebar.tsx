@@ -8,6 +8,7 @@ import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslation } from "react-i18next";
 
 const suggestions = [
   {
@@ -38,13 +39,14 @@ const suggestions = [
 
 export default function RightSidebar() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   return (
     <div className="w-80 p-4 space-y-4 fixed">
       {/* Search */}
       <div className="relative">
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
         <Input
-          placeholder="Search"
+          placeholder={t("common:rights_side.search")}
           className="pl-12 bg-gray-900 border-gray-800 text-white placeholder-gray-400 rounded-full py-3"
         />
       </div>
@@ -53,15 +55,14 @@ export default function RightSidebar() {
       <Card className="bg-gray-900 border-gray-800">
         <CardContent className="p-4">
           <h3 className="text-white text-xl font-bold mb-2">
-            Subscribe to Premium
+            {t("common:rights_side.premium.title")}
           </h3>
           <p className="text-gray-400 text-sm mb-4">
-            Subscribe to unlock new features and if eligible, receive a share of
-            revenue.
+            {t("common:rights_side.premium.description")}
           </p>
           <Link href={`/subscriptions/${user?._id}`}>
             <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-full">
-              Subscribe Now
+              {t("common:rights_side.premium.subscribe_now")}
             </Button>
           </Link>
         </CardContent>
@@ -70,7 +71,9 @@ export default function RightSidebar() {
       {/* Who to follow */}
       <Card className="bg-gray-900 border-gray-800">
         <CardContent className="p-4">
-          <h3 className="text-white text-xl font-bold mb-4">You might like</h3>
+          <h3 className="text-white text-xl font-bold mb-4">
+            {t("common:rights_side.suggestions.title")}
+          </h3>
           <div className="space-y-4">
             {suggestions.map((user) => (
               <div key={user.id} className="flex items-center justify-between">
@@ -104,7 +107,7 @@ export default function RightSidebar() {
                   variant="outline"
                   className="bg-white text-black hover:bg-gray-200 font-semibold rounded-full px-4"
                 >
-                  Follow
+                  {t("common:rights_side.suggestions.follow")}
                 </Button>
               </div>
             ))}
@@ -113,7 +116,7 @@ export default function RightSidebar() {
             variant="ghost"
             className="text-blue-400 hover:text-blue-300 p-0 mt-4"
           >
-            Show more
+            {t("common:rights_side.suggestions.show_more")}
           </Button>
         </CardContent>
       </Card>
@@ -122,22 +125,22 @@ export default function RightSidebar() {
       <div className="p-4 text-xs text-gray-500 space-y-2">
         <div className="flex flex-wrap gap-x-3 gap-y-1">
           <a href="#" className="hover:underline">
-            Terms of Service
+            {t("common:rights_side.footer.terms_of_service")}
           </a>
           <a href="#" className="hover:underline">
-            Privacy Policy
+            {t("common:rights_side.footer.privacy_policy")}
           </a>
           <a href="#" className="hover:underline">
-            Cookie Policy
+            {t("common:rights_side.footer.cookie_policy")}
           </a>
           <a href="#" className="hover:underline">
-            Accessibility
+            {t("common:rights_side.footer.accessibility")}
           </a>
           <a href="#" className="hover:underline">
-            Ads info
+            {t("common:rights_side.footer.ads_info")}
           </a>
         </div>
-        <div>© 2024 X Corp.</div>
+        <div>{t("common:rights_side.footer.copyright")}</div>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { CheckCircle, MessageSquare } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 type PlanCardProps = {
   createOrder: (planName: string) => void;
@@ -13,11 +14,12 @@ const PlanCard = ({
   currentPlan,
   allPlan
 }: PlanCardProps) => {
+  const { t } = useTranslation();
   const plans = [
   {
     name: "FREE",
     price: 0,
-    limit: "1 Tweet",
+    limit: "1 " + t("subscriptionPage.tweets"),
     color: "text-gray-400",
     border: "border-gray-800",
     _id: allPlan?.find((plan: any) => plan.name === "Free")?._id,
@@ -25,7 +27,7 @@ const PlanCard = ({
   {
     name: "BRONZE",
     price: 100,
-    limit: "3 Tweets",
+    limit: "3 " + t("subscriptionPage.tweets"),
     color: "text-amber-400",
     border: "border-gray-800",
     _id: allPlan?.find((plan: any) => plan.name === "Bronze")?._id,
@@ -33,7 +35,7 @@ const PlanCard = ({
   {
     name: "SILVER",
     price: 300,
-    limit: "5 Tweets",
+    limit: "5 " + t("subscriptionPage.tweets"),
     color: "text-slate-300",
     border: "border-gray-800",
     _id: allPlan?.find((plan: any) => plan.name === "Silver")?._id,
@@ -41,7 +43,7 @@ const PlanCard = ({
   {
     name: "GOLD",
     price: 1000,
-    limit: "Unlimited",
+    limit: t("subscriptionPage.unlimited"),
     color: "text-yellow-400",
     border: "border-gray-800",
     _id: allPlan?.find((plan: any) => plan.name === "Gold")?._id,
@@ -53,9 +55,9 @@ const PlanCard = ({
       {/* Header (like Feed) */}
       <div className="sticky top-0 z-10 bg-black/90 backdrop-blur-md border-b border-gray-800">
         <div className="px-4 py-3">
-          <h1 className="text-xl font-bold text-white">Plans</h1>
+          <h1 className="text-xl font-bold text-white">{t("subscriptionPage.plans.title")}</h1>
           <p className="text-sm text-gray-500">
-            Choose your subscription
+            {t("subscriptionPage.plans.description")}
           </p>
         </div>
       </div>
@@ -80,7 +82,7 @@ const PlanCard = ({
                 <div className="flex justify-end">
                   <span className="flex items-center gap-1 text-xs text-blue-400">
                     <CheckCircle size={14} />
-                    Active
+                    {t("subscriptionPage.active")}
                   </span>
                 </div>
               )}
@@ -98,7 +100,7 @@ const PlanCard = ({
                   ₹{plan.price}
                 </span>
                 <span className="text-gray-500 text-sm">
-                  /month
+                  /{t("subscriptionPage.month")}
                 </span>
               </div>
 
@@ -127,10 +129,10 @@ const PlanCard = ({
                 }`}
               >
                 {isActive
-                  ? "Current Plan"
+                  ? t("subscriptionPage.current_plan")
                   : plan.name === "FREE"
-                    ? "Default Plan"
-                    : "Upgrade"}
+                    ? t("subscriptionPage.current_plan")
+                    : t("subscriptionPage.upgrade")}
               </button>
             </div>
           );

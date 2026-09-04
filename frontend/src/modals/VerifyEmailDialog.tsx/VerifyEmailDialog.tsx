@@ -17,7 +17,7 @@ const VerifyEmailDialog: React.FC<VerifyEmailDialogProps> = ({
   open,
   onOpenChange,
 }) => {
-  const [step, setStep] = useState<"intro" | "otp" | "success">("intro");
+  const [step, setStep] = useState<"otp" | "success">("otp");
   const [loading, setLoading] = useState(false);
   const [otp, setOtp] = useState("");
 
@@ -31,7 +31,7 @@ const VerifyEmailDialog: React.FC<VerifyEmailDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        {step === "intro" && (
+        {step === "otp" && (
           <div className="py-4">
             <p className="text-sm text-muted-foreground">
               We sent a verification code to your email. Enter it below to verify your account.
@@ -72,8 +72,7 @@ const VerifyEmailDialog: React.FC<VerifyEmailDialogProps> = ({
             className="rounded-md bg-slate-900 px-4 py-2 text-sm text-white"
             disabled={loading}
             onClick={() => {
-              if (step === "intro") setStep("otp");
-              else if (step === "otp") setStep("success");
+              if (step === "otp") setStep("success");
             }}
           >
             {loading ? "Loading..." : step === "otp" ? "Verify" : "Continue"}

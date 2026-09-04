@@ -2,8 +2,8 @@ import User from "../models/User.js";
 
 export const checkDeletedAccount = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.email).select(
-      "deleted scheduledDeleteAt"
+    const user = await User.findOne({ email: req.user.email }).select(
+      "isDeleted scheduledDeleteAt"
     );
 
     if (!user) {

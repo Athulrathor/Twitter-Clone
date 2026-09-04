@@ -126,17 +126,23 @@ const forgotPasswordLimiter = rateLimit({
 app.post("/register", registerLimiter, async (req, res) => {
   try {
     const existinguser = await User.findOne({ email: req.body.email });
-    if (existinguser) {
-      return res.status(200).send(existinguser);
-    }
-    if (existinguser.deleted) {
+
+    if (existinguser?.isDeleted) {
       return res.status(403).json({
         success: false,
         code: "ACCOUNT_DELETED",
         message: "Your account is scheduled for deletion.",
-        deleteAt: user.scheduledDeleteAt,
+        deletedAt: existinguser?.deletedAt,
+        isDeleted: existinguser?.isDeleted,
+        scheduledDeleteAt: existinguser?.scheduledDeleteAt,
+        restoreAt: existinguser?.restoreAt,
       });
     }
+
+    if (existinguser) {
+      return res.status(200).send(existinguser);
+    }
+
     const newUser = new User(req.body);
     await newUser.save();
     return res.status(201).send(newUser);
@@ -193,7 +199,10 @@ app.post(
           success: false,
           code: "ACCOUNT_DELETED",
           message: "Your account is scheduled for deletion.",
-          deleteAt: user?.scheduledDeleteAt,
+          deletedAt: user?.deletedAt,
+          isDeleted: user?.isDeleted,
+          scheduledDeleteAt: user?.scheduledDeleteAt,
+          restoreAt: user?.restoreAt,
         });
       }
 
@@ -215,7 +224,7 @@ app.post(
             req.user?.email.split("@")[0] + Math.floor(Math.random() * 1000),
 
           displayName: req.user?.name || "User",
-
+          firebaseUid: req.user?.uid,
           avatar:
             req.user?.picture ||
             "https://images.pexels.com/photos/1139743/pexels-photo-1139743.jpeg",
@@ -229,6 +238,10 @@ app.post(
       let session;
 
       if (req.securityFlags.blocked) {
+        console.debug("/firebase/login -> rejecting: LOGIN_BLOCKED", {
+          reason: req.securityFlags.blockedReason,
+          device: req.deviceInfo,
+        });
         session = await Session.create({
           userId: user._id,
           firebaseUid: req.user.uid,
@@ -912,6 +925,7 @@ app.post("/login/otp", otpRateLimiter, async (req, res) => {
       firebaseUid,
       email,
       purpose = "VERIFY_EMAIL",
+      phoneNumber,
       language,
     } = req.body;
 
@@ -945,7 +959,7 @@ app.post("/login/otp", otpRateLimiter, async (req, res) => {
       });
     }
 
-    const user = await User.findOne({email: email})
+    const user = await User.findOne({ email: email });
 
     const otp = await createOtp({
       firebaseUid,
@@ -959,7 +973,7 @@ app.post("/login/otp", otpRateLimiter, async (req, res) => {
       case "VERIFY_EMAIL":
       case "AUDIO_UPLOAD":
       case "CHANGE_EMAIL":
-          await sendOtpEmail(email, username, otp.otp, otp.expiresAt, purpose);
+        await sendOtpEmail(email, username, otp.otp, otp.expiresAt, purpose);
         break;
 
       case "CHANGE_LANGUAGE":
@@ -1097,6 +1111,7 @@ app.post("/login/verify", async (req, res) => {
           success: true,
           verify,
           user,
+          displayName: user.displayName,
           purpose,
           message: "Login verified successfully.",
         });
@@ -1444,11 +1459,14 @@ app.get("/auth/delete-account", verifyFirebaseToken, async (req, res) => {
 
     deleteAfter.setDate(deleteAfter.getDate() + 30);
 
-    const user = await User.findOneAndUpdate({ email: req.user.email}, {
-      isDeleted: true,
-      deletedAt: new Date(),
-      scheduledDeleteAt: deleteAfter,
-    });
+    const user = await User.findOneAndUpdate(
+      { email: req.user.email },
+      {
+        isDeleted: true,
+        deletedAt: new Date(),
+        scheduledDeleteAt: deleteAfter,
+      },
+    );
 
     await Session.deleteMany({
       userId: req.user.id,
@@ -1470,14 +1488,17 @@ app.get("/auth/delete-account", verifyFirebaseToken, async (req, res) => {
   }
 });
 // restore account
-app.get("/auth/restore-account", verifyFirebaseToken, async (req, res) => {
+app.patch("/auth/restore-account", verifyFirebaseToken, async (req, res) => {
   try {
-    const user = await User.findOneAndUpdate({email: req.user.email}, {
-      isDeleted: false,
-      deletedAt: null,
-      scheduledDeleteAt: null,
-      restoreAt: new Date(),
-    });
+    const user = await User.findOneAndUpdate(
+      { email: req.user.email },
+      {
+        isDeleted: false,
+        deletedAt: null,
+        scheduledDeleteAt: null,
+        restoreAt: new Date(),
+      },
+    );
 
     return res.json({
       success: true,
@@ -1497,7 +1518,7 @@ app.get("/auth/restore-account", verifyFirebaseToken, async (req, res) => {
 app.get("/auth/account-status", verifyFirebaseToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select(
-      "isDeleted deletedAt scheduledDeleteAt",
+      "isDeleted deletedAt scheduledDeleteAt restoreAt",
     );
 
     return res.json({
@@ -1763,7 +1784,7 @@ app.patch(
 );
 
 // update phone Number
-app.patch("/user/phone", verifyFirebaseToken, async (req,res) => {
+app.patch("/user/phone", verifyFirebaseToken, async (req, res) => {
   try {
     const { phoneNumber } = req.body;
     const user = await User.findOne({ email: req.user.email });

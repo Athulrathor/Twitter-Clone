@@ -97,12 +97,13 @@ export const sendPasswordRecoveryEmail = async (email, username, resetLink) => {
   });
 };
 
-export const sendOtpEmail = async (email, username,otp, expiryMinutes) => {
-  await transporter.sendMail({
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: "Your Login OTP",
-    html: `
+export const sendOtpEmail = async (email, username, otp, expiryMinutes) => {
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Your Login OTP",
+      html: `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -191,5 +192,8 @@ Please do not reply to this email.
 </body>
 </html>
 `,
-  });
+    });
+  } catch (error) {
+    console.log("Error sending OTP email: ", error.message);
+  }
 };

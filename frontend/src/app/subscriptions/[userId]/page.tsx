@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { auth } from "../../../context/firebase";
 import axiosInstance from "@/lib/axiosInstance";
 import { notify } from "@/lib/toast";
+import { useTranslation } from "react-i18next";
 
 declare global {
   interface Window {
@@ -29,7 +30,6 @@ export default function SubscriptionPage() {
   const { user } = useAuth();
 
   const [paymentAvailable, setPaymentAvailable] = useState(false);
-  const [paymentMessage, setPaymentMessage] = useState("");
   const [subscription, setSubscription] = useState<SubscriptionStatus | null>(
     null,
   );
@@ -39,6 +39,7 @@ export default function SubscriptionPage() {
   const [loading, setLoading] = useState(true);
 
   const router = useRouter();
+  const { t } = useTranslation();
 
   const fetchStatus = async () => {
     if (!user?._id) {
@@ -172,8 +173,7 @@ export default function SubscriptionPage() {
           Authorization: `Bearer ${token}`,
         },
       });
-      setPaymentAvailable(res.data.success);
-      setPaymentMessage(res.data.message);
+      setPaymentAvailable(res.data?.data?.allowed);
     } catch (error: any) {
       console.error(error);
       notify.error(
@@ -181,6 +181,9 @@ export default function SubscriptionPage() {
       );
     }
   };
+
+  const paymentMessage = paymentAvailable ? t("subscriptionPage.payment.available") : t("subscriptionPage.payment.unavailable");
+  const unlimited = subscription?.plan === "GOLD" ? t("subscriptionPage.unlimited") : subscription?.remaining;
 
   const fetchPlan = async () => {
     try {
@@ -240,8 +243,8 @@ export default function SubscriptionPage() {
         </button>
         <div className="sticky top-0 z-10 bg-black/90 backdrop-blur-md">
           <div className="px-4 py-3">
-            <h1 className="text-xl font-bold">Subscription</h1>
-            <p className="text-sm text-gray-500">Manage your plan and usage</p>
+            <h1 className="text-xl font-bold">{t("subscriptionPage.title")}</h1>
+            <p className="text-sm text-gray-500">{t("subscriptionPage.description")}</p>
           </div>
         </div>
       </div>
@@ -251,31 +254,31 @@ export default function SubscriptionPage() {
         <div className="rounded-xl border border-gray-800 bg-black p-5">
           <div className="flex items-center gap-2 mb-4 text-yellow-400">
             <Crown size={18} />
-            <h2 className="text-lg font-semibold text-white">Current Plan</h2>
+            <h2 className="text-lg font-semibold text-white">{t("subscriptionPage.current_plan")}</h2>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <p className="text-gray-500">Plan</p>
+              <p className="text-gray-500">{t("subscriptionPage.plans.title")}</p>
               <p className="font-semibold">
                 {subscription?.plan?.toUpperCase()}
               </p>
             </div>
 
             <div>
-              <p className="text-gray-500">Used</p>
-              <p className="font-semibold">{subscription?.used}</p>
+              <p className="text-gray-500">{t("subscriptionPage.used")}</p>
+              <p className="font-semibold">{subscription?.used ?? 0}</p>
             </div>
 
             <div>
-              <p className="text-gray-500">Remaining</p>
+              <p className="text-gray-500">{t("subscriptionPage.remaining")}</p>
               <p className="font-semibold">
-                {subscription?.remaining ?? "Unlimited"}
+                {unlimited}
               </p>
             </div>
 
             <div>
-              <p className="text-gray-500">Expiry</p>
+              <p className="text-gray-500">{t("subscriptionPage.expired")}</p>
               <p className="font-semibold">
                 {subscription?.expiresAt
                   ? new Date(subscription.expiresAt).toLocaleDateString()
@@ -293,7 +296,7 @@ export default function SubscriptionPage() {
               : "bg-red-500/10 text-red-400 border-red-500/20"
           }`}
         >
-          {paymentMessage ?? "Payment status not available"}
+          {paymentMessage}
         </div>
       </div>
 

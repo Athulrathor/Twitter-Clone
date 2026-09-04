@@ -811,10 +811,10 @@ export default function SessionsPage() {
                           </AlertDialogTitle>
 
                           <AlertDialogDescription className="space-y-3">
-                            <p>
+                            <div>
                               Your account will be{" "}
                               <strong>deactivated immediately</strong>.
-                            </p>
+                            </div>
 
                             <ul className="list-disc pl-5 space-y-1">
                               <li>Your profile becomes inaccessible.</li>

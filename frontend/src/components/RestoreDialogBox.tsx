@@ -15,23 +15,26 @@ import { Button } from "@/components/ui/button";
 
 interface RestoreAccountDialogProps {
   open: boolean;
+  onOpenChange?: (open: boolean) => void;
   loading?: boolean;
   deletedAt?: string | Date | null;
   scheduledDeleteAt?: string | Date | null;
+  restoreAt?: string | Date | null;
   onRestore: () => Promise<void> | void;
 }
 
 export default function RestoreAccountDialog({
   open,
+  onOpenChange,
   loading = false,
   deletedAt,
   scheduledDeleteAt,
+  restoreAt,
   onRestore,
 }: RestoreAccountDialogProps) {
   return (
-    <Dialog open={open} modal>
+    <Dialog open={open} onOpenChange={onOpenChange} modal>
       <DialogContent
-        showCloseButton={false}
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
@@ -47,25 +50,32 @@ export default function RestoreAccountDialog({
           </DialogTitle>
 
           <DialogDescription className="space-y-2 text-center">
-            <p>Your account has been marked for deletion.</p>
+            <div>Your account has been marked for deletion.</div>
 
             {deletedAt && (
-              <p>
+              <div>
                 Deleted on{" "}
                 <strong>{new Date(deletedAt).toLocaleString()}</strong>
-              </p>
+              </div>
             )}
 
             {scheduledDeleteAt && (
-              <p>
+              <div>
                 Permanent deletion on{" "}
                 <strong>{new Date(scheduledDeleteAt).toLocaleString()}</strong>
-              </p>
+              </div>
             )}
 
-            <p className="text-muted-foreground">
+            {restoreAt && (
+              <div>
+                Restore available until{" "}
+                <strong>{new Date(restoreAt).toLocaleString()}</strong>
+              </div>
+            )}
+
+            <div className="text-muted-foreground">
               Restore your account now to continue using the application.
-            </p>
+            </div>
           </DialogDescription>
         </DialogHeader>
 

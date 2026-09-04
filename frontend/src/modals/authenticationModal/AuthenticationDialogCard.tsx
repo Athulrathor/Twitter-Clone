@@ -21,17 +21,6 @@ export default function AuthenticationDialog({ flow }: Props) {
     <Dialog
       open={flow.open}
       modal
-      // onOpenChange={(open) => {
-      //   if (!open) {
-      //     if (
-      //       flow.request?.purpose === AuthenticationPurpose.PHONE_VERIFICATION
-      //     ) {
-      //       return;
-      //     }
-
-      //     flow.cancel();
-      //   }
-      // }}
     >
       <DialogContent
         className="sm:max-w-md"

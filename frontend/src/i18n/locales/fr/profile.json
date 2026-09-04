@@ -33,5 +33,23 @@
   "avatar_updated": "Photo de profil mise à jour.",
   "avatar_removed": "Photo de profil supprimée.",
   "cover_updated": "Photo de couverture mise à jour.",
-  "cover_removed": "Photo de couverture supprimée."
+  "cover_removed": "Photo de couverture supprimée.",
+
+  "empty": {
+    "posts_title": "Vous n’avez encore rien publié",
+    "posts_description":
+      "Lorsque vous publierez quelque chose, cela apparaîtra ici.",
+
+    "replies_title": "Vous n’avez encore répondu à aucun message",
+    "replies_description":
+      "Lorsque vous répondrez à une publication, votre réponse apparaîtra ici.",
+
+    "media_title": "Lumière, caméra… pièces jointes !",
+    "media_description":
+      "Lorsque vous publierez des photos ou des vidéos, elles apparaîtront ici.",
+
+    "articles_title": "Vous n’avez encore écrit aucun article",
+    "articles_description":
+      "Lorsque vous écrirez des articles, ils apparaîtront ici."
+  }
 }

@@ -6,42 +6,75 @@ import AuthModal from "./Authmodel";
 import TwitterLogo from "./Twitterlogo";
 import { useAuth } from "@/context/AuthContext";
 import Feed from "./Feed";
+import { AccountStatus } from "@/types/accountStatus";
 import RestoreAccountDialog from "./RestoreDialogBox";
 import ActionDialog from "./MobileRestrictionDialog";
 import { notify } from "@/lib/toast";
 import axiosInstance from "@/lib/axiosInstance";
 import { useRouter } from "next/navigation";
+import { auth } from "@/context/firebase";
 
 export default function LandingPage() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("signup");
   const { user, googlesignin, isInitializing } = useAuth();
   const [restrictedOpen, setRestrictedOpen] = useState<boolean>(false);
+  const [accountOpen, setAccountOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<any>(null);
+  const [status, setStatus] = useState<AccountStatus | null>(null);
 
   const router = useRouter();
+
+  type AxiosErrorLike = {
+    response?: {
+      data?: Partial<AccountStatus> & { code?: string; message?: string };
+    };
+    isAccountDeleted?: boolean;
+    accountStatus?: Partial<AccountStatus> & { code?: string };
+    message?: string;
+  };
 
   const restoreAccount = async () => {
     try {
       setLoading(true);
 
-      await axiosInstance.patch("/auth/restore-account");
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) {
+        throw new Error("Unable to restore account without a valid authentication token.");
+      }
 
-      setStatus((prev: any) => ({
+      await axiosInstance.patch(
+        "/auth/restore-account",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        },
+      );
+
+      setStatus((prev) => ({
         ...prev,
         isDeleted: false,
         deletedAt: null,
         scheduledDeleteAt: null,
+        restoreAt: null,
       }));
+
+      setAccountOpen(false);
 
       notify.success("Account restored successfully.");
 
       router.refresh();
-    } catch (error: any) {
-      notify.error(
-        error.response?.data?.message ?? "Failed to restore account.",
-      );
+    } catch (error: unknown) {
+      type RestorePayload = { message?: string };
+      const raw =
+        typeof error === "object" && error !== null && "response" in error
+          ? (error as AxiosErrorLike).response?.data
+          : undefined;
+      const data = raw as RestorePayload | undefined;
+      notify.error(data?.message ?? "Failed to restore account.");
     } finally {
       setLoading(false);
     }
@@ -51,6 +84,29 @@ export default function LandingPage() {
     setAuthMode(mode);
     setShowAuthModal(true);
   };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await googlesignin();
+    } catch (error: unknown) {
+      const typedError = error as AxiosErrorLike;
+      const payload = typedError.accountStatus ?? typedError.response?.data;
+
+      if (typedError.isAccountDeleted || payload?.code === "ACCOUNT_DELETED") {
+        setStatus({
+          deletedAt: payload?.deletedAt ?? null,
+          scheduledDeleteAt: payload?.scheduledDeleteAt ?? null,
+          isDeleted: payload?.isDeleted ?? true,
+          restoreAt: payload?.restoreAt ?? null,
+        });
+        setAccountOpen(true);
+        return;
+      }
+
+      notify.error(typedError.message ?? "Unable to sign in with Google.");
+    }
+  };
+
   if (isInitializing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
@@ -62,6 +118,7 @@ export default function LandingPage() {
   if (user) {
     return <Feed />;
   }
+
   return (
     <div className="min-h-screen bg-black text-white flex">
       {/* Left side - Logo */}
@@ -86,7 +143,7 @@ export default function LandingPage() {
             <Button
               variant="outline"
               className="w-full py-3 rounded-full border-gray-600 bg-black  text-white font-semibold text-base h-12"
-              onClick={() => googlesignin()}
+              onClick={handleGoogleSignIn}
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path
@@ -112,7 +169,7 @@ export default function LandingPage() {
             <Button
               variant="outline"
               className="w-full py-3 rounded-full border-gray-600  bg-black text-white font-semibold text-base h-12"
-              onClick={() => googlesignin()}
+              onClick={handleGoogleSignIn}
             >
               <svg
                 className="w-5 h-5 mr-2"
@@ -174,30 +231,31 @@ export default function LandingPage() {
           initialMode={authMode}
           setRestrictedOpen={setRestrictedOpen}
           setStatus={setStatus}
+          setAccountOpen={setAccountOpen}
         />
       )}
 
-      {status?.isDeleted ? (
-        <RestoreAccountDialog
-          open
-          deletedAt={status.deletedAt}
-          scheduledDeleteAt={status.scheduledDeleteAt}
-          loading={loading}
-          onRestore={restoreAccount}
-        />
-      ) : (
-        <ActionDialog
-          open={restrictedOpen}
-          variant="warning"
-          preventClose
-          title="Mobile Login Disabled"
-          description="Mobile login is available only between 10:00 AM and 1:00 PM."
-          primaryAction={{
-            label: "I Understand",
-            onClick: () => setRestrictedOpen(false),
-          }}
-        />
-      )}
+      <RestoreAccountDialog
+        open={accountOpen}
+        onOpenChange={setAccountOpen}
+        deletedAt={status?.deletedAt}
+        scheduledDeleteAt={status?.scheduledDeleteAt}
+        loading={loading}
+        restoreAt={status?.restoreAt}
+        onRestore={restoreAccount}
+      />
+
+      <ActionDialog
+        open={restrictedOpen}
+        variant="warning"
+        preventClose
+        title="Mobile Login Disabled"
+        description="Mobile login is available only between 10:00 AM and 1:00 PM."
+        primaryAction={{
+          label: "I Understand",
+          onClick: () => setRestrictedOpen(false),
+        }}
+      />
     </div>
   );
 }

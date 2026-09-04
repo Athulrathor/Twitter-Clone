@@ -222,9 +222,9 @@ export default function ProfilePage() {
                 <CardContent className="py-12 text-center">
                   <div className="text-gray-400">
                     <h3 className="text-2xl font-bold mb-2">
-                      You haven&apos;t posted yet
+                      {t("profile:empty.posts_title", { ns: "profile" })}
                     </h3>
-                    <p>When you post, it will show up here.</p>
+                    <p>{t("profile:empty.posts_description", { ns: "profile" })}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -241,9 +241,9 @@ export default function ProfilePage() {
             <CardContent className="py-12 text-center">
               <div className="text-gray-400">
                 <h3 className="text-2xl font-bold mb-2">
-                  You haven&apos;t replied yet
+                  {t("profile:empty.replies_title", { ns: "profile" })}
                 </h3>
-                <p>When you reply to a post, it will show up here.</p>
+                <p>{t("profile:empty.replies_description", { ns: "profile" })}</p>
               </div>
             </CardContent>
           </Card>
@@ -252,11 +252,11 @@ export default function ProfilePage() {
         <TabsContent value="highlights" className="mt-0">
           <Card className="bg-black border-none">
             <CardContent className="py-12 text-center">
-              <div className="text-gray-400">
+                <div className="text-gray-400">
                 <h3 className="text-2xl font-bold mb-2">
-                  Lights, camera … attachments!
+                  {t("profile:empty.media_title", { ns: "profile" })}
                 </h3>
-                <p>When you post photos or videos, they will show up here.</p>
+                <p>{t("profile:empty.media_description", { ns: "profile" })}</p>
               </div>
             </CardContent>
           </Card>
@@ -267,9 +267,9 @@ export default function ProfilePage() {
             <CardContent className="py-12 text-center">
               <div className="text-gray-400">
                 <h3 className="text-2xl font-bold mb-2">
-                  You haven&apos;t written any articles
+                  {t("profile:empty.articles_title", { ns: "profile" })}
                 </h3>
-                <p>When you write articles, they will show up here.</p>
+                <p>{t("profile:empty.articles_description", { ns: "profile" })}</p>
               </div>
             </CardContent>
           </Card>
@@ -280,9 +280,9 @@ export default function ProfilePage() {
             <CardContent className="py-12 text-center">
               <div className="text-gray-400">
                 <h3 className="text-2xl font-bold mb-2">
-                  Lights, camera … attachments!
+                  {t("profile:empty.media_title", { ns: "profile" })}
                 </h3>
-                <p>When you post photos or videos, they will show up here.</p>
+                <p>{t("profile:empty.media_description", { ns: "profile" })}</p>
               </div>
             </CardContent>
           </Card>

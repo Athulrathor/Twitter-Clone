@@ -53,7 +53,7 @@ const TweetComposer = ({
   const [audioLoading, setAudioLoading] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
   const [imageUrl, setimageUrl] = useState("");
-  const [message, setMessage] = useState(false);
+  // const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
   const maxLength = 200;
   const hasContent = content.trim().length > 0;
@@ -61,6 +61,9 @@ const TweetComposer = ({
   const hasAudio = Boolean(audio);
   const { t } = useTranslation();
   const authentication = useAuthentication();
+  const message = success
+    ? t("audio_upload_available")
+    : t("audio_upload_time_restriction");
 
   const audioInputRef = useRef<HTMLInputElement>(null);
 
@@ -131,7 +134,7 @@ const TweetComposer = ({
         },
       });
 
-      setMessage(status?.data?.message);
+      // setMessage(status?.data?.message);
       setSuccess(status?.data?.success);
     } catch (error) {
       console.error(error);

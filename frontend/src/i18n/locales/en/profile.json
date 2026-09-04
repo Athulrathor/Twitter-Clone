@@ -33,5 +33,19 @@
   "avatar_updated": "Profile picture updated.",
   "avatar_removed": "Profile picture removed.",
   "cover_updated": "Cover photo updated.",
-  "cover_removed": "Cover photo removed."
+  "cover_removed": "Cover photo removed.",
+
+  "empty": {
+    "posts_title": "You haven't posted yet",
+    "posts_description": "When you post, it will show up here.",
+
+    "replies_title": "You haven't replied yet",
+    "replies_description": "When you reply to a post, it will show up here.",
+
+    "media_title": "Lights, camera … attachments!",
+    "media_description": "When you post photos or videos, they will show up here.",
+
+    "articles_title": "You haven't written any articles",
+    "articles_description": "When you write articles, they will show up here."
+  }
 }

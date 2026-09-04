@@ -2,6 +2,7 @@ import { Bell } from "lucide-react";
 import formatDistanceToNow from "@/lib/formatDistanceToNow";
 import { useState } from "react";
 import NotificationDialogBox from "./NotificationDialogBox";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   notification: any;
@@ -13,6 +14,7 @@ export default function NotificationCard({
   onRead,
 }: Props) {
   const [open,setOpen] = useState<boolean>(false);
+  const { t } = useTranslation();
   
   const handleClick = () => {
     if (!notification.read) {
@@ -35,7 +37,7 @@ export default function NotificationCard({
         <div className="flex-1">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">
-              {notification?.title}
+              {t("notification:tweetMessage", {name: notification.tweetId?.author?.displayName})}
             </h3>
 
             <span className="text-xs text-muted-foreground">

@@ -9,6 +9,7 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
+  updateProfile as firebaseUpdateProfile,
 } from "firebase/auth";
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { auth } from "./firebase";
@@ -32,6 +33,7 @@ interface User {
   website: string;
   location: string;
   deleteAt?: Date;
+  deletedAt?: Date;
   isDeleted?: boolean;
   scheduledDeleteAt?: Date;
   restoreAt?: Date;
@@ -107,10 +109,32 @@ interface Pagination {
   hasPrev: boolean;
 }
 
+type AccountStatusPayload = {
+  code?: string;
+  message?: string;
+  deletedAt?: string | Date | null;
+  scheduledDeleteAt?: string | Date | null;
+  restoreAt?: string | Date | null;
+  isDeleted?: boolean;
+  success?: boolean;
+};
+
+interface AccountDeletedResponse extends AccountStatusPayload {}
+
+interface FirebaseLoginResponse extends AccountStatusPayload {
+  requiresOtp?: boolean;
+  expiresAt?: string;
+  session: { _id: string };
+  user?: User;
+  email?: string;
+  firebaseUid?: string;
+}
+
 interface AuthContextType {
   sessionId: string | null;
   sessionData: SessionContents[] | null;
   currentSession: SessionContents | null;
+  accountStatus: {code: string, deletedAt?: string, isDeleted?: boolean, message?: string, restoreAt?: string, scheduledDeleteAt?: string, success?: boolean} | null;
   sessionLoading: boolean;
   isInitializing: boolean;
   authLoading: boolean;
@@ -149,9 +173,14 @@ interface AuthContextType {
   }) => Promise<void>;
   logout: (sessionId: string) => Promise<void>;
   googlesignin: () => Promise<
-    | { requiresOtp: boolean; expiresAt: Date }
-    | { requiresOtp: boolean; user: User }
-    | null
+    | {
+        requiresOtp: boolean;
+        expiresAt: Date;
+        displayName?: string;
+        user: User;
+      }
+    | { requiresOtp: boolean; user: User; displayName?: string }
+    | undefined
   >;
   fetchSession: (page?: number) => Promise<void>;
   logoutAll: () => Promise<void>;
@@ -171,7 +200,11 @@ interface AuthContextType {
     message: string;
     user: User;
   } | null>;
-  fetchDeleteStatus: () => Promise<{ success: boolean; data: User,message: string } | null>;
+  fetchDeleteStatus: () => Promise<{
+    success: boolean;
+    data: User;
+    message: string;
+  } | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -190,6 +223,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
+  const [accountStatus] = useState<{code: string, deletedAt?: string, isDeleted?: boolean, message?: string, restoreAt?: string, scheduledDeleteAt?: string, success?: boolean} | null>(null);
   const [sessionLoading, setSessionLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [firebaseUid, setFirebaseUid] = useState<string | null>(null);
@@ -281,7 +315,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, [user?.notificationEnabled]);
 
-    if (isInitializing) {
+  if (isInitializing) {
     return (
       <div className="flex h-screen items-center justify-center bg-black">
         <LoadingSpinner className="h-8 w-8 animate-spin text-white" />
@@ -289,12 +323,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     );
   }
 
+  const clearClientAuthState = () => {
+    setUser(null);
+    setFirebaseUid(null);
+    setSessionId(null);
+    localStorage.removeItem("twitter-user");
+    sessionStorage.removeItem("sessionId");
+    sessionStorage.removeItem("firebaseToken");
+  };
+
   const login = async (
     email: string,
     password: string,
   ): Promise<
-    | { requiresOtp: boolean; expiresAt: Date }
-    | { requiresOtp: boolean; user: User }
+    | { requiresOtp: boolean; expiresAt: Date; displayName?: string }
+    | { requiresOtp: boolean; user: User; displayName?: string }
     | null
   > => {
     try {
@@ -304,14 +347,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const idToken = await usercred.user.getIdToken();
 
-      const res = await axiosInstance.post<{
-        requiresOtp: boolean;
-        expiresAt?: string;
-        session: { _id: string };
-        firebaseUid?: string;
-        email?: string;
-        user?: User;
-      }>(
+      const res = await axiosInstance.post<FirebaseLoginResponse>(
         "/firebase/login",
         { loginMethod: "email" },
         {
@@ -319,6 +355,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           withCredentials: true,
         },
       );
+
+      if (res?.data && (res.data as AccountDeletedResponse).code === "ACCOUNT_DELETED") {
+        const payload = res.data as AccountDeletedResponse;
+        const err: any = new Error(payload.message || "Account deleted");
+        err.isAccountDeleted = true;
+        err.accountStatus = payload;
+        err.response = { data: payload };
+        throw err;
+      }
 
       if (res.data.requiresOtp) {
         const email = res.data?.user?.email ?? res.data?.email;
@@ -330,7 +375,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
         return {
           requiresOtp: true,
-          expiresAt: res.data.expiresAt ? new Date(res.data.expiresAt) : new Date(),
+          expiresAt: res.data.expiresAt
+            ? new Date(res.data.expiresAt)
+            : new Date(),
+          displayName: res.data?.user?.displayName,
         };
       }
       sessionStorage.setItem("sessionId", res.data.session._id);
@@ -346,10 +394,131 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       return {
         requiresOtp: false,
         user: resolvedUser as User,
+        displayName: res.data?.user?.displayName,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
+
+      const isAccountDeletedError = (
+        candidate: unknown,
+      ): candidate is {
+        isAccountDeleted?: boolean;
+        accountStatus?: AccountDeletedResponse;
+      } => {
+        return (
+          typeof candidate === "object" &&
+          candidate !== null &&
+          "isAccountDeleted" in candidate &&
+          (candidate as { isAccountDeleted?: unknown }).isAccountDeleted === true
+        );
+      };
+
+      if (isAccountDeletedError(error)) {
+        // Preserve the Firebase auth session so the restore endpoint can still
+        // obtain a valid token and authorize the restore request.
+        throw error;
+      }
+
+      try {
+        await signOut(auth);
+      } catch {
+        // Ignore sign-out cleanup errors and keep the user on the landing page.
+      }
+      clearClientAuthState();
       throw error;
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const googlesignin = async (): Promise<
+    | {
+        requiresOtp: boolean;
+        expiresAt: Date;
+        displayName?: string;
+        user: User;
+      }
+    | { requiresOtp: boolean; user: User; displayName?: string }
+    | undefined
+  > => {
+    try {
+      setAuthLoading(true);
+
+      const result = await signInWithPopup(auth, new GoogleAuthProvider());
+
+      const idToken = await result.user.getIdToken();
+
+      const res = await axiosInstance.post<FirebaseLoginResponse>(
+        "/firebase/login",
+        { loginMethod: "google" },
+        {
+          headers: { Authorization: `Bearer ${idToken}` },
+          withCredentials: true,
+        },
+      );
+
+      if (res?.data && (res.data as AccountDeletedResponse).code === "ACCOUNT_DELETED") {
+        const payload = res.data as AccountDeletedResponse;
+        const err: any = new Error(payload.message || "Account deleted");
+        err.isAccountDeleted = true;
+        err.accountStatus = payload;
+        err.response = { data: payload };
+        throw err;
+      }
+
+      if (res.data.requiresOtp) {
+        const email = res.data?.user?.email ?? res.data?.email;
+        setFirebaseUid(res.data?.firebaseUid ?? null);
+        sessionStorage.setItem("sessionId", res.data.session._id);
+        notify.success("OTP sent successfully.");
+        setSessionId(res.data.session._id);
+        if (email) {
+          router.push(`/verify-otp/${email}`);
+        }
+        return {
+          requiresOtp: true,
+          expiresAt: res.data.expiresAt
+            ? new Date(res.data.expiresAt)
+            : new Date(),
+          displayName: res.data?.user?.displayName,
+          user: res.data?.user as User,
+        };
+      }
+      sessionStorage.setItem("sessionId", res.data.session._id);
+      setSessionId(res.data.session._id);
+      setFirebaseUid(res.data?.firebaseUid ?? null);
+      const resolvedUser = res.data.user;
+      if (resolvedUser) {
+        setUser(resolvedUser);
+        notify.success(`Welcome back, ${resolvedUser.displayName}`);
+        sessionStorage.setItem("firebaseToken", res.data?.firebaseUid ?? "");
+        localStorage.setItem("twitter-user", JSON.stringify(resolvedUser));
+      }
+
+      return {
+        requiresOtp: false,
+        user: resolvedUser as User,
+      };
+    } catch (err: unknown) {
+      const isAccountDeletedError = (
+        candidate: unknown,
+      ): candidate is {
+        isAccountDeleted?: boolean;
+        accountStatus?: AccountDeletedResponse;
+      } => {
+        return (
+          typeof candidate === "object" &&
+          candidate !== null &&
+          "isAccountDeleted" in candidate &&
+          (candidate as { isAccountDeleted?: unknown }).isAccountDeleted === true
+        );
+      };
+
+      if (isAccountDeletedError(err)) {
+        // Preserve Firebase auth state so restore can still use the signed-in user.
+        throw err;
+      }
+      throw err;
     } finally {
       setAuthLoading(false);
     }
@@ -363,23 +532,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   ) => {
     try {
       setAuthLoading(true);
-      // Mock authentication - in real app, this would call an API
+      // Create the Firebase user and apply the display name.
       const usercred = await createUserWithEmailAndPassword(
         auth,
         email,
         password,
       );
-      const user = usercred.user;
-      const newuser: any = {
-        username,
-        displayName,
-        avatar:
-          user.photoURL ||
-          "https://images.pexels.com/photos/1139743/pexels-photo-1139743.jpeg?auto=compress&cs=tinysrgb&w=400",
-        email: user.email,
-      };
-      const idToken = await user.getIdToken();
+      const firebaseUser = usercred.user;
 
+      if (displayName.trim()) {
+        await firebaseUpdateProfile(firebaseUser, { displayName });
+      }
+
+      const idToken = await firebaseUser.getIdToken();
       const res = await axiosInstance.post(
         "/firebase/login",
         { loginMethod: "email" },
@@ -392,9 +557,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setUser(res.data.user);
         localStorage.setItem("twitter-user", JSON.stringify(res.data.user));
       }
+      console.log("Signup completed for", username, displayName);
       setAuthLoading(false);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Auth signup failed:", err);
+
+      const isAccountDeletedError = (
+        candidate: unknown,
+      ): candidate is {
+        isAccountDeleted?: boolean;
+      } => {
+        return (
+          typeof candidate === "object" &&
+          candidate !== null &&
+          "isAccountDeleted" in candidate &&
+          (candidate as { isAccountDeleted?: unknown }).isAccountDeleted === true
+        );
+      };
+
+      if (isAccountDeletedError(err)) {
+        // Preserve Firebase auth state so the restore endpoint can still use the
+        // signed-in user's ID token.
+        throw err;
+      }
+      try {
+        await signOut(auth);
+      } catch {
+        // Ignore sign-out cleanup errors.
+      }
+      clearClientAuthState();
+      throw err;
     } finally {
       setAuthLoading(false);
     }
@@ -422,7 +614,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       sessionStorage.clear();
 
       router.push("/");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.log(err);
     }
   };
@@ -504,92 +696,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     setProfileLoading(false);
-  };
-  const googlesignin = async (): Promise<
-    | { requiresOtp: boolean; expiresAt: Date }
-    | { requiresOtp: boolean; user: User }
-    | null
-  > => {
-    try {
-      setAuthLoading(true);
-
-      const result = await signInWithPopup(auth, new GoogleAuthProvider());
-
-      const idToken = await result.user.getIdToken();
-
-      const res = await axiosInstance.post<{
-        requiresOtp: boolean;
-        expiresAt?: string;
-        session: { _id: string };
-        firebaseUid?: string;
-        email?: string;
-        user?: User;
-      }>(
-        "/firebase/login",
-        { loginMethod: "google" },
-        {
-          headers: { Authorization: `Bearer ${idToken}` },
-          withCredentials: true,
-        },
-      );
-
-      if (res.data.requiresOtp) {
-        const email = res.data?.user?.email ?? res.data?.email;
-        setFirebaseUid(res.data?.firebaseUid ?? null);
-        sessionStorage.setItem("sessionId", res.data.session._id);
-        notify.success("OTP sent successfully.");
-        setSessionId(res.data.session._id);
-        if (email) {
-          router.push(`/verify-otp/${email}`);
-        }
-        return {
-          requiresOtp: true,
-          expiresAt: res.data.expiresAt ? new Date(res.data.expiresAt) : new Date(),
-        };
-      }
-      sessionStorage.setItem("sessionId", res.data.session._id);
-      setSessionId(res.data.session._id);
-      setFirebaseUid(res.data?.firebaseUid ?? null);
-      const resolvedUser = res.data.user;
-      if (resolvedUser) {
-        setUser(resolvedUser);
-        notify.success(`Welcome back, ${resolvedUser.displayName}`);
-        sessionStorage.setItem("firebaseToken", res.data?.firebaseUid ?? "");
-        localStorage.setItem("twitter-user", JSON.stringify(resolvedUser));
-      }
-
-      return {
-        requiresOtp: false,
-        user: resolvedUser as User,
-      };
-    } catch (err: any) {
-      const data = err.response?.data;
-
-      switch (data?.code) {
-        case "ACCOUNT_DELETED":
-          notify.error("Your account is scheduled for deletion.");
-          break;
-
-        case "MOBILE_LOGIN_TIME":
-          notify.error("Mobile login is allowed only between 10 AM and 1 PM.");
-          break;
-
-        case "LOGIN_BLOCKED":
-          notify.error(data.message);
-          break;
-
-        case "INVALID_TOKEN":
-          notify.error("Please login again.");
-          break;
-
-        default:
-          notify.error(data?.message || `Something went wrong. ${err}`);
-      }
-      
-      return null;
-    } finally {
-      setAuthLoading(false);
-    }
   };
 
   const fetchSession = async (page: number = 1) => {
@@ -742,6 +848,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         sessionId,
         currentSession,
         stats,
+        accountStatus,
         changePassword,
         fetchDeleteAccount,
         fetchRecoverAccount,

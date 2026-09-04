@@ -1,5 +1,6 @@
 import axios from "axios";
 import { auth } from "../context/firebase";
+import { notify } from "./toast";
 
 const clearStaleAuth = () => {
   localStorage.removeItem("twitter-user");
@@ -15,8 +16,7 @@ const axiosInstance = axios.create({
   withCredentials: true,
 });
 
-axiosInstance.interceptors.request.use(
-  async (config) => {
+axiosInstance.interceptors.request.use(async (config) => {
     if (typeof window !== "undefined") {
       const currentUser = auth.currentUser;
 
@@ -38,9 +38,31 @@ axiosInstance.interceptors.request.use(
 
     return config;
   },
+  (error) => Promise.reject(error),
+);
+
+// Response interceptor to handle errors centrally
+axiosInstance.interceptors.response.use(
+  (response) => response,
   (error) => {
     if (!error.response) {
       notify.error("Network error.");
+      return Promise.reject(error);
+    }
+
+    // Special-case: backend signals account deleted (soft-delete) with 403 + code
+    if (
+      error.response.status === 403 &&
+      error.response.data &&
+      error.response.data.code === "ACCOUNT_DELETED"
+    ) {
+      try {
+        error.isAccountDeleted = true;
+        error.accountStatus = error.response.data;
+      } catch (e) {
+        // ignore
+      }
+
       return Promise.reject(error);
     }
 
@@ -82,7 +104,7 @@ axiosInstance.interceptors.request.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosInstance;

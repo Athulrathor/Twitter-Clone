@@ -6,6 +6,7 @@
     "permission_denied": "Las notificaciones están bloqueadas.",
     "permission_default": "Permite las notificaciones del navegador."
   },
+  "tweetMessage": "Nuevo Tweet de {{name}}",
   "tweet": {
     "title": "Nueva publicación",
     "body": "{{name}} publicó una nueva publicación."

@@ -6,6 +6,7 @@
     "permission_denied": "सूचनाएँ अवरुद्ध हैं।",
     "permission_default": "कृपया ब्राउज़र सूचनाओं की अनुमति दें।"
   },
+  "tweetMessage": "{{name}} का नया ट्वीट",
   "tweet": {
     "title": "नई पोस्ट",
     "body": "{{name}} ने एक नई पोस्ट की है।"

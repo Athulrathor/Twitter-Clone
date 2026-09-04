@@ -6,6 +6,7 @@
     "permission_denied": "通知已被阻止。",
     "permission_default": "请允许浏览器通知。"
   },
+  "tweetMessage": "{{name}} 发布了新推文",
   "tweet": {
     "title": "新帖子",
     "body": "{{name}} 发布了一条新帖子。"

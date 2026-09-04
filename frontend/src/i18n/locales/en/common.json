@@ -45,5 +45,59 @@
   "articles": "Articles",
   "or": "or",
   "cricket": "Cricket",
-  "science": "Science"
+  "science": "Science",
+  "audio_upload_available": "You can upload audio!",
+  "audio_upload_time_restriction": "Audio uploads are available only between 2:00 PM and 7:00 PM IST.",
+  "rights_side": {
+    "search": "Search",
+
+    "premium": {
+      "title": "Subscribe to Premium",
+      "description": "Subscribe to unlock new features and if eligible, receive a share of revenue.",
+      "subscribe_now": "Subscribe Now"
+    },
+
+    "suggestions": {
+      "title": "You might like",
+      "follow": "Follow",
+      "show_more": "Show more"
+    },
+
+    "footer": {
+      "terms_of_service": "Terms of Service",
+      "privacy_policy": "Privacy Policy",
+      "cookie_policy": "Cookie Policy",
+      "accessibility": "Accessibility",
+      "ads_info": "Ads info",
+      "copyright": "© 2024 X Corp."
+    }
+  },
+"subscriptionPage": {
+  "title": "Subscription",
+  "description": "Manage your plan and usage",
+
+  "plans": {
+    "title": "Plans",
+    "description": "Choose your subscription",
+    "free": "Free",
+    "gold": "Gold",
+    "bronze": "Bronze",
+    "silver": "Silver"
+  },
+
+  "current_plan": "Current Plan",
+  "upgrade": "Upgrade",
+  "used": "Used",
+  "remaining": "Remaining",
+  "expired": "Expired",
+  "active": "Active",
+  "month": "month",
+  "tweets": "Tweets",
+  "unlimited": "Unlimited",
+
+  "payment": {
+    "available": "Payments are available between 10:00 AM and 11:00 AM IST.",
+    "unavailable": "Payments are currently unavailable. Please try again between 10:00 AM and 11:00 AM IST."
+  }
+}
 }

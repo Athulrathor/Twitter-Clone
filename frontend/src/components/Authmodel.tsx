@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import { X, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 
@@ -11,18 +11,20 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Separator } from "./ui/separator";
 import { useAuth } from "@/context/AuthContext";
+import { AccountStatus } from "@/types/accountStatus";
 import TwitterLogo from "./Twitterlogo";
 import Link from "next/link";
 import { notify } from "@/lib/toast";
 import { useTranslation } from "react-i18next";
-import axiosInstance from "@/lib/axiosInstance";
+import { useRouter } from "next/navigation";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialMode?: "login" | "signup";
-  setStatus: any,
+  setStatus: React.Dispatch<React.SetStateAction<AccountStatus | null>>;
   setRestrictedOpen: (value: boolean) => void;
+  setAccountOpen: (value: boolean) => void;
 }
 
 export default function AuthModal({
@@ -30,7 +32,8 @@ export default function AuthModal({
   onClose,
   initialMode = "login",
   setStatus,
-  setRestrictedOpen
+  setRestrictedOpen,
+  setAccountOpen,
 }: AuthModalProps) {
   const { login, signup, authLoading, isInitializing } = useAuth();
   const [mode, setMode] = useState<"login" | "signup">(initialMode);
@@ -43,14 +46,7 @@ export default function AuthModal({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { t } = useTranslation();
-  useEffect(() => {
-    async function loadStatus() {
-      const res = await axiosInstance.get("/auth/account-status");
-      setStatus(res.data.data);
-    }
-
-    loadStatus();
-  }, []);
+  const router = useRouter();
 
   if (isInitializing) {
     return (
@@ -98,20 +94,15 @@ export default function AuthModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm() || authLoading) {
+    if (authLoading) return;
+
+    if (!validateForm()) {
       notify.warning("Please correct the highlighted fields.");
       return;
     }
-    try {
-      if (mode === "login") {
-        const result = await login(formData.email, formData.password);
 
-        if (result?.requiresOtp) {
-          notify.success("OTP sent successfully.");
-        }
-        notify.success(`Welcome back ${result?.displayName}`);
-        // setTimeout(() => onClose());
-      } else {
+    try {
+      if (mode === "signup") {
         await signup(
           formData.email,
           formData.password,
@@ -119,36 +110,111 @@ export default function AuthModal({
           formData.displayName,
         );
 
-        notify.success("Account created successfully. Welcome to X!");
+        notify.success("Account created successfully.");
+        setMode("login");
+
+        setFormData((prev) => ({
+          ...prev,
+          password: "",
+          username: "",
+          displayName: "",
+        }));
+
+        return;
       }
+
+      const result = await login(formData.email, formData.password);
+
+      if (!result) {
+        notify.error("Login failed. Please try again.");
+        return;
+      }
+
+      if (result.requiresOtp) {
+        notify.success("Verification code sent.");
+        router.push("/verify-otp");
+        onClose();
+        return;
+      }
+      notify.success(`Welcome back ${result.displayName}`);
       onClose();
-      setFormData({ email: "", password: "", username: "", displayName: "" });
-      setErrors({});
-    } catch (error: any) {
-      const data = error?.response?.data;
+    } catch (error: unknown) {
+      type AxiosErrorLike = {
+        response?: {
+          data?: {
+            code?: string;
+            message?: string;
+            deletedAt?: string | Date | null;
+            scheduledDeleteAt?: string | Date | null;
+            isDeleted?: boolean;
+            restoreAt?: string | Date | null;
+            success?: boolean;
+          };
+        };
+        isAccountDeleted?: boolean;
+        accountStatus?: {
+          code?: string;
+          message?: string;
+          deletedAt?: string | Date | null;
+          scheduledDeleteAt?: string | Date | null;
+          isDeleted?: boolean;
+          restoreAt?: string | Date | null;
+          success?: boolean;
+        };
+        message?: string;
+      };
+
+      const typedError = error as AxiosErrorLike;
+      const data = typedError.accountStatus ?? typedError.response?.data;
+      const isAccountDeleted =
+        typedError.isAccountDeleted || data?.code === "ACCOUNT_DELETED";
+
+      const messageFromError =
+        typedError.message ?? (typeof data?.message === "string" ? data.message : undefined);
+      if (isAccountDeleted) {
+        setAccountOpen(true);
+        setStatus({
+          deletedAt: data?.deletedAt,
+          isDeleted: data?.isDeleted,
+          scheduledDeleteAt: data?.scheduledDeleteAt,
+          restoreAt: data?.restoreAt,
+        });
+        notify.error("Your account is scheduled for deletion.");
+        return;
+      }
 
       switch (data?.code) {
-        case "ACCOUNT_DELETED":
-          setRestrictedOpen(true);
-          notify.error("Your account is scheduled for deletion.");
-          break;
-
         case "MOBILE_LOGIN_TIME":
           setRestrictedOpen(true);
           notify.error("Mobile login is allowed only between 10 AM and 1 PM.");
           break;
 
-        case "LOGIN_BLOCKED":
+        case "LOGIN_BLOCKED": {
           setRestrictedOpen(true);
-          notify.error(data.message);
+          notify.error(data?.message ?? "Login blocked.");
           break;
+        }
 
         case "INVALID_TOKEN":
           notify.error("Please login again.");
           break;
 
-        default:
-          notify.error(data?.message || "Something went wrong.");
+        default: {
+          const friendlyMessage = messageFromError
+            ? messageFromError
+                .replace(/Firebase:/i, "")
+                .replace(/auth\//i, "")
+                .replace(/\./g, " ")
+                .trim()
+            : undefined;
+
+          const mappedMessage = friendlyMessage
+            ? friendlyMessage
+            : "Unable to sign in. Please check your email and password and try again.";
+
+          notify.error(mappedMessage);
+          break;
+        }
       }
     }
   };

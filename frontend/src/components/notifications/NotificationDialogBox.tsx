@@ -9,6 +9,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "../../components/ui/avatar";
+import { useTranslation } from "react-i18next";
 
 import Image from "next/image";
 
@@ -23,11 +24,12 @@ export default function NotificationDialogBox({
   onOpenChange,
   tweet,
 }: Props) {
+  const { t } = useTranslation();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Tweet</DialogTitle>
+          <DialogTitle>{t("notification:tweet.title")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
