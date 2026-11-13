@@ -84,7 +84,7 @@ export default function ProfilePage() {
             <ArrowLeft className="h-5 w-5 text-white" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold text-white">{user.displayName}</h1>
+            <h1 className="text-xl font-bold text-white">{user?.displayName}</h1>
             <p className="text-sm text-gray-400">{userTweets.length} {t("posts", { ns: "profile" })}</p>
           </div>
         </div>
