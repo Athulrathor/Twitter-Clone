@@ -69,7 +69,7 @@ export default function ProfilePage() {
   // Filter tweets by current user
 
   if (!user) return null;
-  const userTweets = tweets.filter((tweet: Tweet) => tweet.author._id === user._id);
+  const userTweets = tweets.filter((tweet: Tweet) => tweet?.author?._id === user?._id);
 
   return (
     <div className="min-h-screen">
@@ -85,7 +85,7 @@ export default function ProfilePage() {
           </Button>
           <div>
             <h1 className="text-xl font-bold text-white">{user?.displayName}</h1>
-            <p className="text-sm text-gray-400">{userTweets.length} {t("posts", { ns: "profile" })}</p>
+            <p className="text-sm text-gray-400">{userTweets?.length} {t("posts", { ns: "profile" })}</p>
           </div>
         </div>
       </div>
@@ -108,7 +108,7 @@ export default function ProfilePage() {
             <Avatar className="h-32 w-32 border-4 border-black">
               <AvatarImage src={user?.avatar} alt={user?.displayName} />
               <AvatarFallback className="text-2xl">
-                {user.displayName[0]}
+                {user?.displayName[0]}
               </AvatarFallback>
             </Avatar>
             <Button
@@ -140,7 +140,7 @@ export default function ProfilePage() {
             <h1 className="text-2xl font-bold text-white">
               {user.displayName}
             </h1>
-            <p className="text-gray-400">@{user.username}</p>
+            <p className="text-gray-400">@{user?.username}</p>
           </div>
           <Button
             variant="ghost"
@@ -152,13 +152,13 @@ export default function ProfilePage() {
         </div>
 
         {user.bio && (
-          <p className="text-white mb-3 leading-relaxed">{user.bio}</p>
+          <p className="text-white mb-3 leading-relaxed">{user?.bio}</p>
         )}
 
         <div className="flex items-center space-x-4 text-gray-400 text-sm mb-3">
           <div className="flex items-center space-x-1">
             <MapPin className="h-4 w-4" />
-            <span>{user.location ? user.location : "Earth"}</span>
+            <span>{user?.location ? user?.location : "Earth"}</span>
           </div>
           <div className="flex items-center space-x-1">
             <LinkIcon className="h-4 w-4" />
@@ -171,7 +171,7 @@ export default function ProfilePage() {
             <span>
               Joined{" "}
               {user.joinedDate &&
-                new Date(user.joinedDate).toLocaleDateString("en-us", {
+                new Date(user?.joinedDate).toLocaleDateString("en-us", {
                   month: "long",
                   year: "numeric",
                 })}
@@ -230,7 +230,7 @@ export default function ProfilePage() {
               </Card>
             ) : (
               userTweets.map((tweet: Tweet) => (
-                <TweetCard key={tweet._id} tweet={tweet} />
+                <TweetCard key={tweet?._id} tweet={tweet} />
               ))
             )}
           </div>
