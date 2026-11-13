@@ -219,8 +219,8 @@ const TweetComposer = ({
         <CardContent className="p-4">
           <div className="flex gap-3">
             <Avatar className="h-10 w-10 shrink-0">
-              <AvatarImage src={user.avatar} alt={user.displayName} />
-              <AvatarFallback>{user.displayName[0]}</AvatarFallback>
+              <AvatarImage src={user?.avatar} alt={user?.displayName} />
+              <AvatarFallback>{user?.displayName[0]}</AvatarFallback>
             </Avatar>
 
             <div className="flex-1">
