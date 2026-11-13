@@ -92,7 +92,7 @@ export default function TweetCard({ tweet }: any) {
                     {tweetstate.author?.displayName}
                   </span>
 
-                  {tweetstate.author.verified && (
+                  {tweetstate?.author?.verified && (
                     <div className="bg-blue-500 rounded-full p-0.5 shrink-0">
                       <svg
                         className="h-3 w-3 text-white fill-current"
@@ -106,11 +106,11 @@ export default function TweetCard({ tweet }: any) {
 
                 <div className="flex items-center text-sm text-gray-500 gap-1">
                   <span className="truncate">
-                    @{tweetstate.author.username}
+                    @{tweetstate?.author?.username}
                   </span>
                   <span>·</span>
                   <span>
-                    {new Date(tweetstate.timestamp).toLocaleDateString(
+                    {new Date(tweetstate?.timestamp).toLocaleDateString(
                       "en-US",
                       {
                         month: "short",
@@ -127,7 +127,7 @@ export default function TweetCard({ tweet }: any) {
                   {tweetstate.author?.displayName}
                 </span>
 
-                {tweetstate.author.verified && (
+                {tweetstate?.author?.verified && (
                   <div className="bg-blue-500 rounded-full p-0.5">
                     <svg
                       className="h-4 w-4 text-white fill-current"
@@ -139,7 +139,7 @@ export default function TweetCard({ tweet }: any) {
                 )}
 
                 <span className="text-gray-500">
-                  @{tweetstate.author.username}
+                  @{tweetstate?.author?.username}
                 </span>
 
                 <span className="text-gray-500">·</span>
