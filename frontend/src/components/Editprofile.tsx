@@ -229,7 +229,7 @@ const Editprofile = ({ isopen, onclose }: any) => {
                 <Input
                   id="displayName"
                   type="text"
-                  value={formData.displayName}
+                  value={formData?.displayName}
                   onChange={(e) =>
                     handleInputChange("displayName", e.target.value)
                   }
@@ -240,10 +240,10 @@ const Editprofile = ({ isopen, onclose }: any) => {
                 />
                 <div className="flex justify-between text-sm">
                   {error.displayName && (
-                    <p className="text-red-400">{error.displayName}</p>
+                    <p className="text-red-400">{error?.displayName}</p>
                   )}
                   <p className="text-gray-400 ml-auto">
-                    {formData.displayName.length}/50
+                    {formData?.displayName?.length}/50
                   </p>
                 </div>
               </div>
