@@ -70,7 +70,7 @@ export default function ProfilePage() {
 
   if (!user) return null;
   const userTweets = tweets.filter((tweet: Tweet) => tweet?.author?._id === user?._id);
-
+   console.log("tweetstate: ",tweets)
   return (
     <div className="min-h-screen">
       {/* Header */}
