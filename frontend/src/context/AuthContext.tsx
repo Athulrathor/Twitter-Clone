@@ -269,6 +269,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       } catch (err) {
         console.error(err);
+        if (!user) {
+          console.log("user not found")
+        };
       } finally {
         setIsInitializing(false);
       }
