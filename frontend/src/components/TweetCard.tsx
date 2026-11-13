@@ -70,7 +70,6 @@ export default function TweetCard({ tweet }: any) {
   const isLiked = tweetstate.likedBy?.includes(user?._id);
   const isRetweet = tweetstate.retweetedBy?.includes(user?._id);
 
-  console.log("tweetstate: ",tweetstate)
   return (
     <Card className="bg-black border-gray-800 border-x-0 border-t-0 rounded-none hover:bg-gray-950/50 transition-colors cursor-pointer">
       <CardContent className="p-3 sm:p-4">
