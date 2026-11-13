@@ -89,7 +89,7 @@ export default function TweetCard({ tweet }: any) {
               <div className="block sm:hidden">
                 <div className="flex items-center gap-1">
                   <span className="font-bold text-white truncate">
-                    {tweetstate.author.displayName}
+                    {tweetstate.author?.displayName}
                   </span>
 
                   {tweetstate.author.verified && (
@@ -124,7 +124,7 @@ export default function TweetCard({ tweet }: any) {
               {/* Desktop Layout */}
               <div className="hidden sm:flex items-center gap-2">
                 <span className="font-bold text-white">
-                  {tweetstate.author.displayName}
+                  {tweetstate.author?.displayName}
                 </span>
 
                 {tweetstate.author.verified && (
