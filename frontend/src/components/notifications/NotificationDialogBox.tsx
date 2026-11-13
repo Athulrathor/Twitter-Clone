@@ -58,10 +58,10 @@ export default function NotificationDialogBox({
           )}
 
           {/* Image */}
-          {tweet.image && (
+          {tweet?.image && (
             <div className="relative h-80 rounded-lg overflow-hidden">
               <Image
-                src={tweet.image}
+                src={tweet?.image}
                 alt="Tweet Image"
                 fill
                 className="object-cover"
