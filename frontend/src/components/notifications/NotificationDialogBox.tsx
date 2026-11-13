@@ -72,7 +72,7 @@ export default function NotificationDialogBox({
           {/* Audio */}
           {tweet.audio?.audioUrl && (
             <audio controls className="w-full" preload="metadata">
-              <source src={tweet.audio.audioUrl} type={tweet.audio.mimeType} />
+              <source src={tweet?.audio?.audioUrl} type={tweet?.audio?.mimeType} />
             </audio>
           )}
         </div>
