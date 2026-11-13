@@ -75,11 +75,11 @@ export default function TweetCard({ tweet }: any) {
         <div className="flex gap-2">
           <Avatar className="h-10 w-10 shrink-0">
             <AvatarImage
-              src={tweetstate.author.avatar}
-              alt={tweetstate.author.displayName}
+              src={tweetstate.author?.avatar}
+              alt={tweetstate.author?.displayName}
             />
             <AvatarFallback>
-              {tweetstate.author.displayName?.[0]}
+              {tweetstate.author?.displayName?.[0]}
             </AvatarFallback>
           </Avatar>
 
